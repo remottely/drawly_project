@@ -1,13 +1,14 @@
 import 'package:draw_board/draw_board.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-class LetsDrawApp extends StatelessWidget {
-  const LetsDrawApp({super.key});
+class DrawlyApp extends StatelessWidget {
+  const DrawlyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Let/'s Draw",
+      title: "Drawly",
       theme: lightTheme,
       home: const DrawBoard(),
     );

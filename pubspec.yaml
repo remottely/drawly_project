@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   draw_board:
     path: packages/draw_board
+  drawly_design_system:
+    path: packages/drawly_design_system
   universal_platform: ^1.1.0
 
 dev_dependencies:
