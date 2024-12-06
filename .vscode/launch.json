@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Web - Instance 1",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "html",
+        "--web-port",
+        "8082"
+      ]
+    },
+    {
+      "name": "Flutter Web - Instance 2",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "html",
+        "--web-port",
+        "8083"
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run Both Instances",
+      "configurations": ["Flutter Web - Instance 1", "Flutter Web - Instance 2"]
+    }
+  ]
+}
