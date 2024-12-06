@@ -102,7 +102,7 @@ packages:
       path: "packages/drawly_design_system"
       relative: true
     source: path
-    version: "0.0.1"
+    version: "1.0.0+1"
   fake_async:
     dependency: transitive
     description:
