@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:draw_board/draw_board.dart';
 import 'package:drawly/features/answers_chat/answers_chat.dart';
+import 'package:drawly/features/message_chat/message_chat.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,12 @@ class GamePage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<GamePage> {
+  _initialize() {
+    _initializeSocket();
+    _createRoom();
+    _joinGameRoom();
+  }
+
   /// Initializes the socket connection and defines event handlers
   void _initializeSocket() {
     SocketManager.instance.connect();
@@ -76,9 +83,7 @@ class _GamePageState extends GamePageViewModel {
   @override
   void initState() {
     super.initState();
-    _initializeSocket();
-    _createRoom();
-    _joinGameRoom();
+    _initialize();
   }
 
   @override
@@ -90,6 +95,24 @@ class _GamePageState extends GamePageViewModel {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Drawly - ${widget.room}'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              SocketManager.instance.disconnect();
+            },
+            icon: const Icon(Icons.wifi_off_sharp),
+          ),
+          IconButton(
+            onPressed: () {
+              // TODO(Kevin): we need to recreate all socket configuration what we have done in the initState
+              _initialize();
+            },
+            icon: const Icon(Icons.wifi),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -101,9 +124,21 @@ class _GamePageState extends GamePageViewModel {
           ),
           const Divider(),
           Expanded(
-            child: AnswersChat(
-              username: widget.username,
-              room: widget.room,
+            child: Row(
+              children: [
+                Expanded(
+                  child: AnswersChat(
+                    username: widget.username,
+                    room: widget.room,
+                  ),
+                ),
+                Expanded(
+                  child: MessageChat(
+                    username: widget.username,
+                    room: widget.room,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

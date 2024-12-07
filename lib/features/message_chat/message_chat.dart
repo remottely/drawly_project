@@ -2,8 +2,8 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 /// Main drawing screen where the user interacts with the Pictionary game
-class AnswersChat extends StatefulWidget {
-  const AnswersChat({
+class MessageChat extends StatefulWidget {
+  const MessageChat({
     super.key,
     required this.username,
     required this.room,
@@ -14,38 +14,38 @@ class AnswersChat extends StatefulWidget {
   final String room;
 
   @override
-  State<AnswersChat> createState() => _AnswersChatState();
+  State<MessageChat> createState() => _MessageChatState();
 }
 
-abstract class PictionaryScreenViewModel extends State<AnswersChat> {
+abstract class PictionaryScreenViewModel extends State<MessageChat> {
   /// [CHAT]
-  final ValueNotifier<List<String>> rxAnswers = ValueNotifier([]); // Messages received from the server
-  final TextEditingController answerController = TextEditingController();
+  final ValueNotifier<List<String>> rxMessages = ValueNotifier([]); // Messages received from the server
+  final TextEditingController messageController = TextEditingController();
 
   /// Initializes the socket connection and defines event handlers
   void _initializeChatSocket() {
-    // Handle new answer event
-    SocketManager.instance.on('newAnswerChat', (data) {
-      rxAnswers.value = List.from(rxAnswers.value)..add("${data['username']}: ${data['answer']}");
+    // Handle new message event
+    SocketManager.instance.on('newMessageChat', (data) {
+      rxMessages.value = List.from(rxMessages.value)..add("${data['username']}: ${data['message']}");
     });
   }
 
-  /// Sends a chat answer to the server
-  void _sendAnswer() {
-    if (answerController.text.isNotEmpty) {
-      final answer = answerController.text;
-      SocketManager.instance.emit('sendAnswerChat', {
+  /// Sends a chat message to the server
+  void _sendMessage() {
+    if (messageController.text.isNotEmpty) {
+      final message = messageController.text;
+      SocketManager.instance.emit('sendMessageChat', {
         'room': widget.room,
-        'answer': answer,
+        'message': message,
         'username': widget.username,
       });
 
-      answerController.clear();
+      messageController.clear();
     }
   }
 }
 
-class _AnswersChatState extends PictionaryScreenViewModel {
+class _MessageChatState extends PictionaryScreenViewModel {
   @override
   void initState() {
     super.initState();
@@ -54,8 +54,8 @@ class _AnswersChatState extends PictionaryScreenViewModel {
 
   @override
   void dispose() {
-    answerController.dispose();
-    SocketManager.instance.off('newAnswerChat');
+    messageController.dispose();
+    SocketManager.instance.off('newMessageChat');
     super.dispose();
   }
 
@@ -65,7 +65,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
       children: [
         Expanded(
           child: ValueListenableBuilder<List<String>>(
-            valueListenable: rxAnswers,
+            valueListenable: rxMessages,
             builder: (context, value, child) {
               return ListView.builder(
                 itemCount: value.length,
@@ -84,14 +84,14 @@ class _AnswersChatState extends PictionaryScreenViewModel {
             children: [
               Expanded(
                 child: TextField(
-                  controller: answerController,
+                  controller: messageController,
                   decoration: const InputDecoration(
-                    hintText: 'Enter your answer',
+                    hintText: 'Enter your message',
                   ),
                 ),
               ),
               IconButton(
-                onPressed: _sendAnswer,
+                onPressed: _sendMessage,
                 icon: const Icon(Icons.send),
               ),
             ],

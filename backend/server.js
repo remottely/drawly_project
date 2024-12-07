@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
     io.to(room).emit("updateParticipants", participants);
 
     console.log(`${username} joined room ${room}`);
-    io.to(room).emit("newMessage", {
+    io.to(room).emit("newMessageChat", {
       username: "System",
       message: `${username} joined the room.`,
     });
@@ -83,7 +83,7 @@ io.on("connection", (socket) => {
     socket.leave(room);
 
     // Notify other users in the room
-    io.to(room).emit("newMessage", {
+    io.to(room).emit("newMessageChat", {
       username: "System",
       message: `${username} left the room.`,
     });
@@ -94,8 +94,12 @@ io.on("connection", (socket) => {
   });
 
   // Event to handle sending messages
-  socket.on("sendMessage", ({ username, room, message }) => {
-    io.to(room).emit("newMessage", { username, message });
+  socket.on("sendMessageChat", ({ username, room, message }) => {
+    io.to(room).emit("newMessageChat", { username, message });
+  });
+
+  socket.on("sendAnswerChat", ({ username, room, answer }) => {
+    io.to(room).emit("newAnswerChat", { username, answer });
   });
 
   // Event to handle drawing data
