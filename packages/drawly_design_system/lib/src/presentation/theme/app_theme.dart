@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 const Color kCanvasColor = Color(0xfff2f3f7);
 
 ThemeData lightTheme = ThemeData(
-  useMaterial3: false,
+  useMaterial3: true,
   primaryColor: lightPrimary,
   colorScheme: ColorScheme.fromSwatch().copyWith(
     secondary: lightAccent,
     brightness: Brightness.light,
   ),
-  scaffoldBackgroundColor: lightBG,
+  // scaffoldBackgroundColor: lightBG,
   appBarTheme: AppBarTheme(
     backgroundColor: lightPrimary.withOpacity(0.7),
     elevation: 0.0,

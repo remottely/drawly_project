@@ -67,6 +67,7 @@ class _RoomSelectionPageState extends State<RoomSelectionPage> {
   @override
   void dispose() {
     roomController.dispose();
+    SocketManager.instance.off("roomList");
     super.dispose();
   }
 

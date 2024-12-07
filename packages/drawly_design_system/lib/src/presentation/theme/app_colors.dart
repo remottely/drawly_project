@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const Color blueAccent = Color(0xff3B7CEF);
 const Color lightPrimary = blueAccent;
 const Color lightAccent = Color(0xffE9FAFF);
-Color lightBG = blueAccent;
+// Color lightBG = blueAccent;
 const Color greenAccent = Color(0xff79D377);
 const Color yellowAccent = Color(0xffFFB800);
 const Color pinkAccent = Color(0xffFF87CF);
