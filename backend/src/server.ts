@@ -20,9 +20,17 @@ const PORT = process.env.PORT || 5555;
 app.use(cors());
 app.use(express.json());
 
+type Stroke = {
+  points: Array<[number, number]>;
+  color: number;
+  size: number;
+  opacity: number;
+  strokeType: string;
+};
+
 // Map to store drawing history for each room
-const roomDrawings: Record<string, any[]> = {};
-const backupRoomDrawings: Record<string, any[]> = {};
+const roomDrawings: Record<string, Stroke[]> = {};
+const backupRoomDrawings: Record<string, Stroke[]> = {};
 
 // Set to manage the list of available rooms
 const availableRooms = new Set<string>();
@@ -94,17 +102,22 @@ io.on("connection", (socket: Socket) => {
   });
 
   // Event to handle drawing data
-  socket.on("draw", ({ room, strokes }: { room: string; strokes: any[] }) => {
+  socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
     console.log(`Drawing received for room ${room}:`, strokes);
 
+    // Inicialize o histórico se ainda não existir
     if (!roomDrawings[room]) roomDrawings[room] = [];
     if (!backupRoomDrawings[room]) backupRoomDrawings[room] = [];
 
+    // Adicione os novos strokes ao histórico
     roomDrawings[room].push(...strokes);
+
+    // Envie os novos strokes para todos os clientes na sala
     io.to(room).emit("draw", { strokes });
 
     console.log(`Drawing broadcasted to room ${room}:`, strokes);
   });
+
 
   socket.on("clearDraw", ({ room }: { room: string }) => {
     console.log(`Clear draw received for room ${room}`);
