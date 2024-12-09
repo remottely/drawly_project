@@ -38,12 +38,12 @@ class _ParticipantsState extends State<Participants> {
       color: Colors.grey[200],
       child: ValueListenableBuilder<List<String>>(
         valueListenable: _participants,
-        builder: (context, participants, _) {
+        builder: (context, value, _) {
           return ListView.builder(
-            itemCount: participants.length,
+            itemCount: value.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(participants[index]),
+                title: Text(value[index]),
               );
             },
           );

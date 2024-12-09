@@ -35,6 +35,9 @@ const backupRoomDrawings: Record<string, Stroke[]> = {};
 // Set para gerenciar a lista de salas disponíveis
 const availableRooms = new Set<string>();
 
+// Mapa para associar socket.id ao username e salas
+const socketUserMap: Record<string, { username: string; room: string }> = {};
+
 io.on("connection", (socket: Socket) => {
   console.log(`Client connected: ${socket.id}`);
 
@@ -59,6 +62,7 @@ io.on("connection", (socket: Socket) => {
 
     socket.join(room);
     createRoom(room, username);
+    socketUserMap[socket.id] = { username, room };
 
     // Envia o desenho acumulado para o cliente que acabou de entrar
     if (roomDrawings[room]) {
@@ -81,18 +85,24 @@ io.on("connection", (socket: Socket) => {
   // Evento para um usuário sair de uma sala
   socket.on("leaveRoom", ({ username, room }: { username: string; room: string }) => {
     console.log(`${username} left room ${room}`);
-    socket.leave(room);
+    // socket.leave(room);
 
     // Remove o participante da sala
-    removeParticipant(room, username);
-
-    const participants = getRoomParticipants(room);
-    io.to(room).emit("updateParticipants", participants);
+    removeParticipant(availableRooms, room, username);
 
     io.to(room).emit("newMessageChat", {
       username: "System",
       message: `${username} left the room.`,
     });
+
+    const participants = getRoomParticipants(room);
+    io.to(room).emit("updateParticipants", participants);
+
+    // Remove a entrada do mapa se for o mesmo socket
+    if (socketUserMap[socket.id]?.room === room) {
+      delete socketUserMap[socket.id];
+    }
+    socket.leave(room);
   });
 
   // Evento para lidar com os dados de desenho
@@ -139,6 +149,20 @@ io.on("connection", (socket: Socket) => {
   // Evento para lidar com desconexões
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
+
+    const userInfo = socketUserMap[socket.id];
+    if (userInfo) {
+      const { username, room } = userInfo;
+      console.log(`Removing ${username} from room ${room}`);
+      removeParticipant(availableRooms, room, username);
+
+      // Atualiza os participantes para todos os sockets restantes na sala
+      const participants = getRoomParticipants(room);
+      io.to(room).emit("updateParticipants", participants);
+
+      // Remove o socket do mapa
+      delete socketUserMap[socket.id];
+    }
   });
 });
 
