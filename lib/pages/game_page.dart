@@ -116,32 +116,20 @@ class _GamePageState extends GamePageViewModel {
       ),
       body: Row(
         children: [
-          // Expanded(
-          //   flex: 1,
-          //   child: ListView(
-          //     children: [
-          //       ListTile(
-          //         title: Text('Room: ${widget.room}'),
-          //       ),
-          //       ListTile(
-          //         title: Text('Username: ${widget.username}'),
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          Participants(),
           Expanded(
-            flex: 5,
+            child: Participants(),
+          ),
+          Expanded(
+            flex: 6,
             child: Column(
               children: [
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: DrawBoard(
                     username: widget.username,
                     room: widget.room,
                   ),
                 ),
-                const Divider(),
                 Expanded(
                   child: Row(
                     children: [
