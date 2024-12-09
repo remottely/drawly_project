@@ -105,6 +105,15 @@ io.on("connection", (socket: Socket) => {
     socket.leave(room);
   });
 
+  // Event to handle sending messages
+  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) => {
+    io.to(room).emit("newMessageChat", { username, message });
+  });
+
+  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) => {
+    io.to(room).emit("newAnswerChat", { username, answer });
+  });
+
   // Evento para lidar com os dados de desenho
   socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
     console.log(`Drawing received for room ${room}:`, strokes);
