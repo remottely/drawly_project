@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:draw_board/draw_board.dart';
 import 'package:drawly/features/answers_chat/answers_chat.dart';
 import 'package:drawly/features/message_chat/message_chat.dart';
+import 'package:drawly/features/participants/participants.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
@@ -113,29 +114,50 @@ class _GamePageState extends GamePageViewModel {
           ),
         ],
       ),
-      body: Column(
+      body: Row(
         children: [
+          // Expanded(
+          //   flex: 1,
+          //   child: ListView(
+          //     children: [
+          //       ListTile(
+          //         title: Text('Room: ${widget.room}'),
+          //       ),
+          //       ListTile(
+          //         title: Text('Username: ${widget.username}'),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          Participants(),
           Expanded(
-            flex: 2,
-            child: DrawBoard(
-              username: widget.username,
-              room: widget.room,
-            ),
-          ),
-          const Divider(),
-          Expanded(
-            child: Row(
+            flex: 5,
+            child: Column(
               children: [
                 Expanded(
-                  child: AnswersChat(
+                  flex: 2,
+                  child: DrawBoard(
                     username: widget.username,
                     room: widget.room,
                   ),
                 ),
+                const Divider(),
                 Expanded(
-                  child: MessageChat(
-                    username: widget.username,
-                    room: widget.room,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AnswersChat(
+                          username: widget.username,
+                          room: widget.room,
+                        ),
+                      ),
+                      Expanded(
+                        child: MessageChat(
+                          username: widget.username,
+                          room: widget.room,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
