@@ -46,4 +46,5 @@ BUG:
 - [x] undo and redo with bug
 - [ ] fill shape not sending feel to server
 - [ ] export png and jpg not working
-- [ ] stroke size not working as expected
+- [x] stroke size not working as expected
+- [x] stroke filled not working as expected

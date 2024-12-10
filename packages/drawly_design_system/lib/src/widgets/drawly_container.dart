@@ -21,7 +21,8 @@ class DrawlyContainer extends StatelessWidget {
     return Container(
       margin: EdgeInsets.all(margin),
       decoration: BoxDecoration(
-        color: color ?? Colors.grey[100],
+        // color: color ?? Colors.grey[100],
+        color: color ?? Colors.white,
         border: Border.all(
           color: Colors.grey, // Cor da borda
           width: 2, // Largura da borda

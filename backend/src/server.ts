@@ -26,6 +26,7 @@ type Stroke = {
   size: number;
   opacity: number;
   strokeType: string;
+  filled: boolean;
 };
 
 // Map para armazenar o histórico de desenhos para cada sala
