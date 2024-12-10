@@ -30,6 +30,9 @@ TODO:
 	- [ ] AI:
 		- [ ] pedir a ia para criar um jogo baseado no tema escolhido. consome moedas do jogo para isso
 - [ ] Features:
+	- [ ] game logic
+		- [ ] select a theme and max points before enter the room
+			- [ ] random player 
 	- [ ] game room
 		- [x] users list
 		- [x] message chat
