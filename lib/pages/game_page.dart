@@ -5,6 +5,7 @@ import 'package:drawly/features/answers_chat/answers_chat.dart';
 import 'package:drawly/features/message_chat/message_chat.dart';
 import 'package:drawly/features/participants/participants.dart';
 import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class GamePage extends StatefulWidget {
@@ -95,64 +96,74 @@ class _GamePageState extends GamePageViewModel {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Drawly - ${widget.room}'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              SocketManager.instance.disconnect();
-            },
-            icon: const Icon(Icons.wifi_off_sharp),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: lightPrimary,
+          appBar: AppBar(
+            title: Text('Drawly - ${widget.room}'),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  SocketManager.instance.disconnect();
+                },
+                icon: const Icon(Icons.wifi_off_sharp),
+              ),
+              IconButton(
+                onPressed: () {
+                  // TODO(Kevin): we need to recreate all socket configuration what we have done in the initState
+                  _initialize();
+                },
+                icon: const Icon(Icons.wifi),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () {
-              // TODO(Kevin): we need to recreate all socket configuration what we have done in the initState
-              _initialize();
-            },
-            icon: const Icon(Icons.wifi),
-          ),
-        ],
-      ),
-      body: Row(
-        children: [
-          Expanded(
-            child: Participants(),
-          ),
-          Expanded(
-            flex: 6,
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: DrawBoard(
-                    username: widget.username,
-                    room: widget.room,
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: AnswersChat(
-                          username: widget.username,
-                          room: widget.room,
-                        ),
+          body: Row(
+            children: [
+              Expanded(
+                child: Participants(),
+              ),
+              Expanded(
+                flex: 6,
+                child: Column(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: DrawBoard(
+                        username: widget.username,
+                        room: widget.room,
                       ),
-                      Expanded(
-                        child: MessageChat(
-                          username: widget.username,
-                          room: widget.room,
-                        ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: AnswersChat(
+                              username: widget.username,
+                              room: widget.room,
+                            ),
+                          ),
+                          Expanded(
+                            child: MessageChat(
+                              username: widget.username,
+                              room: widget.room,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        MeteorShower(
+          numberOfMeteors: 20,
+          duration: Duration(seconds: 10),
+          child: Center(),
+        ),
+      ],
     );
   }
 }

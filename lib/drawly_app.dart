@@ -8,6 +8,7 @@ class DrawlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "Drawly",
       theme: lightTheme,
       home: const LoginPage(),

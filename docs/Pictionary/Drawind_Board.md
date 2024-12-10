@@ -1,0 +1,49 @@
+TODO:
+- [ ] keyboard commands:
+	- [ ] pencil
+	- [ ] line
+	- [ ] polygon
+	- [ ] eraser
+	- [ ] square
+	- [ ] circle
+	- [ ] guide lines
+	- [ ] fill shape
+	- [ ] polygon sides:
+		- [ ] -
+		- [ ] +
+	- [ ] colors:
+		- [ ] black
+		- [ ] ...
+	- [ ] stroke sizes:
+		- [ ] -
+		- [ ] +
+	- [ ] eraser sizes:
+		- [ ] -
+		- [ ] +
+	- [ ] undo
+	- [ ] redo
+	- [ ] clear
+- [ ] Gamification:
+	- [ ] advertisements:
+		- [ ] for each 30s of view, gain 3 coins
+		- [ ] Everyone in the room, see the advertisements all time before game start
+	- [ ] AI:
+		- [ ] pedir a ia para criar um jogo baseado no tema escolhido. consome moedas do jogo para isso
+- [ ] Features:
+	- [ ] game room
+		- [x] users list
+		- [x] message chat
+		- [ ] answer
+			- [ ] answer chat
+				- [ ] verificate answer, block the chat and shows te username with greenbox to all in the room
+			- [ ] appears in bord title
+		- [ ] board
+			- [x] canvas
+			- [ ] canvas sidebar
+			- [ ] hint
+			- [ ] skip
+BUG:
+- [x] undo and redo with bug
+- [ ] fill shape not sending feel to server
+- [ ] export png and jpg not working
+- [ ] stroke size not working as expected
