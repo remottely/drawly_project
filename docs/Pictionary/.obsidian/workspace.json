@@ -88,7 +88,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "3c69ee3f413e2b94",
@@ -169,7 +170,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "06f556e90c68c164",
+  "active": "5f653aaa43441864",
   "lastOpenFiles": [
     "Drawind_Board.md",
     "TODO.md",

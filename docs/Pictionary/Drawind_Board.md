@@ -40,8 +40,11 @@ TODO:
 		- [ ] board
 			- [x] canvas
 			- [ ] canvas sidebar
+				- [ ] balde
 			- [ ] hint
 			- [ ] skip
+			- [ ] history
+				- [x] permit only 3 undo and 3 redo(dont need it)
 BUG:
 - [x] undo and redo with bug
 - [ ] fill shape not sending feel to server
