@@ -1,4 +1,5 @@
 import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 /// Main drawing screen where the user interacts with the Pictionary game
@@ -61,43 +62,45 @@ class _MessageChatState extends PictionaryScreenViewModel {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: ValueListenableBuilder<List<String>>(
-            valueListenable: rxMessages,
-            builder: (context, value, child) {
-              return ListView.builder(
-                itemCount: value.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(value[index]),
-                  );
-                },
-              );
-            },
+    return DrawlyContainer(
+      child: Column(
+        children: [
+          Expanded(
+            child: ValueListenableBuilder<List<String>>(
+              valueListenable: rxMessages,
+              builder: (context, value, child) {
+                return ListView.builder(
+                  itemCount: value.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(value[index]),
+                    );
+                  },
+                );
+              },
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: messageController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your message',
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your message',
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: _sendMessage,
-                icon: const Icon(Icons.send),
-              ),
-            ],
+                IconButton(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

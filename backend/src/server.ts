@@ -26,6 +26,7 @@ type Stroke = {
   size: number;
   opacity: number;
   strokeType: string;
+  filled: boolean;
 };
 
 // Map para armazenar o histórico de desenhos para cada sala
@@ -103,6 +104,15 @@ io.on("connection", (socket: Socket) => {
       delete socketUserMap[socket.id];
     }
     socket.leave(room);
+  });
+
+  // Event to handle sending messages
+  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) => {
+    io.to(room).emit("newMessageChat", { username, message });
+  });
+
+  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) => {
+    io.to(room).emit("newAnswerChat", { username, answer });
   });
 
   // Evento para lidar com os dados de desenho

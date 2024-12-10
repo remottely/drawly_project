@@ -1,0 +1,31 @@
+- [x] Feat - roomDrawings
+- [x] RoomsPage
+- [ ] Fixed size or scaled size for board
+- [ ] for web and mobile responsiveness
+- [ ] login screen
+	- [ ] nick and language, anonymous, but using firebase auth
+	- [ ] with google or discord
+- [ ] brush colors
+- [ ] brush sizes
+- [ ] geometric objects etc
+- [ ] search room
+	- [ ] by name
+	- [ ] by theme
+	- [ ] by language
+- [ ] share room link
+- [ ] Second chat
+- [ ] generate a random theme to draw
+- [ ] compare every newMessage with the theme to draw
+	- [ ] if true: block the chat and give some points to user based in the time left, need to study the logic used in gartic.io. create more points logic?
+	- [ ] if false do nothing
+	- [ ] if almost show the message "almost there" and change the tex color to orange?
+- [ ] create left tab where show all users ans their points and stats
+- [ ] quando perder conexao oq fazer?
+	- [ ] client drawing:
+		- [ ] disconnect
+			- [ ] bug: points null not registering
+		- [ ] connect
+	- [ ] others:
+- [ ] quando o app fechar e reabrir totalmente, utilizar redis?
+- [ ]  choose avatar
+- [ ] AI??

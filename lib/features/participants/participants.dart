@@ -1,4 +1,5 @@
 import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class Participants extends StatefulWidget {
@@ -33,9 +34,7 @@ class _ParticipantsState extends State<Participants> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      color: Colors.grey[200],
+    return DrawlyContainer(
       child: ValueListenableBuilder<List<String>>(
         valueListenable: _participants,
         builder: (context, value, _) {
