@@ -4,6 +4,7 @@ import 'package:draw_board/draw_board.dart';
 import 'package:drawly/features/answers_chat/answers_chat.dart';
 import 'package:drawly/features/message_chat/message_chat.dart';
 import 'package:drawly/features/participants/participants.dart';
+import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ abstract class GamePageViewModel extends State<GamePage> {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
-      developer.log('Connected to the Socket.IO server');
+      _joinGameRoom();
     });
 
     SocketManager.instance.onDisconnect((_) {
@@ -54,22 +55,6 @@ abstract class GamePageViewModel extends State<GamePage> {
       'username': widget.username,
       'room': widget.room,
     });
-    // // Handle draw event from the server
-    // SocketManager.instance.socket.on('draw', (data) {
-    //   developer.log('Draw event received: $data');
-    //   // List<Stroke?> receivedStroke =
-    //   //     (data['strokes'] as List).map((point) => point != null ? Stroke.fromJson(point) : null).toList();
-    //   // error: The argument type 'Iterable<Stroke?>' can't be assigned to the parameter type 'Iterable<Stroke>'.
-    //   // Add received strokes to the list if not already present
-    //   // _strokes.value = List.from(_strokes.value)
-    //   //   ..addAll(receivedStroke.where((p) => p == null || !_strokes.value.contains(p)));
-    //   // Add received strokes to the list if not already present
-    //   // _strokes.value = List.from(_strokes.value)
-    //   //   ..addAll(receivedStroke.where((p) => p != null && !_strokes.value.contains(p)).cast<Stroke>());
-    //   // _strokes.value = List<Stroke>.from(_strokes.value)..add(_currentStroke.value!);
-    //   Stroke? receivedStroke = Stroke.fromJson(data['strokes']);
-    //   _strokes.value = List<Stroke>.from(_strokes.value)..add(receivedStroke);
-    // });
   }
 
   // Notify the server that the user is leaving the room
@@ -104,17 +89,8 @@ class _GamePageState extends GamePageViewModel {
             title: Text('Drawly.io > Room - ${widget.room}'),
             actions: [
               IconButton(
-                onPressed: () {
-                  SocketManager.instance.disconnect();
-                },
+                onPressed: Tests.testReconnection,
                 icon: const Icon(Icons.wifi_off_sharp),
-              ),
-              IconButton(
-                onPressed: () {
-                  // TODO(Kevin): we need to recreate all socket configuration what we have done in the initState
-                  _initialize();
-                },
-                icon: const Icon(Icons.wifi),
               ),
             ],
           ),
