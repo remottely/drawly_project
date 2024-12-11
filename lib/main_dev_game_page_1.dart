@@ -1,4 +1,4 @@
-import 'package:drawly/pages/draw_game_room_page.dart';
+import 'package:drawly/features/draw_game/draw_game_room_page.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 

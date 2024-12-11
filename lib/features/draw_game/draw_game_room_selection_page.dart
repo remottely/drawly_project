@@ -1,19 +1,19 @@
 import 'dart:developer' as developer;
 
-import 'package:drawly/pages/draw_game_room_page.dart';
+import 'package:drawly/features/draw_game/draw_game_room_page.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
-class RoomSelectionPage extends StatefulWidget {
-  const RoomSelectionPage({super.key, required this.username});
+class DrawGameRoomSelectionPage extends StatefulWidget {
+  const DrawGameRoomSelectionPage({super.key, required this.username});
 
   final String username;
 
   @override
-  State<RoomSelectionPage> createState() => _RoomSelectionPageState();
+  State<DrawGameRoomSelectionPage> createState() => _DrawGameRoomSelectionPageState();
 }
 
-class _RoomSelectionPageState extends State<RoomSelectionPage> {
+class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   final TextEditingController roomController = TextEditingController();
   final List<String> allRooms = [];
 

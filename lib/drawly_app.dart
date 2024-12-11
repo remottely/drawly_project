@@ -1,4 +1,4 @@
-import 'package:drawly/pages/login_page.dart';
+import 'package:drawly/features/auth/auth_page.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +11,7 @@ class DrawlyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Drawly",
       theme: lightTheme,
-      home: const LoginPage(),
+      home: const AuthPage(),
     );
   }
 }

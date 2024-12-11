@@ -1,9 +1,9 @@
 import 'dart:developer' as developer;
 
 import 'package:draw_board/draw_board.dart';
-import 'package:drawly/features/answers_chat/answers_chat.dart';
-import 'package:drawly/features/message_chat/message_chat.dart';
-import 'package:drawly/features/participants/all_participants.dart';
+import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
+import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
+import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
