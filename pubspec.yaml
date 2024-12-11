@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 0.6.1
+version: 0.7.1
 
 environment:
   sdk: ^3.5.4
@@ -18,7 +18,8 @@ dependencies:
   drawly_core:
     path: packages/drawly_core
   universal_platform: ^1.1.0
-
+  flutter_inset_box_shadow: ^1.0.8
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -101,7 +101,7 @@ class _GamePageState extends GamePageViewModel {
         Scaffold(
           backgroundColor: lightPrimary,
           appBar: AppBar(
-            title: Text('Drawly - ${widget.room}'),
+            title: Text('Drawly.io > Room - ${widget.room}'),
             actions: [
               IconButton(
                 onPressed: () {
@@ -158,11 +158,11 @@ class _GamePageState extends GamePageViewModel {
             ],
           ),
         ),
-        MeteorShower(
-          numberOfMeteors: 20,
-          duration: Duration(seconds: 10),
-          child: Center(),
-        ),
+        // MeteorShower(
+        //   numberOfMeteors: 20,
+        //   duration: Duration(seconds: 10),
+        //   child: Center(),
+        // ),
       ],
     );
   }

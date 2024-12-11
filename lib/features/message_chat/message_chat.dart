@@ -88,7 +88,7 @@ class _MessageChatState extends PictionaryScreenViewModel {
                   child: TextField(
                     controller: messageController,
                     decoration: const InputDecoration(
-                      hintText: 'Enter your message',
+                      hintText: 'You must log in to chat',
                     ),
                   ),
                 ),

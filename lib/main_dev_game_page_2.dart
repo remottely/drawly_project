@@ -15,7 +15,7 @@ class DrawlyApp extends StatelessWidget {
       title: "Drawly",
       theme: lightTheme,
       home: GamePage(
-        username: 'test1',
+        username: '8082',
         room: '2323',
       ),
     );

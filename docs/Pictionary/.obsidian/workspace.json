@@ -52,7 +52,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "tag:#BUGS",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -73,12 +73,12 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 200
   },
   "right": {
     "id": "3c69ee3f413e2b94",
@@ -159,7 +159,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "4f44db4b989cea42",
+  "active": "962df5849acabb95",
   "lastOpenFiles": [
     "Drawind_Board.md",
     "Gartic.io MVP.md",

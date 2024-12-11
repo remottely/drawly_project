@@ -90,5 +90,19 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 
 - [x] **Frontend**: Flutter Web (você já domina) ou React.js.
 - [x] **Backend**: Node.js com Socket.IO.
+- [ ] l10n | i18n
 - [ ] **Banco de Dados**: Firebase Firestore ou MongoDB.
 - [ ] **Deploy**: Vercel para o frontend e Heroku/AWS para o backend.
+
+
+**BUGS:**
+- [ ] polygon outside canvas limits
+
+**TODO:**
+- [x] Stroke transparency
+- [ ] Sound
+- [ ] Share
+	- [ ] Invite
+	- [ ] Stream
+- [ ] Info
+- [ ] Close

@@ -5,7 +5,21 @@
       "name": "Flutter Web - Instance 1",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main.dart",
+      "program": "lib/main_dev_game_page_1.dart",
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "html",
+        "--web-port",
+        "8081"
+      ]
+    },
+    {
+      "name": "Flutter Web - Instance 2",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_dev_game_page_2.dart",
       "args": [
         "-d",
         "chrome",
@@ -13,20 +27,6 @@
         "html",
         "--web-port",
         "8082"
-      ]
-    },
-    {
-      "name": "Flutter Web - Instance 2",
-      "type": "dart",
-      "request": "launch",
-      "program": "lib/main.dart",
-      "args": [
-        "-d",
-        "chrome",
-        "--web-renderer",
-        "html",
-        "--web-port",
-        "8083"
       ]
     }
   ],

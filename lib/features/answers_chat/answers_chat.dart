@@ -85,12 +85,14 @@ class _AnswersChatState extends PictionaryScreenViewModel {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: answerController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your answer',
-                    ),
-                  ),
+                  child:
+                      // TextField(
+                      //   controller: answerController,
+                      //   decoration: const InputDecoration(
+                      //     hintText: 'Answer here...',
+                      //   ),
+                      // ),
+                      IconLeftInput(),
                 ),
                 IconButton(
                   onPressed: _sendAnswer,
