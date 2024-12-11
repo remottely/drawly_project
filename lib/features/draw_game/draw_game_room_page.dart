@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-
 import 'package:draw_board/draw_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
@@ -37,10 +35,6 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
     SocketManager.instance.onConnect((_) {
       _joinGameRoom();
-    });
-
-    SocketManager.instance.onDisconnect((_) {
-      developer.log('Disconnected from the server');
     });
   }
 

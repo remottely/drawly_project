@@ -28,6 +28,8 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
     SocketManager.instance.on('newMessageChat', (data) {
       _rxAllMessages.value = List.from(_rxAllMessages.value)..add("${data['username']}: ${data['message']}");
     });
+
+    SocketManager.instance.onDisconnect((_) {});
   }
 
   /// Sends a chat message to the server
