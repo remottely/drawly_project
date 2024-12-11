@@ -12,7 +12,7 @@ const createRoom = (room, username) => {
     }
 };
 exports.createRoom = createRoom;
-const removeParticipant = (availableRooms, room, username) => {
+const removeParticipant = (room, username, availableRooms) => {
     console.log(`Attempting to remove participant ${username} from room ${room}`);
     // Verifica se a sala existe
     if (!rooms[room]) {

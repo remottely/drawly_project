@@ -10,7 +10,7 @@ export const createRoom = (room: string, username: string): void => {
   }
 };
 
-export const removeParticipant = (availableRooms: Set<string>, room: string, username: string): void => {
+export const removeParticipant = (room: string, username: string, availableRooms: Set<string>): void => {
   console.log(`Attempting to remove participant ${username} from room ${room}`);
 
   // Verifica se a sala existe
