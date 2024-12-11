@@ -20,7 +20,7 @@ class MeteorShower extends StatefulWidget {
 
 class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  List<Meteor> _meteors = [];
+  List<Meteor> _allMeteors = [];
   final double meteorAngle = pi / 4;
 
   @override
@@ -39,8 +39,8 @@ class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderSt
   }
 
   void _initializeMeteors(Size size) {
-    if (_meteors.isEmpty) {
-      _meteors = List.generate(widget.numberOfMeteors, (_) => Meteor(meteorAngle, size));
+    if (_allMeteors.isEmpty) {
+      _allMeteors = List.generate(widget.numberOfMeteors, (_) => Meteor(meteorAngle, size));
     }
   }
 
@@ -58,7 +58,7 @@ class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderSt
               return AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
-                  final meteor = _meteors[index];
+                  final meteor = _allMeteors[index];
                   final progress = ((_controller.value - meteor.delay) % 1.0) / meteor.duration;
                   if (progress < 0 || progress > 1) return const SizedBox.shrink();
 

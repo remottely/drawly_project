@@ -2,15 +2,15 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-class Participants extends StatefulWidget {
-  const Participants({super.key});
+class AllParticipants extends StatefulWidget {
+  const AllParticipants({super.key});
 
   @override
-  State<Participants> createState() => _ParticipantsState();
+  State<AllParticipants> createState() => _AllParticipantsState();
 }
 
-class _ParticipantsState extends State<Participants> {
-  final ValueNotifier<List<String>> _participants = ValueNotifier<List<String>>([]);
+class _AllParticipantsState extends State<AllParticipants> {
+  final _rxAllParticipants = ValueNotifier<List<String>>([]);
 
   @override
   void initState() {
@@ -21,14 +21,14 @@ class _ParticipantsState extends State<Participants> {
   @override
   void dispose() {
     SocketManager.instance.off('updateParticipants');
-    _participants.dispose();
+    _rxAllParticipants.dispose();
     super.dispose();
   }
 
   void _initializeParticipantListener() {
     SocketManager.instance.on('updateParticipants', (data) {
-      final List<String> participants = List<String>.from(data);
-      _participants.value = participants;
+      final List<String> allParticipants = List<String>.from(data);
+      _rxAllParticipants.value = allParticipants;
     });
   }
 
@@ -36,7 +36,7 @@ class _ParticipantsState extends State<Participants> {
   Widget build(BuildContext context) {
     return DrawlyContainer(
       child: ValueListenableBuilder<List<String>>(
-        valueListenable: _participants,
+        valueListenable: _rxAllParticipants,
         builder: (context, value, _) {
           return ListView.builder(
             itemCount: value.length,

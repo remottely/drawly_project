@@ -3,17 +3,17 @@ import 'dart:developer' as developer;
 import 'package:draw_board/draw_board.dart';
 import 'package:drawly/features/answers_chat/answers_chat.dart';
 import 'package:drawly/features/message_chat/message_chat.dart';
-import 'package:drawly/features/participants/participants.dart';
+import 'package:drawly/features/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-class GamePage extends StatefulWidget {
+class DrawGameRoomPage extends StatefulWidget {
   final String username;
   final String room;
 
-  const GamePage({
+  const DrawGameRoomPage({
     super.key,
     required this.username,
     required this.room,
@@ -21,10 +21,10 @@ class GamePage extends StatefulWidget {
         assert(room.length >= 3, 'The room must be at least 3 characters long');
 
   @override
-  State<GamePage> createState() => _GamePageState();
+  State<DrawGameRoomPage> createState() => _DrawGameRoomPageState();
 }
 
-abstract class GamePageViewModel extends State<GamePage> {
+abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   _initialize() {
     _initializeSocket();
     _createRoom();
@@ -66,7 +66,7 @@ abstract class GamePageViewModel extends State<GamePage> {
   }
 }
 
-class _GamePageState extends GamePageViewModel {
+class _DrawGameRoomPageState extends GamePageViewModel {
   @override
   void initState() {
     super.initState();
@@ -97,7 +97,7 @@ class _GamePageState extends GamePageViewModel {
           body: Row(
             children: [
               Expanded(
-                child: Participants(),
+                child: AllParticipants(),
               ),
               Expanded(
                 flex: 6,

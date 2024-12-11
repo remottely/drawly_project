@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 
-import 'package:drawly/pages/game_page.dart';
+import 'package:drawly/pages/draw_game_room_page.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,7 @@ class RoomSelectionPage extends StatefulWidget {
 
 class _RoomSelectionPageState extends State<RoomSelectionPage> {
   final TextEditingController roomController = TextEditingController();
-  final List<String> rooms = [];
+  final List<String> allRooms = [];
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _RoomSelectionPageState extends State<RoomSelectionPage> {
     // Listen for room list updates
     SocketManager.instance.on("roomList", (data) {
       setState(() {
-        rooms
+        allRooms
           ..clear()
           ..addAll(List<String>.from(data));
       });
@@ -59,7 +59,7 @@ class _RoomSelectionPageState extends State<RoomSelectionPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GamePage(username: widget.username, room: roomName),
+        builder: (context) => DrawGameRoomPage(username: widget.username, room: roomName),
       ),
     );
   }
@@ -99,12 +99,12 @@ class _RoomSelectionPageState extends State<RoomSelectionPage> {
             const SizedBox(height: 8),
             // List of rooms
             Expanded(
-              child: rooms.isEmpty
+              child: allRooms.isEmpty
                   ? const Center(child: Text('No rooms available'))
                   : ListView.builder(
-                      itemCount: rooms.length,
+                      itemCount: allRooms.length,
                       itemBuilder: (context, index) {
-                        final roomName = rooms[index];
+                        final roomName = allRooms[index];
                         return ListTile(
                           title: Text(roomName),
                           trailing: ElevatedButton(

@@ -108,4 +108,8 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [ ] Close
 - [ ] User can change background color dynamicaly
 - [x] (0.8.0)When disconnect inside a game room, then when reconnect rejoin the same room and get all strokes registered in the server
+- [x] (0.8.1)Improve all notifier var names
 - [ ] redoDraw, get from server and not locally
+- [ ] remover do servidor:
+	- [ ] all messages, fazer como nos strokes, mandar q por vez
+	- [ ] all answers, fazer como nos strokes, mandar q por vez
