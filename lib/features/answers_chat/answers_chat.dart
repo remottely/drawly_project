@@ -82,23 +82,11 @@ class _AnswersChatState extends PictionaryScreenViewModel {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child:
-                      // TextField(
-                      //   controller: answerController,
-                      //   decoration: const InputDecoration(
-                      //     hintText: 'Answer here...',
-                      //   ),
-                      // ),
-                      IconLeftInput(),
-                ),
-                IconButton(
-                  onPressed: _sendAnswer,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+            child: DrawlyIconBorderedTextField(
+              controller: answerController,
+              leftIcon: Icons.draw,
+              rightIcon: Icons.send,
+              onRightIconPressed: _sendAnswer,
             ),
           ),
         ],

@@ -82,21 +82,11 @@ class _MessageChatState extends PictionaryScreenViewModel {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'You must log in to chat',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: _sendMessage,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+            child: DrawlyIconBorderedTextField(
+              controller: messageController,
+              leftIcon: Icons.question_answer,
+              rightIcon: Icons.send,
+              onRightIconPressed: _sendMessage,
             ),
           ),
         ],

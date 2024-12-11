@@ -99,10 +99,11 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [ ] polygon outside canvas limits
 
 **TODO:**
-- [x] Stroke transparency
+- [x] (0.7.2): Stroke transparency
 - [ ] Sound
 - [ ] Share
 	- [ ] Invite
 	- [ ] Stream
 - [ ] Info
 - [ ] Close
+- [ ] User can change background color dynamicaly
