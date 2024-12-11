@@ -1,4 +1,7 @@
 TODO:
+- [ ] sound on/off
+- [ ] close
+- [ ] alert
 - [ ] keyboard commands:
 	- [ ] pencil
 	- [ ] line
@@ -48,6 +51,7 @@ TODO:
 			- [ ] skip
 			- [ ] history
 				- [x] permit only 3 undo and 3 redo(dont need it)
+- [ ] 
 BUG:
 - [x] undo and redo with bug
 - [ ] fill shape not sending feel to server
