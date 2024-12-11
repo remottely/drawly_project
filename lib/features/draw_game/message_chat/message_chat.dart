@@ -19,16 +19,17 @@ class MessageChat extends StatefulWidget {
 }
 
 abstract class PictionaryScreenViewModel extends State<MessageChat> {
-  /// [CHAT]
-  final ValueNotifier<List<String>> rxMessages = ValueNotifier([]); // Messages received from the server
+  final _rxAllMessages = ValueNotifier<List<String>>([]); // Messages received from the server
   final TextEditingController messageController = TextEditingController();
 
   /// Initializes the socket connection and defines event handlers
   void _initializeChatSocket() {
     // Handle new message event
     SocketManager.instance.on('newMessageChat', (data) {
-      rxMessages.value = List.from(rxMessages.value)..add("${data['username']}: ${data['message']}");
+      _rxAllMessages.value = List.from(_rxAllMessages.value)..add("${data['username']}: ${data['message']}");
     });
+
+    SocketManager.instance.onDisconnect((_) {});
   }
 
   /// Sends a chat message to the server
@@ -36,9 +37,9 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
     if (messageController.text.isNotEmpty) {
       final message = messageController.text;
       SocketManager.instance.emit('sendMessageChat', {
+        'username': widget.username,
         'room': widget.room,
         'message': message,
-        'username': widget.username,
       });
 
       messageController.clear();
@@ -67,7 +68,7 @@ class _MessageChatState extends PictionaryScreenViewModel {
         children: [
           Expanded(
             child: ValueListenableBuilder<List<String>>(
-              valueListenable: rxMessages,
+              valueListenable: _rxAllMessages,
               builder: (context, value, child) {
                 return ListView.builder(
                   itemCount: value.length,
@@ -82,49 +83,15 @@ class _MessageChatState extends PictionaryScreenViewModel {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your message',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: _sendMessage,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+            child: DrawlyIconBorderedTextField(
+              controller: messageController,
+              leftIcon: Icons.question_answer,
+              rightIcon: Icons.send,
+              onRightIconPressed: _sendMessage,
             ),
           ),
         ],
       ),
     );
   }
-}
-
-/// Custom painter to render the drawing
-class DrawingPainter extends CustomPainter {
-  final List<Offset?> points;
-
-  DrawingPainter(this.points);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 4.0
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < points.length - 1; i++) {
-      if (points[i] != null && points[i + 1] != null) {
-        canvas.drawLine(points[i]!, points[i + 1]!, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

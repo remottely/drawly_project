@@ -1,15 +1,15 @@
-import 'package:drawly/pages/room_selection_page.dart';
+import 'package:drawly/features/draw_game/draw_game_room_selection_page.dart';
 import 'package:flutter/material.dart';
 
 /// Login screen where the user enters their username
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class AuthPage extends StatefulWidget {
+  const AuthPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<AuthPage> createState() => _AuthPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _AuthPageState extends State<AuthPage> {
   final TextEditingController usernameController = TextEditingController();
 
   @override
@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RoomSelectionPage(username: username),
+                      builder: (context) => DrawGameRoomSelectionPage(username: username),
                     ),
                   );
                 }

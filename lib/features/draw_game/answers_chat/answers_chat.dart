@@ -19,15 +19,14 @@ class AnswersChat extends StatefulWidget {
 }
 
 abstract class PictionaryScreenViewModel extends State<AnswersChat> {
-  /// [CHAT]
-  final ValueNotifier<List<String>> rxAnswers = ValueNotifier([]); // Messages received from the server
-  final TextEditingController answerController = TextEditingController();
+  final _rxAllAnswers = ValueNotifier<List<String>>([]); // Messages received from the server
+  final answerController = TextEditingController();
 
   /// Initializes the socket connection and defines event handlers
   void _initializeChatSocket() {
     // Handle new answer event
     SocketManager.instance.on('newAnswerChat', (data) {
-      rxAnswers.value = List.from(rxAnswers.value)..add("${data['username']}: ${data['answer']}");
+      _rxAllAnswers.value = List.from(_rxAllAnswers.value)..add("${data['username']}: ${data['answer']}");
     });
   }
 
@@ -36,9 +35,9 @@ abstract class PictionaryScreenViewModel extends State<AnswersChat> {
     if (answerController.text.isNotEmpty) {
       final answer = answerController.text;
       SocketManager.instance.emit('sendAnswerChat', {
+        'username': widget.username,
         'room': widget.room,
         'answer': answer,
-        'username': widget.username,
       });
 
       answerController.clear();
@@ -67,7 +66,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
         children: [
           Expanded(
             child: ValueListenableBuilder<List<String>>(
-              valueListenable: rxAnswers,
+              valueListenable: _rxAllAnswers,
               builder: (context, value, child) {
                 return ListView.builder(
                   itemCount: value.length,
@@ -82,49 +81,15 @@ class _AnswersChatState extends PictionaryScreenViewModel {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: answerController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your answer',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: _sendAnswer,
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+            child: DrawlyIconBorderedTextField(
+              controller: answerController,
+              leftIcon: Icons.draw,
+              rightIcon: Icons.send,
+              onRightIconPressed: _sendAnswer,
             ),
           ),
         ],
       ),
     );
   }
-}
-
-/// Custom painter to render the drawing
-class DrawingPainter extends CustomPainter {
-  final List<Offset?> points;
-
-  DrawingPainter(this.points);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 4.0
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < points.length - 1; i++) {
-      if (points[i] != null && points[i + 1] != null) {
-        canvas.drawLine(points[i]!, points[i + 1]!, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

@@ -1,4 +1,7 @@
 TODO:
+- [ ] sound on/off
+- [ ] close
+- [ ] alert
 - [ ] keyboard commands:
 	- [ ] pencil
 	- [ ] line
@@ -30,6 +33,9 @@ TODO:
 	- [ ] AI:
 		- [ ] pedir a ia para criar um jogo baseado no tema escolhido. consome moedas do jogo para isso
 - [ ] Features:
+	- [ ] game logic
+		- [ ] select a theme and max points before enter the room
+			- [ ] random player 
 	- [ ] game room
 		- [x] users list
 		- [x] message chat
@@ -45,6 +51,7 @@ TODO:
 			- [ ] skip
 			- [ ] history
 				- [x] permit only 3 undo and 3 redo(dont need it)
+- [ ] 
 BUG:
 - [x] undo and redo with bug
 - [ ] fill shape not sending feel to server

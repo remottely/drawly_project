@@ -1,18 +1,17 @@
-import 'dart:developer' as developer;
-
 import 'package:draw_board/draw_board.dart';
-import 'package:drawly/features/answers_chat/answers_chat.dart';
-import 'package:drawly/features/message_chat/message_chat.dart';
-import 'package:drawly/features/participants/participants.dart';
+import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
+import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
+import 'package:drawly/features/draw_game/participants/all_participants.dart';
+import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-class GamePage extends StatefulWidget {
+class DrawGameRoomPage extends StatefulWidget {
   final String username;
   final String room;
 
-  const GamePage({
+  const DrawGameRoomPage({
     super.key,
     required this.username,
     required this.room,
@@ -20,10 +19,10 @@ class GamePage extends StatefulWidget {
         assert(room.length >= 3, 'The room must be at least 3 characters long');
 
   @override
-  State<GamePage> createState() => _GamePageState();
+  State<DrawGameRoomPage> createState() => _DrawGameRoomPageState();
 }
 
-abstract class GamePageViewModel extends State<GamePage> {
+abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   _initialize() {
     _initializeSocket();
     _createRoom();
@@ -35,11 +34,7 @@ abstract class GamePageViewModel extends State<GamePage> {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
-      developer.log('Connected to the Socket.IO server');
-    });
-
-    SocketManager.instance.onDisconnect((_) {
-      developer.log('Disconnected from the server');
+      _joinGameRoom();
     });
   }
 
@@ -54,22 +49,6 @@ abstract class GamePageViewModel extends State<GamePage> {
       'username': widget.username,
       'room': widget.room,
     });
-    // // Handle draw event from the server
-    // SocketManager.instance.socket.on('draw', (data) {
-    //   developer.log('Draw event received: $data');
-    //   // List<Stroke?> receivedStroke =
-    //   //     (data['strokes'] as List).map((point) => point != null ? Stroke.fromJson(point) : null).toList();
-    //   // error: The argument type 'Iterable<Stroke?>' can't be assigned to the parameter type 'Iterable<Stroke>'.
-    //   // Add received strokes to the list if not already present
-    //   // _strokes.value = List.from(_strokes.value)
-    //   //   ..addAll(receivedStroke.where((p) => p == null || !_strokes.value.contains(p)));
-    //   // Add received strokes to the list if not already present
-    //   // _strokes.value = List.from(_strokes.value)
-    //   //   ..addAll(receivedStroke.where((p) => p != null && !_strokes.value.contains(p)).cast<Stroke>());
-    //   // _strokes.value = List<Stroke>.from(_strokes.value)..add(_currentStroke.value!);
-    //   Stroke? receivedStroke = Stroke.fromJson(data['strokes']);
-    //   _strokes.value = List<Stroke>.from(_strokes.value)..add(receivedStroke);
-    // });
   }
 
   // Notify the server that the user is leaving the room
@@ -81,7 +60,7 @@ abstract class GamePageViewModel extends State<GamePage> {
   }
 }
 
-class _GamePageState extends GamePageViewModel {
+class _DrawGameRoomPageState extends GamePageViewModel {
   @override
   void initState() {
     super.initState();
@@ -101,27 +80,18 @@ class _GamePageState extends GamePageViewModel {
         Scaffold(
           backgroundColor: lightPrimary,
           appBar: AppBar(
-            title: Text('Drawly - ${widget.room}'),
+            title: Text('Drawly.io > Room - ${widget.room}'),
             actions: [
               IconButton(
-                onPressed: () {
-                  SocketManager.instance.disconnect();
-                },
+                onPressed: Tests.testReconnection,
                 icon: const Icon(Icons.wifi_off_sharp),
-              ),
-              IconButton(
-                onPressed: () {
-                  // TODO(Kevin): we need to recreate all socket configuration what we have done in the initState
-                  _initialize();
-                },
-                icon: const Icon(Icons.wifi),
               ),
             ],
           ),
           body: Row(
             children: [
               Expanded(
-                child: Participants(),
+                child: AllParticipants(),
               ),
               Expanded(
                 flex: 6,
@@ -158,11 +128,11 @@ class _GamePageState extends GamePageViewModel {
             ],
           ),
         ),
-        MeteorShower(
-          numberOfMeteors: 20,
-          duration: Duration(seconds: 10),
-          child: Center(),
-        ),
+        // MeteorShower(
+        //   numberOfMeteors: 20,
+        //   duration: Duration(seconds: 10),
+        //   child: Center(),
+        // ),
       ],
     );
   }

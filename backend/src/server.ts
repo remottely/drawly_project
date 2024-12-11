@@ -78,23 +78,22 @@ io.on("connection", (socket: Socket) => {
 
     console.log(`${username} joined room ${room}`);
     io.to(room).emit("newMessageChat", {
-      username: "System",
-      message: `${username} joined the room.`,
+      username: username,
+      message: `joined the room.`,
     });
   });
 
   // Evento para um usuário sair de uma sala
   socket.on("leaveRoom", ({ username, room }: { username: string; room: string }) => {
     console.log(`${username} left room ${room}`);
-    // socket.leave(room);
+
+    io.to(room).emit("newMessageChat", {
+      username: username,
+      message: `left the room.`,
+    });
 
     // Remove o participante da sala
     removeParticipant(availableRooms, room, username);
-
-    io.to(room).emit("newMessageChat", {
-      username: "System",
-      message: `${username} left the room.`,
-    });
 
     const participants = getRoomParticipants(room);
     io.to(room).emit("updateParticipants", participants);
@@ -160,18 +159,40 @@ io.on("connection", (socket: Socket) => {
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
 
+    // Recupera as informações do usuário antes de removê-lo
     const userInfo = socketUserMap[socket.id];
+
     if (userInfo) {
       const { username, room } = userInfo;
-      console.log(`Removing ${username} from room ${room}`);
+
+      console.log(`User ${username} disconnected from room ${room}`);
+      console.log(`Attempting to remove participant ${username} from room ${room}`);
+
+      // Notifica os participantes da sala sobre a desconexão
+      io.sockets.in(room).emit("newMessageChat", {
+        username: username,
+        message: `disconnected.`,
+      });
+
+      // Remove o usuário do mapa
+      delete socketUserMap[socket.id];
+
+      // Remove o participante da sala
       removeParticipant(availableRooms, room, username);
 
-      // Atualiza os participantes para todos os sockets restantes na sala
+      // Verifica e atualiza os participantes da sala
       const participants = getRoomParticipants(room);
-      io.to(room).emit("updateParticipants", participants);
+      console.log(`Updated participants in room ${room}:`, participants);
+      io.sockets.in(room).emit("updateParticipants", participants);
 
-      // Remove o socket do mapa
-      delete socketUserMap[socket.id];
+      // Se a sala estiver vazia, remove-a
+      if (participants.length === 0) {
+        availableRooms.delete(room);
+        console.log(`Room ${room} is now empty and has been removed.`);
+        io.emit("roomList", Array.from(availableRooms));
+      }
+    } else {
+      console.log(`No user info found for socket ${socket.id}`);
     }
   });
 });
