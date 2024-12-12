@@ -74,19 +74,34 @@ class RoomDrawing {
 
 class Room {
   private participants: Set<string> = new Set();
+  private turnQueue: string[] = [];
+  private currentTurnIndex: number = 0;
 
   constructor(public name: string) { }
 
   addParticipant(username: string): void {
     this.participants.add(username);
+    this.turnQueue.push(username);
   }
 
   removeParticipant(username: string): void {
     this.participants.delete(username);
+    this.turnQueue = this.turnQueue.filter((user) => user !== username);
+    if (this.currentTurnIndex >= this.turnQueue.length) {
+      this.currentTurnIndex = 0; // Reset turn if out of bounds
+    }
   }
 
   getParticipants(): string[] {
     return Array.from(this.participants);
+  }
+
+  getCurrentDrawer(): string {
+    return this.turnQueue[this.currentTurnIndex];
+  }
+
+  advanceTurn(): void {
+    this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
   }
 }
 
@@ -126,6 +141,7 @@ interface SocketUserMap {
 const rooms: RoomsMap = {};
 const roomDrawings: RoomDrawingsMap = {};
 const socketUserMap: SocketUserMap = {};
+const definedNumberOfPlayers = 4;
 
 // Auxiliary functions
 const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
@@ -158,7 +174,13 @@ const handleRoomManagement = {
     emitParticipantsUpdate(roomName);
 
     console.log(`${username} joined room ${roomName}`);
+
+    if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
+      console.log(`Starting turn timer in room ${roomName}`);
+      handleTurnActions.startTurnTimer(roomName, 60);
+    }
   },
+
 
   leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
@@ -210,6 +232,45 @@ const handleDrawingActions = {
   },
 };
 
+// chatgpt: me gere apenas o codigo necessario, preciso transformar esse totalDuration q esta em segundos para milisegundos
+const handleTurnActions = {
+  startTurnTimer(roomName: string, totalDuration: number = 60): void {
+    const room = rooms[roomName];
+    if (!room) {
+      console.error(`Room ${roomName} not found.`);
+      return;
+    }
+
+    const participants = room.getParticipants();
+    if (participants.length === 0) {
+      console.error(`No participants available in room ${roomName}`);
+      return;
+    }
+
+    const currentDrawer = room.getCurrentDrawer();
+
+    if (!currentDrawer) {
+      console.error(`Failed to get the current drawer in room ${roomName}`);
+      return;
+    }
+
+    // Emite o evento 'newTurn'
+    io.to(roomName).emit("newTurn", {
+      currentDrawer: currentDrawer,
+      totalDuration: totalDuration * 1000, // Convertendo para milissegundos antes de enviar
+    });
+
+    console.log(`New turn started in room ${roomName}. Current drawer: ${currentDrawer}`);
+
+    // Configura o próximo turno
+    setTimeout(() => {
+      room.advanceTurn(); // Avança para o próximo jogador
+      handleTurnActions.startTurnTimer(roomName, totalDuration); // Chama recursivamente
+    }, totalDuration * 1000); // Convertendo para milissegundos no setTimeout
+  },
+};
+
+
 const handleDisconnect = (socket: Socket): void => {
   const userInfo = socketUserMap[socket.id];
   if (!userInfo) {
@@ -223,7 +284,7 @@ const handleDisconnect = (socket: Socket): void => {
   handleRoomManagement.leave(socket, { username, roomName });
 };
 
-// Configuração do Socket.IO
+// Socket.IO Configuration
 io.on("connection", (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
   socket.emit("roomList", Object.keys(rooms));

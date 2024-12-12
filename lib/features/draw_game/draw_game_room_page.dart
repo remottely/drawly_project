@@ -1,3 +1,4 @@
+// chatpgt: por algum motivo aqui no lado do flutter o estado do LinearProgressIndicator parece nunca atualizar
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
@@ -23,10 +24,13 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
+  String currentDrawer = "Waiting...";
+  bool isCurrentDrawer = false;
+  int totalDuration = 0;
+  int timeLeft = 0;
+
   _initialize() {
     _initializeSocket();
-    Tests.createRoom(widget.roomName);
-    _joinGameRoom();
   }
 
   /// Initializes the socket connection and defines event handlers
@@ -34,7 +38,37 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
+      Tests.createRoom(widget.roomName);
       _joinGameRoom();
+    });
+
+    SocketManager.instance.on('newTurn', (data) {
+      print("New turn event received: $data");
+
+      setState(() {
+        currentDrawer = data['currentDrawer'];
+        totalDuration = data['totalDuration'];
+        timeLeft = data['totalDuration'];
+        isCurrentDrawer = currentDrawer == widget.username;
+      });
+
+      startCountdown(totalDuration);
+    });
+  }
+
+  void startCountdown(int durationInMs) {
+    int remaining = durationInMs;
+
+    Future.doWhile(() async {
+      if (remaining <= 0) return false;
+
+      await Future.delayed(const Duration(milliseconds: 100)); // Reduz para verificar mais frequentemente
+      setState(() {
+        remaining -= 100;
+        timeLeft = remaining;
+      });
+
+      return true;
     });
   }
 
@@ -62,6 +96,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
 
   @override
   void dispose() {
+    SocketManager.instance.off('newTurn');
     _leaveRoom();
     super.dispose();
   }
@@ -71,9 +106,11 @@ class _DrawGameRoomPageState extends GamePageViewModel {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: lightPrimary,
+          backgroundColor: isCurrentDrawer ? lightPrimary : Colors.white,
           appBar: AppBar(
-            title: Text('Drawly.io > Room - ${widget.roomName}'),
+            title: Text(
+              'Drawly.io > Room - ${widget.roomName} > Current drawer: $currentDrawer',
+            ),
             actions: [
               IconButton(
                 onPressed: Tests.testReconnection,
@@ -81,35 +118,51 @@ class _DrawGameRoomPageState extends GamePageViewModel {
               ),
             ],
           ),
-          body: Row(
+          body: Column(
             children: [
+              if (timeLeft > 0)
+                LinearProgressIndicator(
+                  value: timeLeft / totalDuration, // Agora tudo está em milissegundos
+                  minHeight: 5,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isCurrentDrawer ? Colors.green : Colors.blue,
+                  ),
+                ),
               Expanded(
-                child: AllParticipants(),
-              ),
-              Expanded(
-                flex: 6,
-                child: Column(
+                child: Row(
                   children: [
+                    Expanded(child: AllParticipants()),
                     Expanded(
-                      flex: 3,
-                      child: DrawingBoard(
-                        username: widget.username,
-                        roomName: widget.roomName,
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
+                      flex: 6,
+                      child: Column(
                         children: [
                           Expanded(
-                            child: AnswersChat(
+                            flex: 3,
+                            child: DrawingBoard(
                               username: widget.username,
                               roomName: widget.roomName,
+                              isCurrentDrawer: isCurrentDrawer,
                             ),
                           ),
                           Expanded(
-                            child: MessageChat(
-                              username: widget.username,
-                              roomName: widget.roomName,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: AnswersChat(
+                                    username: widget.username,
+                                    roomName: widget.roomName,
+                                    isCurrentDrawer: isCurrentDrawer,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: MessageChat(
+                                    username: widget.username,
+                                    roomName: widget.roomName,
+                                    isCurrentDrawer: isCurrentDrawer,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -121,12 +174,12 @@ class _DrawGameRoomPageState extends GamePageViewModel {
             ],
           ),
         ),
-        // MeteorShower(
-        //   numberOfMeteors: 20,
-        //   duration: Duration(seconds: 10),
-        //   child: Center(),
-        // ),
       ],
     );
   }
+  // MeteorShower(
+  //   numberOfMeteors: 20,
+  //   duration: Duration(seconds: 10),
+  //   child: Center(),
+  // ),
 }

@@ -7,6 +7,7 @@ class DrawlyIconBorderedTextField extends StatefulWidget {
   final IconData leftIcon;
   final IconData rightIcon;
   final VoidCallback onRightIconPressed;
+  final bool isCurrentDrawer;
 
   const DrawlyIconBorderedTextField({
     super.key,
@@ -16,6 +17,7 @@ class DrawlyIconBorderedTextField extends StatefulWidget {
     required this.leftIcon,
     required this.rightIcon,
     required this.onRightIconPressed,
+    required this.isCurrentDrawer,
   });
 
   @override
@@ -42,6 +44,7 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
   @override
   Widget build(BuildContext context) {
     return TextField(
+      enabled: !widget.isCurrentDrawer,
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       focusNode: _focusNode,

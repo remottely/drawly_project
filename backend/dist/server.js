@@ -68,20 +68,34 @@ class Room {
     constructor(name) {
         this.name = name;
         this.participants = new Set();
+        this.turnQueue = [];
+        this.currentTurnIndex = 0;
     }
     addParticipant(username) {
         this.participants.add(username);
+        this.turnQueue.push(username);
     }
     removeParticipant(username) {
         this.participants.delete(username);
+        this.turnQueue = this.turnQueue.filter((user) => user !== username);
+        if (this.currentTurnIndex >= this.turnQueue.length) {
+            this.currentTurnIndex = 0; // Reset turn if out of bounds
+        }
     }
     getParticipants() {
         return Array.from(this.participants);
+    }
+    getCurrentDrawer() {
+        return this.turnQueue[this.currentTurnIndex];
+    }
+    advanceTurn() {
+        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
     }
 }
 const rooms = {};
 const roomDrawings = {};
 const socketUserMap = {};
+const definedNumberOfPlayers = 4;
 // Auxiliary functions
 const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
 const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit("updateParticipants", ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
@@ -108,6 +122,10 @@ const handleRoomManagement = {
         socket.emit("draw", { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
+        if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
+            console.log(`Starting turn timer in room ${roomName}`);
+            handleTurnActions.startTurnTimer(roomName, 60);
+        }
     },
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
@@ -156,6 +174,37 @@ const handleDrawingActions = {
         io.to(roomName).emit("redoDraw");
     },
 };
+// chatgpt: me gere apenas o codigo necessario, preciso transformar esse totalDuration q esta em segundos para milisegundos
+const handleTurnActions = {
+    startTurnTimer(roomName, totalDuration = 60) {
+        const room = rooms[roomName];
+        if (!room) {
+            console.error(`Room ${roomName} not found.`);
+            return;
+        }
+        const participants = room.getParticipants();
+        if (participants.length === 0) {
+            console.error(`No participants available in room ${roomName}`);
+            return;
+        }
+        const currentDrawer = room.getCurrentDrawer();
+        if (!currentDrawer) {
+            console.error(`Failed to get the current drawer in room ${roomName}`);
+            return;
+        }
+        // Emite o evento 'newTurn'
+        io.to(roomName).emit("newTurn", {
+            currentDrawer: currentDrawer,
+            totalDuration: totalDuration * 1000, // Convertendo para milissegundos antes de enviar
+        });
+        console.log(`New turn started in room ${roomName}. Current drawer: ${currentDrawer}`);
+        // Configura o próximo turno
+        setTimeout(() => {
+            room.advanceTurn(); // Avança para o próximo jogador
+            handleTurnActions.startTurnTimer(roomName, totalDuration); // Chama recursivamente
+        }, totalDuration * 1000); // Convertendo para milissegundos no setTimeout
+    },
+};
 const handleDisconnect = (socket) => {
     const userInfo = socketUserMap[socket.id];
     if (!userInfo) {
@@ -166,7 +215,7 @@ const handleDisconnect = (socket) => {
     console.log(`User ${username} disconnected from room ${roomName}`);
     handleRoomManagement.leave(socket, { username, roomName });
 };
-// Configuração do Socket.IO
+// Socket.IO Configuration
 io.on("connection", (socket) => {
     console.log(`Client connected: ${socket.id}`);
     socket.emit("roomList", Object.keys(rooms));
