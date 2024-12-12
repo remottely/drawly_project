@@ -1,46 +1,38 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRoomParticipants = exports.removeParticipant = exports.createRoom = void 0;
-const rooms = {};
-// Cria uma sala ou adiciona um participante a uma sala existente
-const createRoom = (room, username) => {
-    if (!rooms[room]) {
-        rooms[room] = [];
-    }
-    if (!rooms[room].includes(username)) {
-        rooms[room].push(username);
-    }
-};
-exports.createRoom = createRoom;
-const removeParticipant = (availableRooms, room, username) => {
-    console.log(`Attempting to remove participant ${username} from room ${room}`);
-    // Verifica se a sala existe
-    if (!rooms[room]) {
-        console.warn(`Room ${room} does not exist. Cannot remove participant ${username}.`);
-        return;
-    }
-    // Remove o usuário da sala
-    const initialCount = rooms[room].length;
-    rooms[room] = rooms[room].filter((user) => user !== username);
-    if (rooms[room].length < initialCount) {
-        console.log(`Participant ${username} removed from room ${room}`);
-    }
-    else {
-        console.warn(`Participant ${username} was not found in room ${room}`);
-    }
-    // Remove a sala se ela estiver vazia
-    if (rooms[room].length === 0) {
-        delete rooms[room];
-        console.log(`Room ${room} is empty and has been removed.`);
-        availableRooms.delete(room); // Atualiza as salas disponíveis
-    }
-    else {
-        console.log(`Updated participants in room ${room}:`, rooms[room]);
-    }
-};
-exports.removeParticipant = removeParticipant;
-// Retorna os participantes de uma sala
-const getRoomParticipants = (room) => {
-    return rooms[room] || [];
-};
-exports.getRoomParticipants = getRoomParticipants;
+// interface Room {
+//   name: string;
+//   participants: string[];
+// }
+// const rooms: Room[] = [];
+// // Criar ou adicionar um participante a uma sala
+// export const createRoom = (roomName: string, username: string): void => {
+//   const existingRoom = rooms.find((room) => room.name === roomName);
+//   if (existingRoom) {
+//     if (!existingRoom.participants.includes(username)) {
+//       existingRoom.participants.push(username);
+//     }
+//   } else {
+//     rooms.push({ name: roomName, participants: [username] });
+//   }
+// };
+// // Remover um participante de uma sala
+// export const removeParticipant = (roomName: string, username: string): void => {
+//   const roomIndex = rooms.findIndex((room) => room.name === roomName);
+//   if (roomIndex !== -1) {
+//     const room = rooms[roomIndex];
+//     room.participants = room.participants.filter((user) => user !== username);
+//     if (room.participants.length === 0) {
+//       rooms.splice(roomIndex, 1);
+//     }
+//   }
+// };
+// // chatgpt: com a nova logica do meu codigo, parece q agora o getRoomParticipants retorna sempre vazio, corrija
+// // Obter participantes de uma sala
+// export const getRoomParticipants = (roomName: string): string[] => {
+//   const room = rooms.find((room) => room.name === roomName);
+//   return room?.participants || [];
+// };
+// // Obter lista de salas disponíveis
+// export const getAvailableRooms = (): string[] => {
+//   return rooms.map((room) => room.name);
+// };

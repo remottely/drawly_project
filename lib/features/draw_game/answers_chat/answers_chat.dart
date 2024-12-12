@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 
 /// Main drawing screen where the user interacts with the Pictionary game
 class AnswersChat extends StatefulWidget {
+  final String username;
+  final String roomName;
+  final bool isCurrentDrawer;
+
   const AnswersChat({
     super.key,
     required this.username,
-    required this.room,
+    required this.roomName,
+    required this.isCurrentDrawer,
   })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(room.length >= 3, 'The room must be at least 3 characters long');
-
-  final String username;
-  final String room;
+        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
 
   @override
   State<AnswersChat> createState() => _AnswersChatState();
@@ -36,7 +38,7 @@ abstract class PictionaryScreenViewModel extends State<AnswersChat> {
       final answer = answerController.text;
       SocketManager.instance.emit('sendAnswerChat', {
         'username': widget.username,
-        'room': widget.room,
+        'roomName': widget.roomName,
         'answer': answer,
       });
 
@@ -86,6 +88,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
               leftIcon: Icons.draw,
               rightIcon: Icons.send,
               onRightIconPressed: _sendAnswer,
+              isCurrentDrawer: widget.isCurrentDrawer,
             ),
           ),
         ],

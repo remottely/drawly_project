@@ -97,6 +97,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 
 **BUGS:**
 - [ ] polygon outside canvas limits
+- [ ] when enter in room1 than left and enter in room2 then disconnect then and make some undos, the user come back to room1
 
 **TODO:**
 - [x] (0.7.2): Stroke transparency
@@ -110,8 +111,20 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.8.0) When disconnect inside a game room, then when reconnect rejoin the same room and get all strokes registered in the server
 - [x] (0.8.1) Improve all notifier var names
 - [x] (0.8.2) Organize files
-- [x] (0.9.0)onDisconnect notify in the message chat
-- [ ] redoDraw, get from server and not locally
+- [x] (0.9.0) onDisconnect notify in the message chat
+- [x] (0.9.1) organize backend server.ts part 1
+- [x] (0.9.2) organize backend server.ts part 2
+- [x] (0.9.3) organize backend server.ts part 3
+- [x] (0.9.4) organize backend server.ts part 4
+- [x] (0.9.5) organize backend server.ts part 5
+- [x] (0.9.6) organize backend server.ts part 6
+- [x] (0.9.7) change draw_board to drawing_board package name
+- [x] (0.10.0) currentDrawer logic + timer
+- [x] (0.10.1) bug: DrawingBoard not working undo and redo
+- [ ] (0.11.0) when change currentDrawer, clean the board
+- [ ] redoDraw
+	- [ ] get from server and not locally
+	- [ ] not working properly, when someone disconnect, lose some redos
 - [ ] remover do servidor:
 	- [ ] all messages, fazer como nos strokes, mandar q por vez
 	- [ ] all answers, fazer como nos strokes, mandar q por vez

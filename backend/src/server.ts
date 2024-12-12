@@ -1,202 +1,310 @@
+// Dependencies and initial configuration
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
-import { createRoom, getRoomParticipants, removeParticipant } from "./rooms/roomManager";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*", // Permitir conexões de qualquer origem (ajuste para produção)
-  },
-});
-
+const io = new Server(server, { cors: { origin: "*" } });
 const PORT = process.env.PORT || 5555;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-type Stroke = {
-  points: Array<[number, number]>;
-  color: number;
-  size: number;
-  opacity: number;
-  strokeType: string;
-  filled: boolean;
-};
+// Classes
+interface Offset {
+  x: number;
+  y: number;
+}
 
-// Map para armazenar o histórico de desenhos para cada sala
-const roomDrawings: Record<string, Stroke[]> = {};
-const backupRoomDrawings: Record<string, Stroke[]> = {};
+enum StrokeType {
+  normal = "normal",
+  eraser = "eraser",
+  line = "line",
+  polygon = "polygon",
+  square = "square",
+  circle = "circle",
+}
 
-// Set para gerenciar a lista de salas disponíveis
-const availableRooms = new Set<string>();
+class Stroke {
+  constructor(
+    public points: Offset[],
+    public color: number,
+    public size: number,
+    public opacity: number,
+    public strokeType: StrokeType,
+    public filled: boolean
+  ) { }
+}
 
-// Mapa para associar socket.id ao username e salas
-const socketUserMap: Record<string, { username: string; room: string }> = {};
+class RoomDrawing {
+  private strokes: Stroke[] = [];
+  private backupStrokes: Stroke[] = [];
 
-io.on("connection", (socket: Socket) => {
-  console.log(`Client connected: ${socket.id}`);
+  addStrokes(newStrokes: Stroke[]): void {
+    this.strokes.push(...newStrokes);
+  }
 
-  // Envia a lista de salas disponíveis para o cliente conectado
-  socket.emit("roomList", Array.from(availableRooms));
+  clear(): void {
+    this.strokes = [];
+    this.backupStrokes = [];
+  }
 
-  // Evento para criar uma nova sala
-  socket.on("createRoom", (roomName: string) => {
-    if (!availableRooms.has(roomName)) {
-      availableRooms.add(roomName);
-      console.log(`Room created: ${roomName}`);
-      io.emit("roomList", Array.from(availableRooms)); // Atualiza a lista de salas para todos os clientes
+  undo(): Stroke | undefined {
+    const lastStroke = this.strokes.pop();
+    if (lastStroke) this.backupStrokes.push(lastStroke);
+    return lastStroke;
+  }
+
+  redo(): Stroke | undefined {
+    const lastBackupStroke = this.backupStrokes.pop();
+    if (lastBackupStroke) this.strokes.push(lastBackupStroke);
+    return lastBackupStroke;
+  }
+
+  getStrokes(): Stroke[] {
+    return this.strokes;
+  }
+}
+
+class Room {
+  private participants: Set<string> = new Set();
+  private turnQueue: string[] = [];
+  private currentTurnIndex: number = 0;
+
+  constructor(public name: string) { }
+
+  addParticipant(username: string): void {
+    this.participants.add(username);
+    this.turnQueue.push(username);
+  }
+
+  removeParticipant(username: string): void {
+    this.participants.delete(username);
+    this.turnQueue = this.turnQueue.filter((user) => user !== username);
+    if (this.currentTurnIndex >= this.turnQueue.length) {
+      this.currentTurnIndex = 0; // Reset turn if out of bounds
     }
-  });
+  }
 
-  // Evento para um usuário entrar em uma sala
-  socket.on("joinRoom", ({ username, room }: { username: string; room: string }) => {
-    if (!availableRooms.has(room)) {
-      console.log(`Room ${room} does not exist`);
+  getParticipants(): string[] {
+    return Array.from(this.participants);
+  }
+
+  getCurrentDrawer(): string {
+    return this.turnQueue[this.currentTurnIndex];
+  }
+
+  advanceTurn(): void {
+    this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
+  }
+}
+
+// Memory storage
+interface SocketRoom {
+  roomName: string;
+}
+
+interface SocketRoomUser extends SocketRoom {
+  username: string;
+}
+
+interface SocketRoomDraw extends SocketRoom {
+  strokes: Stroke[];
+}
+
+interface SocketRoomUserMessage extends SocketRoomUser {
+  message: string;
+}
+
+interface SocketRoomUserAnswer extends SocketRoomUser {
+  answer: string;
+}
+
+interface RoomsMap {
+  [roomName: string]: Room;
+}
+
+interface RoomDrawingsMap {
+  [roomName: string]: RoomDrawing;
+}
+
+interface SocketUserMap {
+  [socketId: string]: SocketRoomUser;
+}
+
+const rooms: RoomsMap = {};
+const roomDrawings: RoomDrawingsMap = {};
+const socketUserMap: SocketUserMap = {};
+const definedNumberOfPlayers = 4;
+
+// Auxiliary functions
+const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
+const emitParticipantsUpdate = (roomName: string): boolean =>
+  io.to(roomName).emit("updateParticipants", rooms[roomName]?.getParticipants() || []);
+
+const handleRoomManagement = {
+  create({ roomName }: SocketRoom): void {
+    if (!rooms[roomName]) {
+      rooms[roomName] = new Room(roomName);
+      roomDrawings[roomName] = new RoomDrawing();
+      console.log(`Room created: ${roomName}`);
+      emitRoomList();
+    }
+  },
+
+  join(socket: Socket, { username, roomName }: SocketRoomUser): void {
+    if (!rooms[roomName]) {
+      console.log(`Room ${roomName} does not exist`);
       return;
     }
 
-    socket.join(room);
-    createRoom(room, username);
-    socketUserMap[socket.id] = { username, room };
+    const currentRoom = rooms[roomName];
+    currentRoom.addParticipant(username);
+    socket.join(roomName);
+    socketUserMap[socket.id] = { username, roomName };
 
-    // Envia o desenho acumulado para o cliente que acabou de entrar
-    if (roomDrawings[room]) {
-      console.log(`Sending full drawing to client ${socket.id} for room ${room}`);
-      socket.emit("draw", { strokes: roomDrawings[room] });
-    } else {
-      console.log(`No drawing available for room ${room}`);
+    io.to(roomName).emit("newMessageChat", { username, message: "joined the room." });
+    socket.emit("draw", { strokes: roomDrawings[roomName]?.getStrokes() });
+    emitParticipantsUpdate(roomName);
+
+    console.log(`${username} joined room ${roomName}`);
+
+    if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
+      console.log(`Starting turn timer in room ${roomName}`);
+      handleTurnActions.startTurnTimer(roomName, 60);
+    }
+  },
+
+
+  leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
+    console.log(`${username} left room ${roomName}`);
+    io.to(roomName).emit("newMessageChat", { username, message: "left the room." });
+    rooms[roomName]?.removeParticipant(username);
+    socket.leave(roomName);
+
+    if (socketUserMap[socket.id]?.roomName === roomName) delete socketUserMap[socket.id];
+    emitParticipantsUpdate(roomName);
+
+    if (rooms[roomName]?.getParticipants().length === 0) {
+      delete rooms[roomName];
+      delete roomDrawings[roomName];
+      console.log(`Room ${roomName} is now empty and has been removed.`);
+      emitRoomList();
+    }
+  },
+};
+
+const handleChatActions = {
+  sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
+    io.to(roomName).emit("newMessageChat", { username, message });
+  },
+
+  sendAnswer({ username, roomName, answer }: SocketRoomUserAnswer): void {
+    io.to(roomName).emit("newAnswerChat", { username, answer });
+  },
+};
+
+const handleDrawingActions = {
+  draw({ roomName, strokes }: SocketRoomDraw): void {
+    roomDrawings[roomName]?.addStrokes(strokes);
+    io.to(roomName).emit("draw", { strokes });
+  },
+
+  clear({ roomName }: SocketRoom): void {
+    roomDrawings[roomName]?.clear();
+    io.to(roomName).emit("clearDraw");
+  },
+
+  undo({ roomName }: SocketRoom): void {
+    roomDrawings[roomName]?.undo();
+    io.to(roomName).emit("undoDraw");
+  },
+
+  redo({ roomName }: SocketRoom): void {
+    roomDrawings[roomName]?.redo();
+    io.to(roomName).emit("redoDraw");
+  },
+};
+
+// chatgpt: me gere apenas o codigo necessario, preciso transformar esse totalDuration q esta em segundos para milisegundos
+const handleTurnActions = {
+  startTurnTimer(roomName: string, totalDuration: number = 60): void {
+    const room = rooms[roomName];
+    if (!room) {
+      console.error(`Room ${roomName} not found.`);
+      return;
     }
 
-    const participants = getRoomParticipants(room);
-    io.to(room).emit("updateParticipants", participants);
+    const participants = room.getParticipants();
+    if (participants.length === 0) {
+      console.error(`No participants available in room ${roomName}`);
+      return;
+    }
 
-    console.log(`${username} joined room ${room}`);
-    io.to(room).emit("newMessageChat", {
-      username: username,
-      message: `joined the room.`,
+    const currentDrawer = room.getCurrentDrawer();
+
+    if (!currentDrawer) {
+      console.error(`Failed to get the current drawer in room ${roomName}`);
+      return;
+    }
+
+    // Emite o evento 'newTurn'
+    io.to(roomName).emit("newTurn", {
+      currentDrawer: currentDrawer,
+      totalDuration: totalDuration * 1000, // Convertendo para milissegundos antes de enviar
     });
-  });
 
-  // Evento para um usuário sair de uma sala
-  socket.on("leaveRoom", ({ username, room }: { username: string; room: string }) => {
-    console.log(`${username} left room ${room}`);
+    console.log(`New turn started in room ${roomName}. Current drawer: ${currentDrawer}`);
 
-    io.to(room).emit("newMessageChat", {
-      username: username,
-      message: `left the room.`,
-    });
+    // Configura o próximo turno
+    setTimeout(() => {
+      room.advanceTurn(); // Avança para o próximo jogador
+      handleTurnActions.startTurnTimer(roomName, totalDuration); // Chama recursivamente
+    }, totalDuration * 1000); // Convertendo para milissegundos no setTimeout
+  },
+};
 
-    // Remove o participante da sala
-    removeParticipant(availableRooms, room, username);
 
-    const participants = getRoomParticipants(room);
-    io.to(room).emit("updateParticipants", participants);
+const handleDisconnect = (socket: Socket): void => {
+  const userInfo = socketUserMap[socket.id];
+  if (!userInfo) {
+    console.log(`No user info found for socket ${socket.id}`);
+    return;
+  }
 
-    // Remove a entrada do mapa se for o mesmo socket
-    if (socketUserMap[socket.id]?.room === room) {
-      delete socketUserMap[socket.id];
-    }
-    socket.leave(room);
-  });
+  const { username, roomName } = userInfo;
+  console.log(`User ${username} disconnected from room ${roomName}`);
 
-  // Event to handle sending messages
-  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) => {
-    io.to(room).emit("newMessageChat", { username, message });
-  });
+  handleRoomManagement.leave(socket, { username, roomName });
+};
 
-  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) => {
-    io.to(room).emit("newAnswerChat", { username, answer });
-  });
+// Socket.IO Configuration
+io.on("connection", (socket: Socket): void => {
+  console.log(`Client connected: ${socket.id}`);
+  socket.emit("roomList", Object.keys(rooms));
 
-  // Evento para lidar com os dados de desenho
-  socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
-    console.log(`Drawing received for room ${room}:`, strokes);
+  socket.on("createRoom", (data: SocketRoom) => handleRoomManagement.create(data));
+  socket.on("joinRoom", (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
+  socket.on("leaveRoom", (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-    // Inicialize o histórico se ainda não existir
-    if (!roomDrawings[room]) roomDrawings[room] = [];
-    if (!backupRoomDrawings[room]) backupRoomDrawings[room] = [];
+  socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
+  socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(data));
 
-    // Adicione os novos strokes ao histórico
-    roomDrawings[room].push(...strokes);
+  socket.on("draw", (data) => handleDrawingActions.draw(data));
+  socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
+  socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
+  socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
 
-    // Envie os novos strokes para todos os clientes na sala
-    io.to(room).emit("draw", { strokes });
-
-    console.log(`Drawing broadcasted to room ${room}:`, strokes);
-  });
-
-  // Evento para limpar o desenho
-  socket.on("clearDraw", ({ room }: { room: string }) => {
-    console.log(`Clear draw received for room ${room}`);
-    roomDrawings[room] = [];
-    backupRoomDrawings[room] = [];
-    io.to(room).emit("clearDraw");
-  });
-
-  // Evento para desfazer o último desenho
-  socket.on("undoDraw", ({ room }: { room: string }) => {
-    console.log(`Undo draw received for room ${room}`);
-    const poppedValue = roomDrawings[room]?.pop();
-    if (poppedValue) backupRoomDrawings[room].push(poppedValue);
-    io.to(room).emit("undoDraw");
-  });
-
-  // Evento para refazer o último desenho
-  socket.on("redoDraw", ({ room }: { room: string }) => {
-    console.log(`Redo draw received for room ${room}`);
-    const poppedValue = backupRoomDrawings[room]?.pop();
-    if (poppedValue) roomDrawings[room].push(poppedValue);
-    io.to(room).emit("redoDraw");
-  });
-
-  // Evento para lidar com desconexões
-  socket.on("disconnect", () => {
-    console.log(`Client disconnected: ${socket.id}`);
-
-    // Recupera as informações do usuário antes de removê-lo
-    const userInfo = socketUserMap[socket.id];
-
-    if (userInfo) {
-      const { username, room } = userInfo;
-
-      console.log(`User ${username} disconnected from room ${room}`);
-      console.log(`Attempting to remove participant ${username} from room ${room}`);
-
-      // Notifica os participantes da sala sobre a desconexão
-      io.sockets.in(room).emit("newMessageChat", {
-        username: username,
-        message: `disconnected.`,
-      });
-
-      // Remove o usuário do mapa
-      delete socketUserMap[socket.id];
-
-      // Remove o participante da sala
-      removeParticipant(availableRooms, room, username);
-
-      // Verifica e atualiza os participantes da sala
-      const participants = getRoomParticipants(room);
-      console.log(`Updated participants in room ${room}:`, participants);
-      io.sockets.in(room).emit("updateParticipants", participants);
-
-      // Se a sala estiver vazia, remove-a
-      if (participants.length === 0) {
-        availableRooms.delete(room);
-        console.log(`Room ${room} is now empty and has been removed.`);
-        io.emit("roomList", Array.from(availableRooms));
-      }
-    } else {
-      console.log(`No user info found for socket ${socket.id}`);
-    }
-  });
+  socket.on("disconnect", () => handleDisconnect(socket));
 });
 
+// Server startup
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
