@@ -1,3 +1,4 @@
+// Dependências e configuração inicial
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -6,60 +7,64 @@ import { Server, Socket } from "socket.io";
 
 dotenv.config();
 
-// Setup
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }, // Permitir conexões de qualquer origem
-});
+const io = new Server(server, { cors: { origin: "*" } });
 const PORT = process.env.PORT || 5555;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Objects
+// Classes
+type Point = { x: number; y: number }; // Representação do Offset
+
+enum StrokeType {
+  normal = "normal",
+  eraser = "eraser",
+  line = "line",
+  polygon = "polygon",
+  square = "square",
+  circle = "circle",
+}
+
 class Stroke {
   constructor(
-    public points: Array<[number, number]>,
+    public points: Point[],
     public color: number,
     public size: number,
     public opacity: number,
-    public strokeType: string,
+    public strokeType: StrokeType,
     public filled: boolean
-  ) { }
+  ) {}
 }
 
 class RoomDrawing {
   private strokes: Stroke[] = [];
   private backupStrokes: Stroke[] = [];
 
-  addStrokes(newStrokes: Stroke[]) {
+  addStrokes(newStrokes: Stroke[]): void {
     this.strokes.push(...newStrokes);
   }
 
-  clear() {
+  clear(): void {
     this.strokes = [];
     this.backupStrokes = [];
   }
 
-  undo() {
+  undo(): Stroke | undefined {
     const lastStroke = this.strokes.pop();
-    if (lastStroke) {
-      this.backupStrokes.push(lastStroke);
-    }
+    if (lastStroke) this.backupStrokes.push(lastStroke);
     return lastStroke;
   }
 
-  redo() {
+  redo(): Stroke | undefined {
     const lastBackupStroke = this.backupStrokes.pop();
-    if (lastBackupStroke) {
-      this.strokes.push(lastBackupStroke);
-    }
+    if (lastBackupStroke) this.strokes.push(lastBackupStroke);
     return lastBackupStroke;
   }
 
-  getStrokes() {
+  getStrokes(): Stroke[] {
     return this.strokes;
   }
 }
@@ -67,88 +72,105 @@ class RoomDrawing {
 class Room {
   private participants: Set<string> = new Set();
 
-  constructor(public name: string) { }
+  constructor(public name: string) {}
 
-  addParticipant(username: string) {
+  addParticipant(username: string): void {
     this.participants.add(username);
   }
 
-  removeParticipant(username: string) {
+  removeParticipant(username: string): void {
     this.participants.delete(username);
   }
 
-  getParticipants() {
+  getParticipants(): string[] {
     return Array.from(this.participants);
   }
 }
 
+// Armazenamento em memória
+interface SocketUser {
+  username: string;
+  room: string;
+}
 
-// In-memory storage
 const rooms: Record<string, Room> = {};
 const roomDrawings: Record<string, RoomDrawing> = {};
-const socketUserMap: Record<string, { username: string; room: string }> = {};
+const socketUserMap: Record<string, SocketUser> = {};
 
-// Helper functions
-const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
-const emitParticipantsUpdate = (roomName: string) =>
-  io.to(roomName).emit("updateParticipants", rooms[roomName].getParticipants());
+// Funções auxiliares
+const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
+const emitParticipantsUpdate = (roomName: string): boolean =>
+  io.to(roomName).emit("updateParticipants", rooms[roomName]?.getParticipants() || []);
 
-// Criar uma nova sala
-const handleCreateRoom = (roomName: string) => {
-  if (!rooms[roomName]) {
-    rooms[roomName] = new Room(roomName);
-    roomDrawings[roomName] = new RoomDrawing();
-    console.log(`Room created: ${roomName}`);
-    emitRoomList();
-  }
+const handleRoomManagement = {
+  create(roomName: string): void {
+    if (!rooms[roomName]) {
+      rooms[roomName] = new Room(roomName);
+      roomDrawings[roomName] = new RoomDrawing();
+      console.log(`Room created: ${roomName}`);
+      emitRoomList();
+    }
+  },
+
+  join(socket: Socket, { username, room }: SocketUser): void {
+    if (!rooms[room]) {
+      console.log(`Room ${room} does not exist`);
+      return;
+    }
+
+    const currentRoom = rooms[room];
+    currentRoom.addParticipant(username);
+    socket.join(room);
+    socketUserMap[socket.id] = { username, room };
+
+    io.to(room).emit("newMessageChat", { username, message: "joined the room." });
+    socket.emit("draw", { strokes: roomDrawings[room]?.getStrokes() });
+    emitParticipantsUpdate(room);
+
+    console.log(`${username} joined room ${room}`);
+  },
+
+  leave(socket: Socket, { username, room }: SocketUser): void {
+    console.log(`${username} left room ${room}`);
+    io.to(room).emit("newMessageChat", { username, message: "left the room." });
+    rooms[room]?.removeParticipant(username);
+    socket.leave(room);
+
+    if (socketUserMap[socket.id]?.room === room) delete socketUserMap[socket.id];
+    emitParticipantsUpdate(room);
+
+    if (rooms[room]?.getParticipants().length === 0) {
+      delete rooms[room];
+      delete roomDrawings[room];
+      console.log(`Room ${room} is now empty and has been removed.`);
+      emitRoomList();
+    }
+  },
 };
 
-// Adicionar participante
-const handleJoinRoom = (socket: Socket, { username, room }: { username: string; room: string }) => {
-  if (!rooms[room]) {
-    console.log(`Room ${room} does not exist`);
-    return;
-  }
+const handleDrawingActions = (socket: Socket): void => {
+  socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
+    roomDrawings[room]?.addStrokes(strokes);
+    io.to(room).emit("draw", { strokes });
+  });
 
-  const currentRoom = rooms[room];
-  currentRoom.addParticipant(username);
-  socket.join(room);
+  socket.on("clearDraw", ({ room }: { room: string }) => {
+    roomDrawings[room]?.clear();
+    io.to(room).emit("clearDraw");
+  });
 
-  socketUserMap[socket.id] = { username, room };
-  io.to(room).emit("newMessageChat", { username, message: `joined the room.` });
+  socket.on("undoDraw", ({ room }: { room: string }) => {
+    roomDrawings[room]?.undo();
+    io.to(room).emit("undoDraw");
+  });
 
-  const roomDrawing = roomDrawings[room];
-  if (roomDrawing) {
-    socket.emit("draw", { strokes: roomDrawing.getStrokes() });
-  }
-
-  emitParticipantsUpdate(room);
-  console.log(`${username} joined room ${room}`);
+  socket.on("redoDraw", ({ room }: { room: string }) => {
+    roomDrawings[room]?.redo();
+    io.to(room).emit("redoDraw");
+  });
 };
 
-
-const handleLeaveRoom = (socket: Socket, { username, room }: { username: string; room: string }) => {
-  console.log(`${username} left room ${room}`);
-
-  io.to(room).emit("newMessageChat", { username, message: `left the room.` });
-  rooms[room].removeParticipant(username);
-  emitParticipantsUpdate(room);
-
-  if (socketUserMap[socket.id]?.room === room) delete socketUserMap[socket.id];
-  socket.leave(room);
-
-  // Remover sala se estiver vazia
-  const participants = rooms[room].getParticipants();
-  if (participants.length === 0) {
-    delete rooms[room];
-    delete roomDrawings[room];
-    console.log(`Room ${room} is now empty and has been removed.`);
-    emitRoomList();
-  }
-};
-
-
-const handleDisconnect = (socket: Socket) => {
+const handleDisconnect = (socket: Socket): void => {
   const userInfo = socketUserMap[socket.id];
   if (!userInfo) {
     console.log(`No user info found for socket ${socket.id}`);
@@ -158,77 +180,31 @@ const handleDisconnect = (socket: Socket) => {
   const { username, room } = userInfo;
   console.log(`User ${username} disconnected from room ${room}`);
 
-  io.to(room).emit("newMessageChat", { username, message: `disconnected.` });
-  delete socketUserMap[socket.id];
-  rooms[room].removeParticipant(username);
-
-  emitParticipantsUpdate(room);
-
-  const participants = rooms[room].getParticipants();
-  io.to(room).emit("updateParticipants", participants);
-
-  if (participants.length === 0) {
-    delete rooms[room];
-    delete roomDrawings[room];
-    console.log(`Room ${room} is now empty and has been removed.`);
-    emitRoomList();
-  }
+  handleRoomManagement.leave(socket, { username, room });
 };
 
-const handleDrawingActions = (socket: Socket) => {
-  socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
-    const roomDrawing = roomDrawings[room];
-    if (!roomDrawing) return;
-
-    roomDrawing.addStrokes(strokes);
-    io.to(room).emit("draw", { strokes });
-  });
-
-  socket.on("clearDraw", ({ room }: { room: string }) => {
-    const roomDrawing = roomDrawings[room];
-    if (!roomDrawing) return;
-
-    roomDrawing.clear();
-    io.to(room).emit("clearDraw");
-  });
-
-  socket.on("undoDraw", ({ room }: { room: string }) => {
-    const roomDrawing = roomDrawings[room];
-    if (!roomDrawing) return;
-
-    roomDrawing.undo();
-    io.to(room).emit("undoDraw");
-  });
-
-  socket.on("redoDraw", ({ room }: { room: string }) => {
-    const roomDrawing = roomDrawings[room];
-    if (!roomDrawing) return;
-
-    roomDrawing.redo();
-    io.to(room).emit("redoDraw");
-  });
-};
-
-
-// Socket.IO setup
-io.on("connection", (socket: Socket) => {
+// Configuração do Socket.IO
+io.on("connection", (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
   socket.emit("roomList", Object.keys(rooms));
 
-  socket.on("createRoom", (roomName: string) => handleCreateRoom(roomName));
-  socket.on("joinRoom", (data) => handleJoinRoom(socket, data));
-  socket.on("leaveRoom", (data) => handleLeaveRoom(socket, data));
-  socket.on("sendMessageChat", ({ username, room, message }) =>
+  socket.on("createRoom", (roomName: string) => handleRoomManagement.create(roomName));
+  socket.on("joinRoom", (data: SocketUser) => handleRoomManagement.join(socket, data));
+  socket.on("leaveRoom", (data: SocketUser) => handleRoomManagement.leave(socket, data));
+
+  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) =>
     io.to(room).emit("newMessageChat", { username, message })
   );
-  socket.on("sendAnswerChat", ({ username, room, answer }) =>
+
+  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) =>
     io.to(room).emit("newAnswerChat", { username, answer })
   );
+
   handleDrawingActions(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
 });
 
-// Start server
+// Inicialização do servidor
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

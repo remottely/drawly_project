@@ -97,6 +97,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 
 **BUGS:**
 - [ ] polygon outside canvas limits
+- [ ] when enter in room1 than left and enter in room2 then disconnect then and make some undos, the user come back to room1
 
 **TODO:**
 - [x] (0.7.2): Stroke transparency
@@ -114,6 +115,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.9.1) organize backend server.ts part 1
 - [x] (0.9.2) organize backend server.ts part 2
 - [x] (0.9.3) organize backend server.ts part 3
+- [x] (0.9.4) organize backend server.ts part 4
 - [ ] redoDraw
 	- [ ] get from server and not locally
 	- [ ] not working properly, when someone disconnect, lose some redos
