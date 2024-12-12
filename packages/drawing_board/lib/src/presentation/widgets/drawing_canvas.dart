@@ -1,0 +1,405 @@
+import 'dart:developer' as developer;
+import 'dart:math';
+import 'dart:ui' as ui;
+
+import 'package:drawing_board/src/src.dart';
+import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
+import 'package:flutter/material.dart';
+
+class DrawingCanvas extends StatefulWidget {
+  final ValueNotifier<List<Stroke>> rxAllStrokes;
+  final ValueNotifier<ui.Image?>? rxBackgroundImage;
+  final CurrentStrokeValueNotifier rxCurrentStroke;
+  final DrawingCanvasOptions options;
+  final Function(Stroke?)? onDrawingStrokeChanged;
+  final GlobalKey canvasGlobalKey;
+
+  const DrawingCanvas({
+    super.key,
+    required this.rxAllStrokes,
+    this.rxBackgroundImage,
+    required this.rxCurrentStroke,
+    required this.options,
+    this.onDrawingStrokeChanged,
+    required this.canvasGlobalKey,
+    required this.username,
+    required this.roomName,
+  })  : assert(
+          username.length >= 3,
+          'The username must be at least 3 characters long',
+        ),
+        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+
+  final String username;
+  final String roomName;
+
+  @override
+  State<DrawingCanvas> createState() => _DrawingCanvasState();
+}
+
+abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
+  CurrentStrokeValueNotifier get _rxCurrentStroke => widget.rxCurrentStroke;
+  ValueNotifier<List<Stroke>> get _rxAllStrokes => widget.rxAllStrokes;
+
+  /// Tamanho fixo do canvas
+  final double _canvasSize = 500.0;
+
+  /// Calcula o fator de escala global com base no espaço disponível para 16:9
+  double _calculateScale(BoxConstraints constraints) {
+    final availableWidth = constraints.maxWidth;
+    final availableHeight = constraints.maxHeight;
+
+    // Calcula a proporção máxima que mantém o aspecto 16:9
+    final canvasWidth = availableWidth;
+    final canvasHeight = availableWidth / (16 / 9);
+
+    if (canvasHeight > availableHeight) {
+      return availableHeight / (9 * (_canvasSize / 16));
+    } else {
+      return canvasWidth / _canvasSize;
+    }
+  }
+
+  /// Verifica se um ponto está dentro dos limites do canvas 16:9
+  bool _isInsideCanvas(Offset point) {
+    final canvasWidth = _canvasSize;
+    final canvasHeight = _canvasSize / (16 / 9);
+
+    return point.dx >= 0 && point.dx <= canvasWidth && point.dy >= 0 && point.dy <= canvasHeight;
+  }
+
+  /// Inicializa o listener do socket para eventos de desenho
+  void _initializeDrawingSocket() {
+    SocketManager.instance.on('draw', (data) {
+      developer.log('Draw event received: $data');
+
+      // Mapeia cada elemento da lista 'strokes' para uma instância de Stroke
+      List<Stroke> receivedStrokes =
+          (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
+
+      // Adiciona os strokes recebidos à lista, evitando duplicatas
+      _rxAllStrokes.value = List<Stroke>.from(_rxAllStrokes.value)
+        ..addAll(receivedStrokes.where((stroke) => !_rxAllStrokes.value.contains(stroke)));
+    });
+
+    SocketManager.instance.on('connect', (_) {
+      _rxAllStrokes.value = [];
+    });
+  }
+
+  /// Envia os pontos armazenados no buffer ao servidor
+  void _sendBufferedPoints() {
+    if (_rxCurrentStroke.value == null) return;
+
+    // Envia os strokes ao servidor
+    SocketManager.instance.emit('draw', {
+      'roomName': widget.roomName,
+      'strokes': [_rxCurrentStroke.value!.toJson()],
+    });
+
+    // Limpa o buffer após o envio
+    _rxCurrentStroke.clear();
+  }
+}
+
+class _DrawingCanvasState extends DrawingCanvasViewModel {
+  final _rxIsShowGrid = ValueNotifier<bool>(false);
+
+  Color get strokeColor => widget.options.strokeColor;
+
+  double get size => widget.options.size;
+
+  double get opacity => widget.options.opacity;
+
+  DrawingTool get currentTool => widget.options.currentTool;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDrawingSocket();
+  }
+
+  @override
+  void dispose() {
+    SocketManager.instance.off('draw');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _rxIsShowGrid.value = widget.options.showGrid;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = _calculateScale(constraints);
+
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            color: Colors.transparent,
+            child: Center(
+              child: DrawlyContainer(
+                color: widget.options.backgroundColor,
+                width: _canvasSize,
+                height: _canvasSize / (16 / 9), // Proporção 16:9
+                child: MouseRegion(
+                  cursor: widget.options.currentTool.cursor,
+                  child: Listener(
+                    onPointerDown: (details) {
+                      final localPosition = details.localPosition;
+                      if (_isInsideCanvas(localPosition)) {
+                        _rxCurrentStroke.startStroke(
+                          localPosition,
+                          color: strokeColor,
+                          size: size / scale,
+                          opacity: opacity,
+                          type: currentTool.strokeType,
+                          sides: widget.options.polygonSides,
+                          filled: widget.options.fillShape,
+                        );
+                        widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                      }
+                    },
+                    onPointerMove: (details) {
+                      final localPosition = details.localPosition;
+                      if (_isInsideCanvas(localPosition)) {
+                        _rxCurrentStroke.addPoint(localPosition);
+                        widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                      }
+                    },
+                    onPointerUp: (_) {
+                      if (_rxCurrentStroke.hasStroke) {
+                        _sendBufferedPoints();
+                        widget.onDrawingStrokeChanged?.call(null);
+                      }
+                    },
+                    child: RepaintBoundary(
+                      key: widget.canvasGlobalKey,
+                      child: CustomPaint(
+                        isComplex: true,
+                        painter: _DrawingCanvasPainter(
+                          rxAllStrokes: _rxAllStrokes,
+                          rxCurrentStroke: _rxCurrentStroke,
+                          backgroundColor: widget.options.backgroundColor,
+                          rxIsShowGrid: _rxIsShowGrid,
+                          rxBackgroundImage: widget.rxBackgroundImage,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DrawingCanvasPainter extends CustomPainter {
+  final ValueNotifier<List<Stroke>>? rxAllStrokes;
+  final CurrentStrokeValueNotifier? rxCurrentStroke;
+  final Color backgroundColor;
+  final ValueNotifier<bool>? rxIsShowGrid;
+  final ValueNotifier<ui.Image?>? rxBackgroundImage;
+
+  _DrawingCanvasPainter({
+    this.rxAllStrokes,
+    this.rxCurrentStroke,
+    this.backgroundColor = Colors.white,
+    this.rxIsShowGrid,
+    this.rxBackgroundImage,
+  }) : super(
+          repaint: Listenable.merge(
+            [
+              rxAllStrokes,
+              rxCurrentStroke,
+              rxIsShowGrid,
+              rxBackgroundImage,
+            ],
+          ),
+        );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (rxBackgroundImage != null) {
+      final backgroundImage = rxBackgroundImage!.value;
+
+      if (backgroundImage != null) {
+        canvas.drawImageRect(
+          backgroundImage,
+          Rect.fromLTWH(
+            0,
+            0,
+            backgroundImage.width.toDouble(),
+            backgroundImage.height.toDouble(),
+          ),
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Paint(),
+        );
+      }
+    }
+
+    final allStrokes = List<Stroke>.from(rxAllStrokes?.value ?? []);
+
+    if (rxCurrentStroke?.hasStroke ?? false) {
+      allStrokes.add(rxCurrentStroke!.value!);
+    }
+
+    for (final stroke in allStrokes) {
+      if (stroke.points.isEmpty) continue;
+
+      final paint = Paint()
+        ..color = stroke.color.withOpacity(stroke.opacity)
+        ..strokeWidth = stroke.size
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke;
+
+      if (stroke is NormalStroke) {
+        if (stroke.points.length == 1) {
+          final center = stroke.points.first;
+          final radius = stroke.size / 2;
+          canvas.drawCircle(center, radius, paint..style = PaintingStyle.fill);
+        } else {
+          final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+          for (int i = 1; i < stroke.points.length; i++) {
+            path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
+          }
+          canvas.drawPath(path, paint);
+        }
+      }
+
+      if (stroke is EraserStroke) {
+        // O EraserStroke desenha com a cor de fundo para "apagar"
+        final eraserPaint = Paint()
+          ..color = backgroundColor // Usa a cor de fundo para apagar
+          ..strokeWidth = stroke.size
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..style = PaintingStyle.stroke;
+
+        final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+        for (int i = 1; i < stroke.points.length; i++) {
+          path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
+        }
+        canvas.drawPath(path, eraserPaint);
+      }
+
+      if (stroke is LineStroke) {
+        if (stroke.points.length >= 2) {
+          final firstPoint = stroke.points.first;
+          final lastPoint = stroke.points.last;
+          canvas.drawLine(firstPoint, lastPoint, paint);
+        }
+      }
+
+      if (stroke is CircleStroke) {
+        if (stroke.points.length >= 2) {
+          final firstPoint = stroke.points.first;
+          final lastPoint = stroke.points.last;
+          final rect = Rect.fromPoints(firstPoint, lastPoint);
+          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          canvas.drawOval(rect, paint);
+        }
+      }
+
+      if (stroke is SquareStroke) {
+        if (stroke.points.length >= 2) {
+          final firstPoint = stroke.points.first;
+          final lastPoint = stroke.points.last;
+          final rect = Rect.fromPoints(firstPoint, lastPoint);
+          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          canvas.drawRect(rect, paint);
+        }
+      }
+
+      if (stroke is PolygonStroke) {
+        if (stroke.points.length >= 2) {
+          final firstPoint = stroke.points.first;
+          final lastPoint = stroke.points.last;
+          final center = Offset(
+            (firstPoint.dx + lastPoint.dx) / 2,
+            (firstPoint.dy + lastPoint.dy) / 2,
+          );
+          final radius = (firstPoint - lastPoint).distance / 2;
+          final path = Path();
+          final angleStep = (2 * pi) / stroke.sides;
+          const startAngle = -pi / 2;
+
+          path.moveTo(
+            center.dx + radius * cos(startAngle),
+            center.dy + radius * sin(startAngle),
+          );
+
+          for (int i = 1; i <= stroke.sides; i++) {
+            final angle = startAngle + i * angleStep;
+            final x = center.dx + radius * cos(angle);
+            final y = center.dy + radius * sin(angle);
+            path.lineTo(x, y);
+          }
+
+          path.close();
+          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          canvas.drawPath(path, paint);
+        }
+      }
+    }
+
+    // Desenho da grade (grid) por último, sobrepondo todos os elementos
+    if (rxIsShowGrid?.value ?? false) {
+      _drawGrid(size, canvas);
+    }
+  }
+
+  void _drawGrid(Size size, Canvas canvas) {
+    const gridStrokeWidth = 1.0;
+    const gridSpacing = 50.0;
+    const subGridSpacing = 10.0; // Spacing for smaller boxes
+    const subGridStrokeWidth = 0.5; // Lighter stroke for smaller boxes
+
+    final gridPaint = Paint()
+      ..color = Colors.red.withOpacity(0.3)
+      ..strokeWidth = gridStrokeWidth;
+
+    final subGridPaint = Paint()
+      ..color = Colors.red.withOpacity(0.3)
+      ..strokeWidth = subGridStrokeWidth;
+
+    // Horizontal lines for main grid
+    for (double y = 0; y <= size.height; y += gridSpacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    // Vertical lines for main grid
+    for (double x = 0; x <= size.width; x += gridSpacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+
+    // Draw smaller boxes within each grid cell
+    for (double y = 0; y <= size.height; y += gridSpacing) {
+      for (double subY = y; subY < y + gridSpacing && subY <= size.height; subY += subGridSpacing) {
+        canvas.drawLine(
+          Offset(0, subY),
+          Offset(size.width, subY),
+          subGridPaint,
+        );
+      }
+    }
+
+    for (double x = 0; x <= size.width; x += gridSpacing) {
+      for (double subX = x; subX < x + gridSpacing && subX <= size.width; subX += subGridSpacing) {
+        canvas.drawLine(
+          Offset(subX, 0),
+          Offset(subX, size.height),
+          subGridPaint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
