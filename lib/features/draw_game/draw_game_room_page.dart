@@ -9,14 +9,14 @@ import 'package:flutter/material.dart';
 
 class DrawGameRoomPage extends StatefulWidget {
   final String username;
-  final String room;
+  final String roomName;
 
   const DrawGameRoomPage({
     super.key,
     required this.username,
-    required this.room,
+    required this.roomName,
   })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(room.length >= 3, 'The room must be at least 3 characters long');
+        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
 
   @override
   State<DrawGameRoomPage> createState() => _DrawGameRoomPageState();
@@ -38,24 +38,21 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     });
   }
 
-  /// Sends a request to create a new room
   void _createRoom() {
-    SocketManager.instance.emit('createRoom', widget.room);
+    SocketManager.instance.emit('createRoom', widget.roomName);
   }
 
-  /// Joins the room specified in the widget
   void _joinGameRoom() {
     SocketManager.instance.emit('joinRoom', {
       'username': widget.username,
-      'room': widget.room,
+      'roomName': widget.roomName,
     });
   }
 
-  // Notify the server that the user is leaving the room
   void _leaveRoom() {
     SocketManager.instance.emit('leaveRoom', {
       'username': widget.username,
-      'room': widget.room,
+      'roomName': widget.roomName,
     });
   }
 }
@@ -80,7 +77,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
         Scaffold(
           backgroundColor: lightPrimary,
           appBar: AppBar(
-            title: Text('Drawly.io > Room - ${widget.room}'),
+            title: Text('Drawly.io > Room - ${widget.roomName}'),
             actions: [
               IconButton(
                 onPressed: Tests.testReconnection,
@@ -101,7 +98,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                       flex: 3,
                       child: DrawBoard(
                         username: widget.username,
-                        room: widget.room,
+                        roomName: widget.roomName,
                       ),
                     ),
                     Expanded(
@@ -110,13 +107,13 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                           Expanded(
                             child: AnswersChat(
                               username: widget.username,
-                              room: widget.room,
+                              roomName: widget.roomName,
                             ),
                           ),
                           Expanded(
                             child: MessageChat(
                               username: widget.username,
-                              room: widget.room,
+                              roomName: widget.roomName,
                             ),
                           ),
                         ],

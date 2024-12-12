@@ -7,12 +7,12 @@ class MessageChat extends StatefulWidget {
   const MessageChat({
     super.key,
     required this.username,
-    required this.room,
+    required this.roomName,
   })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(room.length >= 3, 'The room must be at least 3 characters long');
+        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
 
   final String username;
-  final String room;
+  final String roomName;
 
   @override
   State<MessageChat> createState() => _MessageChatState();
@@ -38,7 +38,7 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
       final message = messageController.text;
       SocketManager.instance.emit('sendMessageChat', {
         'username': widget.username,
-        'room': widget.room,
+        'roomName': widget.roomName,
         'message': message,
       });
 

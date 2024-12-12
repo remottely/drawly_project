@@ -36,7 +36,7 @@ class Stroke {
     public opacity: number,
     public strokeType: StrokeType,
     public filled: boolean
-  ) {}
+  ) { }
 }
 
 class RoomDrawing {
@@ -72,7 +72,7 @@ class RoomDrawing {
 class Room {
   private participants: Set<string> = new Set();
 
-  constructor(public name: string) {}
+  constructor(public name: string) { }
 
   addParticipant(username: string): void {
     this.participants.add(username);
@@ -90,7 +90,7 @@ class Room {
 // Armazenamento em memória
 interface SocketUser {
   username: string;
-  room: string;
+  roomName: string;
 }
 
 const rooms: Record<string, Room> = {};
@@ -112,62 +112,62 @@ const handleRoomManagement = {
     }
   },
 
-  join(socket: Socket, { username, room }: SocketUser): void {
-    if (!rooms[room]) {
-      console.log(`Room ${room} does not exist`);
+  join(socket: Socket, { username, roomName }: SocketUser): void {
+    if (!rooms[roomName]) {
+      console.log(`Room ${roomName} does not exist`);
       return;
     }
 
-    const currentRoom = rooms[room];
+    const currentRoom = rooms[roomName];
     currentRoom.addParticipant(username);
-    socket.join(room);
-    socketUserMap[socket.id] = { username, room };
+    socket.join(roomName);
+    socketUserMap[socket.id] = { username, roomName };
 
-    io.to(room).emit("newMessageChat", { username, message: "joined the room." });
-    socket.emit("draw", { strokes: roomDrawings[room]?.getStrokes() });
-    emitParticipantsUpdate(room);
+    io.to(roomName).emit("newMessageChat", { username, message: "joined the room." });
+    socket.emit("draw", { strokes: roomDrawings[roomName]?.getStrokes() });
+    emitParticipantsUpdate(roomName);
 
-    console.log(`${username} joined room ${room}`);
+    console.log(`${username} joined room ${roomName}`);
   },
 
-  leave(socket: Socket, { username, room }: SocketUser): void {
-    console.log(`${username} left room ${room}`);
-    io.to(room).emit("newMessageChat", { username, message: "left the room." });
-    rooms[room]?.removeParticipant(username);
-    socket.leave(room);
+  leave(socket: Socket, { username, roomName }: SocketUser): void {
+    console.log(`${username} left room ${roomName}`);
+    io.to(roomName).emit("newMessageChat", { username, message: "left the room." });
+    rooms[roomName]?.removeParticipant(username);
+    socket.leave(roomName);
 
-    if (socketUserMap[socket.id]?.room === room) delete socketUserMap[socket.id];
-    emitParticipantsUpdate(room);
+    if (socketUserMap[socket.id]?.roomName === roomName) delete socketUserMap[socket.id];
+    emitParticipantsUpdate(roomName);
 
-    if (rooms[room]?.getParticipants().length === 0) {
-      delete rooms[room];
-      delete roomDrawings[room];
-      console.log(`Room ${room} is now empty and has been removed.`);
+    if (rooms[roomName]?.getParticipants().length === 0) {
+      delete rooms[roomName];
+      delete roomDrawings[roomName];
+      console.log(`Room ${roomName} is now empty and has been removed.`);
       emitRoomList();
     }
   },
 };
 
-const handleDrawingActions = (socket: Socket): void => {
-  socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
-    roomDrawings[room]?.addStrokes(strokes);
-    io.to(room).emit("draw", { strokes });
-  });
+const handleDrawingActions = {
+  draw({ roomName, strokes }: { roomName: string; strokes: Stroke[] }): void {
+    roomDrawings[roomName]?.addStrokes(strokes);
+    io.to(roomName).emit("draw", { strokes });
+  },
 
-  socket.on("clearDraw", ({ room }: { room: string }) => {
-    roomDrawings[room]?.clear();
-    io.to(room).emit("clearDraw");
-  });
+  clear({ roomName }: { roomName: string }): void {
+    roomDrawings[roomName]?.clear();
+    io.to(roomName).emit("clearDraw");
+  },
 
-  socket.on("undoDraw", ({ room }: { room: string }) => {
-    roomDrawings[room]?.undo();
-    io.to(room).emit("undoDraw");
-  });
+  undo({ roomName }: { roomName: string }): void {
+    roomDrawings[roomName]?.undo();
+    io.to(roomName).emit("undoDraw");
+  },
 
-  socket.on("redoDraw", ({ room }: { room: string }) => {
-    roomDrawings[room]?.redo();
-    io.to(room).emit("redoDraw");
-  });
+  redo({ roomName }: { roomName: string }): void {
+    roomDrawings[roomName]?.redo();
+    io.to(roomName).emit("redoDraw");
+  },
 };
 
 const handleDisconnect = (socket: Socket): void => {
@@ -177,10 +177,10 @@ const handleDisconnect = (socket: Socket): void => {
     return;
   }
 
-  const { username, room } = userInfo;
-  console.log(`User ${username} disconnected from room ${room}`);
+  const { username, roomName } = userInfo;
+  console.log(`User ${username} disconnected from room ${roomName}`);
 
-  handleRoomManagement.leave(socket, { username, room });
+  handleRoomManagement.leave(socket, { username, roomName });
 };
 
 // Configuração do Socket.IO
@@ -192,15 +192,19 @@ io.on("connection", (socket: Socket): void => {
   socket.on("joinRoom", (data: SocketUser) => handleRoomManagement.join(socket, data));
   socket.on("leaveRoom", (data: SocketUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) =>
-    io.to(room).emit("newMessageChat", { username, message })
+  socket.on("sendMessageChat", ({ username, roomName, message }: { username: string; roomName: string; message: string }) =>
+    io.to(roomName).emit("newMessageChat", { username, message })
   );
 
-  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) =>
-    io.to(room).emit("newAnswerChat", { username, answer })
+  socket.on("sendAnswerChat", ({ username, roomName, answer }: { username: string; roomName: string; answer: string }) =>
+    io.to(roomName).emit("newAnswerChat", { username, answer })
   );
 
-  handleDrawingActions(socket);
+  socket.on("draw", (data) => handleDrawingActions.draw(data));
+  socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
+  socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
+  socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
+
   socket.on("disconnect", () => handleDisconnect(socket));
 });
 

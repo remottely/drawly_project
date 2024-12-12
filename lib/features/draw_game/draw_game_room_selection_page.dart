@@ -23,7 +23,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     _initializeSocket();
   }
 
-  /// Initializes the socket connection and sets up listeners
   void _initializeSocket() {
     SocketManager.instance.connect();
 
@@ -31,7 +30,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
       developer.log('Connected to the server');
     });
 
-    // Listen for room list updates
     SocketManager.instance.on("roomList", (data) {
       setState(() {
         allRooms
@@ -45,7 +43,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     });
   }
 
-  /// Sends a request to create a new room
   void _createRoom() {
     final roomName = roomController.text.trim();
     if (roomName.isNotEmpty && roomName.length >= 3) {
@@ -54,12 +51,11 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     }
   }
 
-  /// Joins the selected room
   void _joinRoom(String roomName) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DrawGameRoomPage(username: widget.username, room: roomName),
+        builder: (context) => DrawGameRoomPage(username: widget.username, roomName: roomName),
       ),
     );
   }
@@ -81,7 +77,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Input field to create a room
             TextField(
               controller: roomController,
               decoration: const InputDecoration(
