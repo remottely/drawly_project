@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Dependências e configuração inicial
+// Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
@@ -82,11 +82,11 @@ class Room {
 const rooms = {};
 const roomDrawings = {};
 const socketUserMap = {};
-// Funções auxiliares
+// Auxiliary functions
 const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
 const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit("updateParticipants", ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
 const handleRoomManagement = {
-    create(roomName) {
+    create({ roomName }) {
         if (!rooms[roomName]) {
             rooms[roomName] = new Room(roomName);
             roomDrawings[roomName] = new RoomDrawing();
@@ -126,6 +126,14 @@ const handleRoomManagement = {
         }
     },
 };
+const handleChatActions = {
+    sendMessage({ username, roomName, message }) {
+        io.to(roomName).emit("newMessageChat", { username, message });
+    },
+    sendAnswer({ username, roomName, answer }) {
+        io.to(roomName).emit("newAnswerChat", { username, answer });
+    },
+};
 const handleDrawingActions = {
     draw({ roomName, strokes }) {
         var _a;
@@ -162,18 +170,18 @@ const handleDisconnect = (socket) => {
 io.on("connection", (socket) => {
     console.log(`Client connected: ${socket.id}`);
     socket.emit("roomList", Object.keys(rooms));
-    socket.on("createRoom", (roomName) => handleRoomManagement.create(roomName));
+    socket.on("createRoom", (data) => handleRoomManagement.create(data));
     socket.on("joinRoom", (data) => handleRoomManagement.join(socket, data));
     socket.on("leaveRoom", (data) => handleRoomManagement.leave(socket, data));
-    socket.on("sendMessageChat", ({ username, roomName, message }) => io.to(roomName).emit("newMessageChat", { username, message }));
-    socket.on("sendAnswerChat", ({ username, roomName, answer }) => io.to(roomName).emit("newAnswerChat", { username, answer }));
+    socket.on("sendMessageChat", (data) => handleChatActions.sendMessage(data));
+    socket.on("sendAnswerChat", (data) => handleChatActions.sendAnswer(data));
     socket.on("draw", (data) => handleDrawingActions.draw(data));
     socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
     socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
     socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
     socket.on("disconnect", () => handleDisconnect(socket));
 });
-// Inicialização do servidor
+// Server startup
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

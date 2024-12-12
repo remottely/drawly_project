@@ -115,8 +115,9 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.9.1) organize backend server.ts part 1
 - [x] (0.9.2) organize backend server.ts part 2
 - [x] (0.9.3) organize backend server.ts part 3
-- [x] (0.9.5) organize backend server.ts part 4
-- [x] (0.9.6) organize backend server.ts part 5
+- [x] (0.9.4) organize backend server.ts part 4
+- [x] (0.9.5) organize backend server.ts part 5
+- [x] (0.9.6) organize backend server.ts part 6
 - [ ] redoDraw
 	- [ ] get from server and not locally
 	- [ ] not working properly, when someone disconnect, lose some redos

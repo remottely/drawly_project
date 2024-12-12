@@ -1,4 +1,4 @@
-// Dependências e configuração inicial
+// Dependencies and initial configuration
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -17,7 +17,10 @@ app.use(cors());
 app.use(express.json());
 
 // Classes
-type Point = { x: number; y: number }; // Representação do Offset
+interface Offset {
+  x: number;
+  y: number;
+}
 
 enum StrokeType {
   normal = "normal",
@@ -30,7 +33,7 @@ enum StrokeType {
 
 class Stroke {
   constructor(
-    public points: Point[],
+    public points: Offset[],
     public color: number,
     public size: number,
     public opacity: number,
@@ -87,23 +90,50 @@ class Room {
   }
 }
 
-// Armazenamento em memória
-interface SocketUser {
-  username: string;
+// Memory storage
+interface SocketRoom {
   roomName: string;
 }
 
-const rooms: Record<string, Room> = {};
-const roomDrawings: Record<string, RoomDrawing> = {};
-const socketUserMap: Record<string, SocketUser> = {};
+interface SocketRoomUser extends SocketRoom {
+  username: string;
+}
 
-// Funções auxiliares
+interface SocketRoomDraw extends SocketRoom {
+  strokes: Stroke[];
+}
+
+interface SocketRoomUserMessage extends SocketRoomUser {
+  message: string;
+}
+
+interface SocketRoomUserAnswer extends SocketRoomUser {
+  answer: string;
+}
+
+interface RoomsMap {
+  [roomName: string]: Room;
+}
+
+interface RoomDrawingsMap {
+  [roomName: string]: RoomDrawing;
+}
+
+interface SocketUserMap {
+  [socketId: string]: SocketRoomUser;
+}
+
+const rooms: RoomsMap = {};
+const roomDrawings: RoomDrawingsMap = {};
+const socketUserMap: SocketUserMap = {};
+
+// Auxiliary functions
 const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
 const emitParticipantsUpdate = (roomName: string): boolean =>
   io.to(roomName).emit("updateParticipants", rooms[roomName]?.getParticipants() || []);
 
 const handleRoomManagement = {
-  create(roomName: string): void {
+  create({ roomName }: SocketRoom): void {
     if (!rooms[roomName]) {
       rooms[roomName] = new Room(roomName);
       roomDrawings[roomName] = new RoomDrawing();
@@ -112,7 +142,7 @@ const handleRoomManagement = {
     }
   },
 
-  join(socket: Socket, { username, roomName }: SocketUser): void {
+  join(socket: Socket, { username, roomName }: SocketRoomUser): void {
     if (!rooms[roomName]) {
       console.log(`Room ${roomName} does not exist`);
       return;
@@ -130,7 +160,7 @@ const handleRoomManagement = {
     console.log(`${username} joined room ${roomName}`);
   },
 
-  leave(socket: Socket, { username, roomName }: SocketUser): void {
+  leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
     io.to(roomName).emit("newMessageChat", { username, message: "left the room." });
     rooms[roomName]?.removeParticipant(username);
@@ -148,23 +178,33 @@ const handleRoomManagement = {
   },
 };
 
+const handleChatActions = {
+  sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
+    io.to(roomName).emit("newMessageChat", { username, message });
+  },
+
+  sendAnswer({ username, roomName, answer }: SocketRoomUserAnswer): void {
+    io.to(roomName).emit("newAnswerChat", { username, answer });
+  },
+};
+
 const handleDrawingActions = {
-  draw({ roomName, strokes }: { roomName: string; strokes: Stroke[] }): void {
+  draw({ roomName, strokes }: SocketRoomDraw): void {
     roomDrawings[roomName]?.addStrokes(strokes);
     io.to(roomName).emit("draw", { strokes });
   },
 
-  clear({ roomName }: { roomName: string }): void {
+  clear({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.clear();
     io.to(roomName).emit("clearDraw");
   },
 
-  undo({ roomName }: { roomName: string }): void {
+  undo({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.undo();
     io.to(roomName).emit("undoDraw");
   },
 
-  redo({ roomName }: { roomName: string }): void {
+  redo({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.redo();
     io.to(roomName).emit("redoDraw");
   },
@@ -188,17 +228,12 @@ io.on("connection", (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
   socket.emit("roomList", Object.keys(rooms));
 
-  socket.on("createRoom", (roomName: string) => handleRoomManagement.create(roomName));
-  socket.on("joinRoom", (data: SocketUser) => handleRoomManagement.join(socket, data));
-  socket.on("leaveRoom", (data: SocketUser) => handleRoomManagement.leave(socket, data));
+  socket.on("createRoom", (data: SocketRoom) => handleRoomManagement.create(data));
+  socket.on("joinRoom", (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
+  socket.on("leaveRoom", (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on("sendMessageChat", ({ username, roomName, message }: { username: string; roomName: string; message: string }) =>
-    io.to(roomName).emit("newMessageChat", { username, message })
-  );
-
-  socket.on("sendAnswerChat", ({ username, roomName, answer }: { username: string; roomName: string; answer: string }) =>
-    io.to(roomName).emit("newAnswerChat", { username, answer })
-  );
+  socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
+  socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(data));
 
   socket.on("draw", (data) => handleDrawingActions.draw(data));
   socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
@@ -208,7 +243,7 @@ io.on("connection", (socket: Socket): void => {
   socket.on("disconnect", () => handleDisconnect(socket));
 });
 
-// Inicialização do servidor
+// Server startup
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

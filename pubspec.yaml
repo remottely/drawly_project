@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 0.9.5
+version: 0.9.6
 
 environment:
   sdk: ^3.5.4
@@ -11,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  draw_board:
-    path: packages/draw_board
+  drawing_board:
+    path: packages/drawing_board
   drawly_design_system:
     path: packages/drawly_design_system
   drawly_core:

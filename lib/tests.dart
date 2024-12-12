@@ -12,4 +12,10 @@ class Tests {
       SocketManager.instance.connect();
     });
   }
+
+  static void createRoom(String roomName) {
+    SocketManager.instance.emit('createRoom', {
+      'roomName': roomName,
+    });
+  }
 }

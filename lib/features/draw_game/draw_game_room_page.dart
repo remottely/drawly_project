@@ -1,4 +1,4 @@
-import 'package:draw_board/draw_board.dart';
+import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
@@ -25,7 +25,7 @@ class DrawGameRoomPage extends StatefulWidget {
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   _initialize() {
     _initializeSocket();
-    _createRoom();
+    Tests.createRoom(widget.roomName);
     _joinGameRoom();
   }
 
@@ -36,10 +36,6 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.onConnect((_) {
       _joinGameRoom();
     });
-  }
-
-  void _createRoom() {
-    SocketManager.instance.emit('createRoom', widget.roomName);
   }
 
   void _joinGameRoom() {
@@ -96,7 +92,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: DrawBoard(
+                      child: DrawingBoard(
                         username: widget.username,
                         roomName: widget.roomName,
                       ),
