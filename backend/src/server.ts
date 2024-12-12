@@ -7,17 +7,15 @@ import { createRoom, getRoomParticipants, removeParticipant } from "./rooms/room
 
 dotenv.config();
 
-// Express and Socket.IO setup
+// Setup
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "*", // Allow connections from any origin (adjust for production)
-  },
+  cors: { origin: "*" }, // Permitir conexões de qualquer origem
 });
-
 const PORT = process.env.PORT || 5555;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -37,127 +35,122 @@ const backupRoomDrawings: Record<string, Stroke[]> = {};
 const availableRooms = new Set<string>();
 const socketUserMap: Record<string, { username: string; room: string }> = {};
 
-// Socket.IO event handlers
-io.on("connection", (socket: Socket) => {
-  console.log(`Client connected: ${socket.id}`);
+// Helper functions
+const emitRoomList = () => io.emit("roomList", Array.from(availableRooms));
+const emitParticipantsUpdate = (room: string) =>
+  io.to(room).emit("updateParticipants", getRoomParticipants(room));
 
-  // Emit available rooms to the newly connected client
-  socket.emit("roomList", Array.from(availableRooms));
+// Event Handlers
+const handleCreateRoom = (roomName: string) => {
+  if (!availableRooms.has(roomName)) {
+    availableRooms.add(roomName);
+    console.log(`Room created: ${roomName}`);
+    emitRoomList();
+  }
+};
 
-  socket.on("createRoom", (roomName: string) => {
-    if (!availableRooms.has(roomName)) {
-      availableRooms.add(roomName);
-      console.log(`Room created: ${roomName}`);
-      io.emit("roomList", Array.from(availableRooms));
-    }
-  });
+const handleJoinRoom = (socket: Socket, { username, room }: { username: string; room: string }) => {
+  if (!availableRooms.has(room)) {
+    console.log(`Room ${room} does not exist`);
+    return;
+  }
 
-  socket.on("joinRoom", ({ username, room }: { username: string; room: string }) => {
-    if (!availableRooms.has(room)) {
-      console.log(`Room ${room} does not exist`);
-      return;
-    }
+  socket.join(room);
+  createRoom(room, username);
+  socketUserMap[socket.id] = { username, room };
 
-    socket.join(room);
-    createRoom(room, username);
-    socketUserMap[socket.id] = { username, room };
+  io.to(room).emit("newMessageChat", { username, message: `joined the room.` });
 
-    // Send accumulated drawing to the new client
-    if (roomDrawings[room]) {
-      console.log(`Sending full drawing to client ${socket.id} for room ${room}`);
-      socket.emit("draw", { strokes: roomDrawings[room] });
-    } else {
-      console.log(`No drawing available for room ${room}`);
-    }
+  if (roomDrawings[room]) {
+    socket.emit("draw", { strokes: roomDrawings[room] });
+  }
 
-    const participants = getRoomParticipants(room);
-    io.to(room).emit("updateParticipants", participants);
+  emitParticipantsUpdate(room);
 
-    console.log(`${username} joined room ${room}`);
-    io.to(room).emit("newMessageChat", { username, message: `joined the room.` });
-  });
+  console.log(`${username} joined room ${room}`);
+};
 
-  socket.on("leaveRoom", ({ username, room }: { username: string; room: string }) => {
-    console.log(`${username} left room ${room}`);
+const handleLeaveRoom = (socket: Socket, { username, room }: { username: string; room: string }) => {
+  console.log(`${username} left room ${room}`);
 
-    io.to(room).emit("newMessageChat", { username, message: `left the room.` });
-    removeParticipant(room, username, availableRooms);
+  io.to(room).emit("newMessageChat", { username, message: `left the room.` });
+  removeParticipant(room, username, availableRooms);
 
-    const participants = getRoomParticipants(room);
-    io.to(room).emit("updateParticipants", participants);
+  emitParticipantsUpdate(room);
 
-    if (socketUserMap[socket.id]?.room === room) {
-      delete socketUserMap[socket.id];
-    }
-    socket.leave(room);
-  });
+  if (socketUserMap[socket.id]?.room === room) delete socketUserMap[socket.id];
+  socket.leave(room);
+};
 
-  socket.on("sendMessageChat", ({ username, room, message }: { username: string; room: string; message: string }) => {
-    io.to(room).emit("newMessageChat", { username, message });
-  });
+const handleDisconnect = (socket: Socket) => {
+  const userInfo = socketUserMap[socket.id];
+  if (!userInfo) {
+    console.log(`No user info found for socket ${socket.id}`);
+    return;
+  }
 
-  socket.on("sendAnswerChat", ({ username, room, answer }: { username: string; room: string; answer: string }) => {
-    io.to(room).emit("newAnswerChat", { username, answer });
-  });
+  const { username, room } = userInfo;
+  console.log(`User ${username} disconnected from room ${room}`);
 
+  io.to(room).emit("newMessageChat", { username, message: `disconnected.` });
+  delete socketUserMap[socket.id];
+  removeParticipant(room, username, availableRooms);
+
+  emitParticipantsUpdate(room);
+  
+  const participants = getRoomParticipants(room);
+  io.to(room).emit("updateParticipants", participants);
+  
+  if (participants.length === 0) {
+    availableRooms.delete(room);
+    console.log(`Room ${room} is now empty and has been removed.`);
+    emitRoomList();
+  }
+};
+
+const handleDrawingActions = (socket: Socket) => {
   socket.on("draw", ({ room, strokes }: { room: string; strokes: Stroke[] }) => {
-    console.log(`Drawing received for room ${room}:`, strokes);
-
-    if (!roomDrawings[room]) roomDrawings[room] = [];
-    if (!backupRoomDrawings[room]) backupRoomDrawings[room] = [];
-
+    roomDrawings[room] = roomDrawings[room] || [];
+    backupRoomDrawings[room] = backupRoomDrawings[room] || [];
     roomDrawings[room].push(...strokes);
     io.to(room).emit("draw", { strokes });
-
-    console.log(`Drawing broadcasted to room ${room}:`, strokes);
   });
 
   socket.on("clearDraw", ({ room }: { room: string }) => {
-    console.log(`Clear draw received for room ${room}`);
     roomDrawings[room] = [];
     backupRoomDrawings[room] = [];
     io.to(room).emit("clearDraw");
   });
 
   socket.on("undoDraw", ({ room }: { room: string }) => {
-    console.log(`Undo draw received for room ${room}`);
     const poppedValue = roomDrawings[room]?.pop();
     if (poppedValue) backupRoomDrawings[room].push(poppedValue);
     io.to(room).emit("undoDraw");
   });
 
   socket.on("redoDraw", ({ room }: { room: string }) => {
-    console.log(`Redo draw received for room ${room}`);
     const poppedValue = backupRoomDrawings[room]?.pop();
     if (poppedValue) roomDrawings[room].push(poppedValue);
     io.to(room).emit("redoDraw");
   });
+};
 
-  socket.on("disconnect", () => {
-    console.log(`Client disconnected: ${socket.id}`);
+// Socket.IO setup
+io.on("connection", (socket: Socket) => {
+  console.log(`Client connected: ${socket.id}`);
+  socket.emit("roomList", Array.from(availableRooms));
 
-    const userInfo = socketUserMap[socket.id];
-    if (userInfo) {
-      const { username, room } = userInfo;
-      console.log(`User ${username} disconnected from room ${room}`);
-
-      io.to(room).emit("newMessageChat", { username, message: `disconnected.` });
-
-      delete socketUserMap[socket.id];
-      removeParticipant(room, username, availableRooms);
-
-      const participants = getRoomParticipants(room);
-      io.to(room).emit("updateParticipants", participants);
-
-      if (participants.length === 0) {
-        availableRooms.delete(room);
-        console.log(`Room ${room} is now empty and has been removed.`);
-        io.emit("roomList", Array.from(availableRooms));
-      }
-    } else {
-      console.log(`No user info found for socket ${socket.id}`);
-    }
-  });
+  socket.on("createRoom", (roomName: string) => handleCreateRoom(roomName));
+  socket.on("joinRoom", (data) => handleJoinRoom(socket, data));
+  socket.on("leaveRoom", (data) => handleLeaveRoom(socket, data));
+  socket.on("sendMessageChat", ({ username, room, message }) =>
+    io.to(room).emit("newMessageChat", { username, message })
+  );
+  socket.on("sendAnswerChat", ({ username, room, answer }) =>
+    io.to(room).emit("newAnswerChat", { username, answer })
+  );
+  handleDrawingActions(socket);
+  socket.on("disconnect", () => handleDisconnect(socket));
 });
 
 // Start server

@@ -1,46 +1,37 @@
-const rooms: Record<string, string[]> = {};
+interface Room {
+  name: string;
+  participants: string[];
+}
 
-// Cria uma sala ou adiciona um participante a uma sala existente
-export const createRoom = (room: string, username: string): void => {
-  if (!rooms[room]) {
-    rooms[room] = [];
-  }
-  if (!rooms[room].includes(username)) {
-    rooms[room].push(username);
+const rooms: Room[] = [];
+
+export const createRoom = (roomName: string, username: string): void => {
+  const existingRoom = rooms.find((room) => room.name === roomName);
+
+  if (existingRoom) {
+    if (!existingRoom.participants.includes(username)) {
+      existingRoom.participants.push(username);
+    }
+  } else {
+    rooms.push({ name: roomName, participants: [username] });
   }
 };
 
-export const removeParticipant = (room: string, username: string, availableRooms: Set<string>): void => {
-  console.log(`Attempting to remove participant ${username} from room ${room}`);
+export const removeParticipant = (roomName: string, username: string, availableRooms: Set<string>): void => {
+  const roomIndex = rooms.findIndex((room) => room.name === roomName);
 
-  // Verifica se a sala existe
-  if (!rooms[room]) {
-    console.warn(`Room ${room} does not exist. Cannot remove participant ${username}.`);
-    return;
-  }
+  if (roomIndex !== -1) {
+    const room = rooms[roomIndex];
+    room.participants = room.participants.filter((user) => user !== username);
 
-  // Remove o usuário da sala
-  const initialCount = rooms[room].length;
-  rooms[room] = rooms[room].filter((user) => user !== username);
-
-  if (rooms[room].length < initialCount) {
-    console.log(`Participant ${username} removed from room ${room}`);
-  } else {
-    console.warn(`Participant ${username} was not found in room ${room}`);
-  }
-
-  // Remove a sala se ela estiver vazia
-  if (rooms[room].length === 0) {
-    delete rooms[room];
-    console.log(`Room ${room} is empty and has been removed.`);
-    availableRooms.delete(room); // Atualiza as salas disponíveis
-  } else {
-    console.log(`Updated participants in room ${room}:`, rooms[room]);
+    if (room.participants.length === 0) {
+      rooms.splice(roomIndex, 1);
+      availableRooms.delete(roomName);
+    }
   }
 };
 
-
-// Retorna os participantes de uma sala
-export const getRoomParticipants = (room: string): string[] => {
-  return rooms[room] || [];
+export const getRoomParticipants = (roomName: string): string[] => {
+  const room = rooms.find((room) => room.name === roomName);
+  return room?.participants || [];
 };
