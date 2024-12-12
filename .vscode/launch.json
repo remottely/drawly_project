@@ -2,38 +2,46 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Flutter Web - Instance 1",
+      "name": "8081",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_dev_game_page_1.dart",
-      "args": [
-        "-d",
-        "chrome",
-        "--web-renderer",
-        "html",
-        "--web-port",
-        "8081"
-      ]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"]
     },
     {
-      "name": "Flutter Web - Instance 2",
+      "name": "8082",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_dev_game_page_2.dart",
-      "args": [
-        "-d",
-        "chrome",
-        "--web-renderer",
-        "html",
-        "--web-port",
-        "8082"
-      ]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"]
+    },
+    {
+      "name": "8083",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"]
+    },
+    {
+      "name": "8084",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"]
     }
   ],
   "compounds": [
     {
-      "name": "Run Both Instances",
-      "configurations": ["Flutter Web - Instance 1", "Flutter Web - Instance 2"]
+      "name": "Run 1/2 Instances",
+      "configurations": ["8081", "8082"]
+    },
+    {
+      "name": "Run 3/4 Instances",
+      "configurations": ["8083", "8084"]
+    },
+    {
+      "name": "Run All Instances",
+      "configurations": ["8081", "8082", "8083", "8084"]
     }
   ]
 }
