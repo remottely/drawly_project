@@ -120,6 +120,8 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.9.6) organize backend server.ts part 6
 - [x] (0.9.7) change draw_board to drawing_board package name
 - [x] (0.10.0) currentDrawer logic + timer
+- [x] (0.10.1) bug: DrawingBoard not working undo and redo
+- [ ] (0.11.0) when change currentDrawer, clean the board
 - [ ] redoDraw
 	- [ ] get from server and not locally
 	- [ ] not working properly, when someone disconnect, lose some redos

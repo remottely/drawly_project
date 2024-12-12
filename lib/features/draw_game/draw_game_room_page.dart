@@ -1,11 +1,9 @@
-// chatpgt: por algum motivo aqui no lado do flutter o estado do LinearProgressIndicator parece nunca atualizar
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
-import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomPage extends StatefulWidget {
@@ -24,10 +22,10 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
-  String currentDrawer = "Waiting...";
-  bool isCurrentDrawer = false;
-  int totalDuration = 0;
-  int timeLeft = 0;
+  final currentDrawer = ValueNotifier<String>("Waiting...");
+  final isCurrentDrawer = ValueNotifier<bool>(false);
+  final totalDuration = ValueNotifier<int>(0);
+  final timeLeft = ValueNotifier<int>(0);
 
   _initialize() {
     _initializeSocket();
@@ -45,14 +43,12 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.on('newTurn', (data) {
       print("New turn event received: $data");
 
-      setState(() {
-        currentDrawer = data['currentDrawer'];
-        totalDuration = data['totalDuration'];
-        timeLeft = data['totalDuration'];
-        isCurrentDrawer = currentDrawer == widget.username;
-      });
+      currentDrawer.value = data['currentDrawer'];
+      totalDuration.value = data['totalDuration'];
+      timeLeft.value = data['totalDuration'];
+      isCurrentDrawer.value = currentDrawer.value == widget.username;
 
-      startCountdown(totalDuration);
+      startCountdown(totalDuration.value);
     });
   }
 
@@ -63,10 +59,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       if (remaining <= 0) return false;
 
       await Future.delayed(const Duration(milliseconds: 100)); // Reduz para verificar mais frequentemente
-      setState(() {
-        remaining -= 100;
-        timeLeft = remaining;
-      });
+      remaining -= 100;
+      timeLeft.value = remaining;
 
       return true;
     });
@@ -98,6 +92,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
   void dispose() {
     SocketManager.instance.off('newTurn');
     _leaveRoom();
+    currentDrawer.dispose();
+    isCurrentDrawer.dispose();
+    totalDuration.dispose();
+    timeLeft.dispose();
     super.dispose();
   }
 
@@ -106,10 +104,13 @@ class _DrawGameRoomPageState extends GamePageViewModel {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: isCurrentDrawer ? lightPrimary : Colors.white,
+          // backgroundColor: isCurrentDrawer.value ? lightPrimary : Colors.white,
           appBar: AppBar(
-            title: Text(
-              'Drawly.io > Room - ${widget.roomName} > Current drawer: $currentDrawer',
+            title: ValueListenableBuilder(
+              valueListenable: currentDrawer,
+              builder: (context, value, child) {
+                return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: $value');
+              },
             ),
             actions: [
               IconButton(
@@ -120,15 +121,23 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           ),
           body: Column(
             children: [
-              if (timeLeft > 0)
-                LinearProgressIndicator(
-                  value: timeLeft / totalDuration, // Agora tudo está em milissegundos
-                  minHeight: 5,
-                  backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isCurrentDrawer ? Colors.green : Colors.blue,
-                  ),
-                ),
+              AnimatedBuilder(
+                animation: Listenable.merge([
+                  timeLeft,
+                  totalDuration,
+                ]),
+                builder: (context, _) {
+                  if (timeLeft.value <= 0) return const SizedBox.shrink();
+                  return LinearProgressIndicator(
+                    value: timeLeft.value / totalDuration.value,
+                    minHeight: 5,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isCurrentDrawer.value ? Colors.green : Colors.blue,
+                    ),
+                  );
+                },
+              ),
               Expanded(
                 child: Row(
                   children: [
@@ -139,27 +148,42 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                         children: [
                           Expanded(
                             flex: 3,
-                            child: DrawingBoard(
-                              username: widget.username,
-                              roomName: widget.roomName,
-                              isCurrentDrawer: isCurrentDrawer,
+                            child: ValueListenableBuilder(
+                              valueListenable: isCurrentDrawer,
+                              builder: (context, value, child) {
+                                return DrawingBoard(
+                                  username: widget.username,
+                                  roomName: widget.roomName,
+                                  isCurrentDrawer: value,
+                                );
+                              },
                             ),
                           ),
                           Expanded(
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: AnswersChat(
-                                    username: widget.username,
-                                    roomName: widget.roomName,
-                                    isCurrentDrawer: isCurrentDrawer,
+                                  child: ValueListenableBuilder(
+                                    valueListenable: isCurrentDrawer,
+                                    builder: (context, value, child) {
+                                      return AnswersChat(
+                                        username: widget.username,
+                                        roomName: widget.roomName,
+                                        isCurrentDrawer: value,
+                                      );
+                                    },
                                   ),
                                 ),
                                 Expanded(
-                                  child: MessageChat(
-                                    username: widget.username,
-                                    roomName: widget.roomName,
-                                    isCurrentDrawer: isCurrentDrawer,
+                                  child: ValueListenableBuilder(
+                                    valueListenable: isCurrentDrawer,
+                                    builder: (context, value, child) {
+                                      return MessageChat(
+                                        username: widget.username,
+                                        roomName: widget.roomName,
+                                        isCurrentDrawer: value,
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
@@ -174,12 +198,12 @@ class _DrawGameRoomPageState extends GamePageViewModel {
             ],
           ),
         ),
+        // MeteorShower(
+        //   numberOfMeteors: 20,
+        //   duration: Duration(seconds: 10),
+        //   child: Center(),
+        // ),
       ],
     );
   }
-  // MeteorShower(
-  //   numberOfMeteors: 20,
-  //   duration: Duration(seconds: 10),
-  //   child: Center(),
-  // ),
 }
