@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
@@ -27,21 +29,25 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final totalDuration = ValueNotifier<int>(0);
   final timeLeft = ValueNotifier<int>(0);
 
-  _initialize() {
+  bool _hasJoinedRoom = false;
+
+  void _initialize() {
     _initializeSocket();
   }
 
-  /// Initializes the socket connection and defines event handlers
   void _initializeSocket() {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
-      Tests.createRoom(widget.roomName);
-      _joinGameRoom();
+      if (!_hasJoinedRoom) {
+        Tests.createRoom(widget.roomName);
+        _joinGameRoom();
+        _hasJoinedRoom = true;
+      }
     });
 
     SocketManager.instance.on('newTurn', (data) {
-      print("New turn event received: $data");
+      developer.log("New turn event received: $data");
 
       currentDrawer.value = data['currentDrawer'];
       totalDuration.value = data['totalDuration'];
@@ -58,7 +64,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     Future.doWhile(() async {
       if (remaining <= 0) return false;
 
-      await Future.delayed(const Duration(milliseconds: 100)); // Reduz para verificar mais frequentemente
+      await Future.delayed(const Duration(milliseconds: 100));
       remaining -= 100;
       timeLeft.value = remaining;
 
