@@ -2,7 +2,6 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-/// Main drawing screen where the user interacts with the Pictionary game
 class AnswersChat extends StatefulWidget {
   final String username;
   final String roomName;
@@ -23,18 +22,18 @@ class AnswersChat extends StatefulWidget {
 }
 
 abstract class PictionaryScreenViewModel extends State<AnswersChat> {
-  final _rxAllAnswers = ValueNotifier<List<String>>([]); // Messages received from the server
+  final _rxAllAnswers = ValueNotifier<List<String>>([]);
+  // final _rxIsCorrectAnswer = ValueNotifier<bool>(false);
   final answerController = TextEditingController();
 
-  /// Initializes the socket connection and defines event handlers
   void _initializeChatSocket() {
-    // Handle new answer event
-    SocketManager.instance.on('newAnswerChat', (data) {
+    SocketManager.instance.on('answerChatResult', (data) {
       _rxAllAnswers.value = List.from(_rxAllAnswers.value)..add("${data['username']}: ${data['answer']}");
+
+      // _rxIsCorrectAnswer.value = data['isCorrect'];
     });
   }
 
-  /// Sends a chat answer to the server
   void _sendAnswer() {
     if (answerController.text.isNotEmpty) {
       final answer = answerController.text;
@@ -59,7 +58,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
   @override
   void dispose() {
     answerController.dispose();
-    SocketManager.instance.off('newAnswerChat');
+    SocketManager.instance.off('answerChatResult');
     super.dispose();
   }
 
@@ -69,14 +68,20 @@ class _AnswersChatState extends PictionaryScreenViewModel {
       child: Column(
         children: [
           Expanded(
-            child: ValueListenableBuilder<List<String>>(
-              valueListenable: _rxAllAnswers,
-              builder: (context, value, child) {
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _rxAllAnswers,
+                // _rxIsCorrectAnswer,
+              ]),
+              builder: (context, _) {
                 return ListView.builder(
-                  itemCount: value.length,
+                  itemCount: _rxAllAnswers.value.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      title: Text(value[index]),
+                      title: Text(
+                        _rxAllAnswers.value[index],
+                        // style: TextStyle(color: _rxIsCorrectAnswer.value ? Colors.green : Colors.grey),
+                      ),
                     );
                   },
                 );

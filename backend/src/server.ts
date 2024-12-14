@@ -71,11 +71,11 @@ class RoomDrawing {
     return this.strokes;
   }
 }
-
 class Room {
   private participants: Set<string> = new Set();
   private turnQueue: string[] = [];
   private currentTurnIndex: number = 0;
+  public currentWord: string | null = null; // Word being drawn during the current turn
 
   constructor(public name: string) { }
 
@@ -203,8 +203,31 @@ const handleChatActions = {
     io.to(roomName).emit("newMessageChat", { username, message });
   },
 
-  sendAnswer({ username, roomName, answer }: SocketRoomUserAnswer): void {
-    io.to(roomName).emit("newAnswerChat", { username, answer });
+  sendAnswer(socket: Socket, { username, roomName, answer }: SocketRoomUserAnswer): void {
+    const room = rooms[roomName];
+    if (!room) {
+      console.error(`Room ${roomName} not found.`);
+      socket.emit("error", { message: `Room ${roomName} does not exist.` });
+      return;
+    }
+
+    const correctWord = room.currentWord;
+
+    if (!correctWord) {
+      console.error(`No word is being drawn in room ${roomName}.`);
+      socket.emit("error", { message: `No word is currently being drawn.` });
+      return;
+    }
+
+    const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
+
+    io.to(roomName).emit("answerChatResult", { username, answer, isCorrect });
+
+    if (isCorrect) {
+      console.log(`${username} guessed the word correctly in room ${roomName}: ${answer}`);
+    } else {
+      console.log(`${username} guessed incorrectly in room ${roomName}: ${answer}`);
+    }
   },
 };
 
@@ -229,7 +252,6 @@ const handleDrawingActions = {
     io.to(roomName).emit("redoDraw");
   },
 };
-
 const handleTurnActions = {
   startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
@@ -252,8 +274,11 @@ const handleTurnActions = {
       return;
     }
 
+    // Select a random word and store it in the room
     const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
+    room.currentWord = wordToDraw;
 
+    // Emit the 'newTurn' event with the word and other details
     io.to(roomName).emit("newTurn", {
       currentDrawer,
       word: wordToDraw,
@@ -268,6 +293,7 @@ const handleTurnActions = {
     }, totalDuration * 1000);
   },
 };
+
 
 const handleDisconnect = (socket: Socket): void => {
   const userInfo = socketUserMap[socket.id];
@@ -291,7 +317,7 @@ io.on("connection", (socket: Socket): void => {
   socket.on("joinRoom", (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
   socket.on("leaveRoom", (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(data));
+  socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(socket, data));
   socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
 
   socket.on("draw", (data) => handleDrawingActions.draw(data));

@@ -70,6 +70,7 @@ class Room {
         this.participants = new Set();
         this.turnQueue = [];
         this.currentTurnIndex = 0;
+        this.currentWord = null; // Word being drawn during the current turn
     }
     addParticipant(username) {
         this.participants.add(username);
@@ -95,7 +96,11 @@ class Room {
 const rooms = {};
 const roomDrawings = {};
 const socketUserMap = {};
-const minimumNumberOfPlayers = 4;
+const minimumNumberOfPlayers = 2;
+const wordsList = [
+    "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+    "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+];
 // Auxiliary functions
 const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
 const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit("updateParticipants", ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
@@ -144,8 +149,27 @@ const handleChatActions = {
     sendMessage({ username, roomName, message }) {
         io.to(roomName).emit("newMessageChat", { username, message });
     },
-    sendAnswer({ username, roomName, answer }) {
-        io.to(roomName).emit("newAnswerChat", { username, answer });
+    sendAnswer(socket, { username, roomName, answer }) {
+        const room = rooms[roomName];
+        if (!room) {
+            console.error(`Room ${roomName} not found.`);
+            socket.emit("error", { message: `Room ${roomName} does not exist.` });
+            return;
+        }
+        const correctWord = room.currentWord;
+        if (!correctWord) {
+            console.error(`No word is being drawn in room ${roomName}.`);
+            socket.emit("error", { message: `No word is currently being drawn.` });
+            return;
+        }
+        const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
+        io.to(roomName).emit("answerChatResult", { username, answer, isCorrect });
+        if (isCorrect) {
+            console.log(`${username} guessed the word correctly in room ${roomName}: ${answer}`);
+        }
+        else {
+            console.log(`${username} guessed incorrectly in room ${roomName}: ${answer}`);
+        }
     },
 };
 const handleDrawingActions = {
@@ -188,12 +212,13 @@ const handleTurnActions = {
             console.error(`Failed to get the current drawer in room ${roomName}`);
             return;
         }
-        // Seleciona uma palavra aleatória
+        // Select a random word and store it in the room
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
-        // Emite o evento 'newTurn'
+        room.currentWord = wordToDraw;
+        // Emit the 'newTurn' event with the word and other details
         io.to(roomName).emit("newTurn", {
             currentDrawer,
-            word: wordToDraw, // Palavra a ser desenhada
+            word: wordToDraw,
             totalDuration: totalDuration * 1000,
         });
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
@@ -220,7 +245,7 @@ io.on("connection", (socket) => {
     socket.on("createRoom", (data) => handleRoomManagement.create(data));
     socket.on("joinRoom", (data) => handleRoomManagement.join(socket, data));
     socket.on("leaveRoom", (data) => handleRoomManagement.leave(socket, data));
-    socket.on("sendAnswerChat", (data) => handleChatActions.sendAnswer(data));
+    socket.on("sendAnswerChat", (data) => handleChatActions.sendAnswer(socket, data));
     socket.on("sendMessageChat", (data) => handleChatActions.sendMessage(data));
     socket.on("draw", (data) => handleDrawingActions.draw(data));
     socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
@@ -241,8 +266,3 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-/// words
-const wordsList = [
-    "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
-    "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
-];

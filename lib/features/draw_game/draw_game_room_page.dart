@@ -221,6 +221,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                               animation: Listenable.merge([
                                 isCurrentDrawer,
                                 totalDuration,
+                                word,
                               ]),
                               builder: (context, _) {
                                 return Row(
@@ -230,7 +231,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         username: widget.username,
                                         roomName: widget.roomName,
                                         isCurrentDrawer: isCurrentDrawer.value,
-                                        isGameStarted: totalDuration.value != 0,
+                                        isGameStarted: totalDuration.value != 0 && word.value.isNotEmpty,
                                       ),
                                     ),
                                     Expanded(
