@@ -110,12 +110,12 @@ interface SocketRoom {
   roomName: string;
 }
 
-interface SocketRoomUser extends SocketRoom {
-  username: string;
-}
-
 interface SocketRoomDraw extends SocketRoom {
   strokes: Stroke[];
+}
+
+interface SocketRoomUser extends SocketRoom {
+  username: string;
 }
 
 interface SocketRoomUserMessage extends SocketRoomUser {
@@ -141,7 +141,11 @@ interface SocketUserMap {
 const rooms: RoomsMap = {};
 const roomDrawings: RoomDrawingsMap = {};
 const socketUserMap: SocketUserMap = {};
-const definedNumberOfPlayers = 4;
+const minimumNumberOfPlayers = 2;
+const wordsList = [
+  "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+  "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+];
 
 // Auxiliary functions
 const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
@@ -174,13 +178,7 @@ const handleRoomManagement = {
     emitParticipantsUpdate(roomName);
 
     console.log(`${username} joined room ${roomName}`);
-
-    // if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
-    //   console.log(`Starting turn timer in room ${roomName}`);
-    //   handleTurnActions.startTurnTimer(roomName, 60);
-    // }
   },
-
 
   leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
@@ -232,7 +230,6 @@ const handleDrawingActions = {
   },
 };
 
-// chatgpt: me gere apenas o codigo necessario, preciso transformar esse totalDuration q esta em segundos para milisegundos
 const handleTurnActions = {
   startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
@@ -250,28 +247,27 @@ const handleTurnActions = {
     }
 
     const currentDrawer = room.getCurrentDrawer();
-
     if (!currentDrawer) {
       console.error(`Failed to get the current drawer in room ${roomName}`);
       return;
     }
 
-    // Emite o evento 'newTurn'
+    const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
+
     io.to(roomName).emit("newTurn", {
-      currentDrawer: currentDrawer,
-      totalDuration: totalDuration * 1000, // Convertendo para milissegundos antes de enviar
+      currentDrawer,
+      word: wordToDraw,
+      totalDuration: totalDuration * 1000,
     });
 
-    console.log(`New turn started in room ${roomName}. Current drawer: ${currentDrawer}`);
+    console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
 
-    // Configura o próximo turno
     setTimeout(() => {
-      room.advanceTurn(); // Avança para o próximo jogador
-      handleTurnActions.startTurnTimer(roomName, totalDuration); // Chama recursivamente
-    }, totalDuration * 1000); // Convertendo para milissegundos no setTimeout
+      room.advanceTurn();
+      handleTurnActions.startTurnTimer(roomName, totalDuration);
+    }, totalDuration * 1000);
   },
 };
-
 
 const handleDisconnect = (socket: Socket): void => {
   const userInfo = socketUserMap[socket.id];
@@ -311,7 +307,7 @@ io.on("connection", (socket: Socket): void => {
     }
 
     console.log(`Turns manually started for room ${roomName}`);
-    handleTurnActions.startTurnTimer(roomName, 60); // Inicia os turnos com 60 segundos por turno
+    handleTurnActions.startTurnTimer(roomName, 60);
   });
 
   socket.on("disconnect", () => handleDisconnect(socket));

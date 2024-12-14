@@ -26,6 +26,7 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
+  final word = ValueNotifier<String>("???");
   final currentDrawer = ValueNotifier<String>("Waiting...");
   final isCurrentDrawer = ValueNotifier<bool>(false);
   final totalDuration = ValueNotifier<int>(0);
@@ -51,6 +52,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.on('newTurn', (data) {
       developer.log("New turn event received: $data");
 
+      word.value = data['word'];
       currentDrawer.value = data['currentDrawer'];
       totalDuration.value = data['totalDuration'];
       timeLeft.value = data['totalDuration'];
@@ -115,10 +117,14 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           // backgroundColor: isCurrentDrawer.value ? lightPrimary : Colors.white,
           backgroundColor: lightPrimary,
           appBar: AppBar(
-            title: ValueListenableBuilder(
-              valueListenable: currentDrawer,
-              builder: (context, value, child) {
-                return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: $value');
+            title: AnimatedBuilder(
+              animation: Listenable.merge([
+                currentDrawer,
+                word,
+              ]),
+              builder: (context, _) {
+                return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${currentDrawer.value}' +
+                    ' > Word: ${word.value}');
               },
             ),
             actions: [

@@ -95,7 +95,7 @@ class Room {
 const rooms = {};
 const roomDrawings = {};
 const socketUserMap = {};
-const definedNumberOfPlayers = 4;
+const minimumNumberOfPlayers = 4;
 // Auxiliary functions
 const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
 const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit("updateParticipants", ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
@@ -122,10 +122,6 @@ const handleRoomManagement = {
         socket.emit("draw", { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
-        // if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
-        //   console.log(`Starting turn timer in room ${roomName}`);
-        //   handleTurnActions.startTurnTimer(roomName, 60);
-        // }
     },
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
@@ -174,7 +170,6 @@ const handleDrawingActions = {
         io.to(roomName).emit("redoDraw");
     },
 };
-// chatgpt: me gere apenas o codigo necessario, preciso transformar esse totalDuration q esta em segundos para milisegundos
 const handleTurnActions = {
     startTurnTimer(roomName, totalDuration = 60) {
         const room = rooms[roomName];
@@ -193,17 +188,19 @@ const handleTurnActions = {
             console.error(`Failed to get the current drawer in room ${roomName}`);
             return;
         }
+        // Seleciona uma palavra aleatória
+        const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         // Emite o evento 'newTurn'
         io.to(roomName).emit("newTurn", {
-            currentDrawer: currentDrawer,
-            totalDuration: totalDuration * 1000, // Convertendo para milissegundos antes de enviar
+            currentDrawer,
+            word: wordToDraw, // Palavra a ser desenhada
+            totalDuration: totalDuration * 1000,
         });
-        console.log(`New turn started in room ${roomName}. Current drawer: ${currentDrawer}`);
-        // Configura o próximo turno
+        console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
         setTimeout(() => {
-            room.advanceTurn(); // Avança para o próximo jogador
-            handleTurnActions.startTurnTimer(roomName, totalDuration); // Chama recursivamente
-        }, totalDuration * 1000); // Convertendo para milissegundos no setTimeout
+            room.advanceTurn();
+            handleTurnActions.startTurnTimer(roomName, totalDuration);
+        }, totalDuration * 1000);
     },
 };
 const handleDisconnect = (socket) => {
@@ -236,7 +233,7 @@ io.on("connection", (socket) => {
             return;
         }
         console.log(`Turns manually started for room ${roomName}`);
-        handleTurnActions.startTurnTimer(roomName, 60); // Inicia os turnos com 60 segundos por turno
+        handleTurnActions.startTurnTimer(roomName, 60);
     });
     socket.on("disconnect", () => handleDisconnect(socket));
 });
@@ -244,3 +241,8 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+/// words
+const wordsList = [
+    "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+    "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+];
