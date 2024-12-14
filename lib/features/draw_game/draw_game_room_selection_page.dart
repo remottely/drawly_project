@@ -94,7 +94,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
             const SizedBox(height: 16),
             const Text('Available Rooms:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            // List of rooms
             Expanded(
               child: allRooms.isEmpty
                   ? const Center(child: Text('No rooms available'))

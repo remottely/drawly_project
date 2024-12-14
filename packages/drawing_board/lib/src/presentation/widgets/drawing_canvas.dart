@@ -69,16 +69,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     return point.dx >= 0 && point.dx <= canvasWidth && point.dy >= 0 && point.dy <= canvasHeight;
   }
 
-  /// Inicializa o listener do socket para eventos de desenho
   void _initializeDrawingSocket() {
     SocketManager.instance.on('drawing:draw', (data) {
       developer.log('Draw event received: $data');
 
-      // Mapeia cada elemento da lista 'strokes' para uma instância de Stroke
       List<Stroke> receivedStrokes =
           (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
 
-      // Adiciona os strokes recebidos à lista, evitando duplicatas
       _rxAllStrokes.value = List<Stroke>.from(_rxAllStrokes.value)
         ..addAll(receivedStrokes.where((stroke) => !_rxAllStrokes.value.contains(stroke)));
     });
@@ -88,30 +85,23 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     });
   }
 
-  /// Envia os pontos armazenados no buffer ao servidor
   void _sendBufferedPoints() {
     if (_rxCurrentStroke.value == null) return;
 
-    // Envia os strokes ao servidor
     SocketManager.instance.emit('drawing:draw', {
       'roomName': widget.roomName,
       'strokes': [_rxCurrentStroke.value!.toJson()],
     });
 
-    // Limpa o buffer após o envio
     _rxCurrentStroke.clear();
   }
 }
 
 class _DrawingCanvasState extends DrawingCanvasViewModel {
   final _rxIsShowGrid = ValueNotifier<bool>(false);
-
   Color get strokeColor => widget.options.strokeColor;
-
   double get size => widget.options.size;
-
   double get opacity => widget.options.opacity;
-
   DrawingTool get currentTool => widget.options.currentTool;
 
   @override
@@ -142,7 +132,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
               child: DrawlyContainer(
                 color: widget.options.backgroundColor,
                 width: _canvasSize,
-                height: _canvasSize / (16 / 9), // Proporção 16:9
+                height: _canvasSize / (16 / 9),
                 child: MouseRegion(
                   cursor: widget.options.currentTool.cursor,
                   child: Listener(
@@ -273,9 +263,8 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
 
       if (stroke is EraserStroke) {
-        // O EraserStroke desenha com a cor de fundo para "apagar"
         final eraserPaint = Paint()
-          ..color = backgroundColor // Usa a cor de fundo para apagar
+          ..color = backgroundColor
           ..strokeWidth = stroke.size
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
@@ -348,7 +337,6 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
     }
 
-    // Desenho da grade (grid) por último, sobrepondo todos os elementos
     if (rxIsShowGrid?.value ?? false) {
       _drawGrid(size, canvas);
     }
@@ -357,8 +345,8 @@ class _DrawingCanvasPainter extends CustomPainter {
   void _drawGrid(Size size, Canvas canvas) {
     const gridStrokeWidth = 1.0;
     const gridSpacing = 50.0;
-    const subGridSpacing = 10.0; // Spacing for smaller boxes
-    const subGridStrokeWidth = 0.5; // Lighter stroke for smaller boxes
+    const subGridSpacing = 10.0;
+    const subGridStrokeWidth = 0.5;
 
     final gridPaint = Paint()
       ..color = Colors.red.withOpacity(0.3)
@@ -368,17 +356,14 @@ class _DrawingCanvasPainter extends CustomPainter {
       ..color = Colors.red.withOpacity(0.3)
       ..strokeWidth = subGridStrokeWidth;
 
-    // Horizontal lines for main grid
     for (double y = 0; y <= size.height; y += gridSpacing) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
 
-    // Vertical lines for main grid
     for (double x = 0; x <= size.width; x += gridSpacing) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
     }
 
-    // Draw smaller boxes within each grid cell
     for (double y = 0; y <= size.height; y += gridSpacing) {
       for (double subY = y; subY < y + gridSpacing && subY <= size.height; subY += subGridSpacing) {
         canvas.drawLine(

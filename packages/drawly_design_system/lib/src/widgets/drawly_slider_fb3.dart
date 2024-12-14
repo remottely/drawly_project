@@ -8,7 +8,6 @@ class DrawlySliderFb3 extends StatefulWidget {
   final int divisions;
   final Color accentColor;
   final Function(double) onChanged;
-  final LinearGradient gradient;
   final TextStyle minMaxTextStyle;
 
   const DrawlySliderFb3({
@@ -18,10 +17,6 @@ class DrawlySliderFb3 extends StatefulWidget {
     required this.onChanged,
     this.initialValue = 0.0,
     this.accentColor = Colors.white,
-    this.gradient = const LinearGradient(colors: [
-      Colors.cyan,
-      Colors.green,
-    ]),
     this.showMinMaxText = true,
     this.minMaxTextStyle = const TextStyle(fontSize: 14),
     super.key,
@@ -43,11 +38,6 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
-      // height: 52,
-      // decoration: BoxDecoration(
-      //   borderRadius: BorderRadius.circular(8),
-      //   gradient: widget.gradient,
-      // ),
       child: Padding(
         padding: widget.showMinMaxText ? const EdgeInsets.only(left: 15.5, right: 15.5) : EdgeInsets.zero,
         child: Row(
@@ -75,14 +65,14 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
                     min: widget.min,
                     max: widget.max,
                   ),
-                  thumbColor: widget.gradient.colors[0],
-                  overlayColor: widget.gradient.colors[0].withAlpha(32),
+                  thumbColor: widget.accentColor,
+                  overlayColor: widget.accentColor.withAlpha(32),
                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
                   tickMarkShape: const RoundSliderTickMarkShape(),
-                  activeTickMarkColor: widget.gradient.colors[0],
+                  activeTickMarkColor: widget.accentColor,
                   inactiveTickMarkColor: widget.accentColor,
                   valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
-                  valueIndicatorColor: widget.gradient.colors[0],
+                  valueIndicatorColor: widget.accentColor,
                   valueIndicatorTextStyle: const TextStyle(
                     color: Colors.white,
                   ),
@@ -154,7 +144,7 @@ class CustomSliderThumbCircle extends SliderComponentShape {
     final Canvas canvas = context.canvas;
 
     final paint = Paint()
-      ..color = Colors.blue //Thumb Background Color
+      ..color = Colors.blue
       ..style = PaintingStyle.fill;
 
     TextSpan span = TextSpan(

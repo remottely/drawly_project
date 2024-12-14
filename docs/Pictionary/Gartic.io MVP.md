@@ -96,44 +96,48 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 
 
 **BUGS:**
-- [ ] polygon outside canvas limits
-- [ ] when enter in room1 than left and enter in room2 then disconnect then and make some undos, the user come back to room1
+- [ ] Polygon outside canvas limits.
+- [ ] When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
 
 **TODO:**
-- [x] (0.7.2): Stroke transparency
-- [ ] Sound
-- [ ] Share
-	- [ ] Invite
-	- [ ] Stream
-- [ ] Info
-- [ ] Close
-- [ ] User can change background color dynamicaly
-- [x] (0.8.0) When disconnect inside a game room, then when reconnect rejoin the same room and get all strokes registered in the server
-- [x] (0.8.1) Improve all notifier var names
-- [x] (0.8.2) Organize files
-- [x] (0.9.0) onDisconnect notify in the message chat
-- [x] (0.9.1) organize backend server.ts part 1
-- [x] (0.9.2) organize backend server.ts part 2
-- [x] (0.9.3) organize backend server.ts part 3
-- [x] (0.9.4) organize backend server.ts part 4
-- [x] (0.9.5) organize backend server.ts part 5
-- [x] (0.9.6) organize backend server.ts part 6
-- [x] (0.9.7) change draw_board to drawing_board package name
-- [x] (0.10.0) currentDrawer logic + timer
-- [x] (0.10.1) bug: DrawingBoard not working undo and redo
-- [x] (0.11.0) when change currentDrawer, clean the board
-- [x] (0.11.1) bug: hot reload invoking multiple _joinGameRoom()
-- [x] (0.11.2) bug: simulating disconnection not working as expected, problem with definedNumberOfPlayers
-- [x] (0.12.0) implement manual turn start functionality
-- [x] (0.13.0) implement random game theme
-- [x] (0.14.0) implement answer comparison in backend side if are correct, and emit back to front
-- [x] (0.15.0) refactoring socket.io events names
-- [x] (0.16.0) answer chat display green when correct
-- [ ] remover do servidor:
-	- [ ] (0.?.0) all answers, fazer como nos strokes, mandar um por vez
-	- [ ] (0.?.0) all messages, fazer como nos strokes, mandar um por vez
-- [ ] (0.?.0) validar quantidade minima de jogadores
-- [ ] (0.?.0) redoDraw
-	- [ ] get from server and not locally
-	- [ ] not working properly, when someone disconnect, lose some redos
-- [ ] (0.?.0) remover do servidor:
+- [x] (0.7.2): Stroke transparency.
+- [ ] Sound.
+- [ ] Share.
+	- [ ] Invite.
+	- [ ] Stream.
+- [ ] Info.
+- [ ] Close.
+- [ ] Allow the user to dynamically change the background color.
+- [x] (0.8.0): When disconnected inside a game room, reconnect to the same room and retrieve all strokes registered on the server.
+- [x] (0.8.1): Improve all notifier variable names.
+- [x] (0.8.2): Organize files.
+- [x] (0.9.0): Notify disconnection in the message chat.
+- [x] (0.9.1): Organize backend `server.ts` (part 1).
+- [x] (0.9.2): Organize backend `server.ts` (part 2).
+- [x] (0.9.3): Organize backend `server.ts` (part 3).
+- [x] (0.9.4): Organize backend `server.ts` (part 4).
+- [x] (0.9.5): Organize backend `server.ts` (part 5).
+- [x] (0.9.6): Organize backend `server.ts` (part 6).
+- [x] (0.9.7): Rename `draw_board` package to `drawing_board`.
+- [x] (0.10.0): Implement currentDrawer logic + timer.
+- [x] (0.10.1): Bug: DrawingBoard undo and redo not working.
+- [x] (0.11.0): Clear the board when changing the currentDrawer.
+- [x] (0.11.1): Bug: Hot reload invoking multiple `_joinGameRoom()`.
+- [x] (0.11.2): Bug: Simulating disconnection not working as expected (issue with `definedNumberOfPlayers`).
+- [x] (0.12.0): Implement manual turn start functionality.
+- [x] (0.13.0): Implement random game theme.
+- [x] (0.14.0): Implement answer validation on the backend and emit the result to the frontend.
+- [x] (0.15.0): Refactor `socket.io` event names.
+- [x] (0.16.0): Display the answer in green in the chat when correct.
+- [x] (0.17.0): Enhance code, remove unnecessary comments.
+- [ ] Server cleanup:
+	- [ ] (0.?.0): Handle answers individually like strokes.
+	- [ ] (0.?.0): Handle messages individually like strokes.
+- [ ] (0.?.0): Validate the minimum number of players.
+- [ ] (0.?.0): RedoDraw.
+	- [ ] Retrieve from the server instead of locally.
+	- [ ] Fix issue where some redos are lost when someone disconnects.
+- [ ] (0.?.0): Add a rule to prevent users from typing words related to the answer (use AI client-side?).
+- [ ] (0.?.0): Bug: Canvas border should not be dynamic.
+- [ ] (0.?.0): Bug: `cmd+z` and `cmd+y` do not work on the web. This might be expected, but find a workaround.
+- [ ] (0.?.0): Bug: `shiftLeft` and `shiftRight` do not work under any circumstances.

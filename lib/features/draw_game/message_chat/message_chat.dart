@@ -1,8 +1,8 @@
+import 'package:drawly/features/draw_game/message_chat/models/answer_model.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
-/// Main drawing screen where the user interacts with the Pictionary game
 class MessageChat extends StatefulWidget {
   final String username;
   final String roomName;
@@ -21,14 +21,13 @@ class MessageChat extends StatefulWidget {
 }
 
 abstract class PictionaryScreenViewModel extends State<MessageChat> {
-  final _rxAllMessages = ValueNotifier<List<String>>([]); // Messages received from the server
+  final _rxAllMessages = ValueNotifier<List<MessageModel>>([]);
   final TextEditingController messageController = TextEditingController();
 
-  /// Initializes the socket connection and defines event handlers
   void _initializeChatSocket() {
-    // Handle new message event
     SocketManager.instance.on('messageChat:new', (data) {
-      _rxAllMessages.value = List.from(_rxAllMessages.value)..add("${data['username']}: ${data['message']}");
+      final message = MessageModel.fromJson(data);
+      _rxAllMessages.value = List.from(_rxAllMessages.value)..add(message);
     });
 
     SocketManager.instance.onDisconnect((_) {});
@@ -69,15 +68,13 @@ class _MessageChatState extends PictionaryScreenViewModel {
       child: Column(
         children: [
           Expanded(
-            child: ValueListenableBuilder<List<String>>(
+            child: ValueListenableBuilder<List<MessageModel>>(
               valueListenable: _rxAllMessages,
               builder: (context, value, child) {
                 return ListView.builder(
                   itemCount: value.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(value[index]),
-                    );
+                    return _MessageChatText(message: _rxAllMessages.value[index]);
                   },
                 );
               },
@@ -90,10 +87,32 @@ class _MessageChatState extends PictionaryScreenViewModel {
               leftIcon: Icons.question_answer,
               rightIcon: Icons.send,
               onRightIconPressed: _sendMessage,
-              isCurrentDrawer: widget.isCurrentDrawer,
+              isBlocked: widget.isCurrentDrawer,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MessageChatText extends StatelessWidget {
+  final MessageModel message;
+
+  const _MessageChatText({
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Text(
+        "${message.username}: ${message.answer}",
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 16,
+        ),
       ),
     );
   }

@@ -199,13 +199,10 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                                   const SizedBox(height: 5),
                                   SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 2, // Trilho fino
-                                      thumbShape:
-                                          const RoundSliderThumbShape(enabledThumbRadius: 8), // Tamanho do thumb
-                                      overlayShape:
-                                          const RoundSliderOverlayShape(overlayRadius: 16), // Efeito de arrastar
-                                      trackShape:
-                                          const RectangularSliderTrackShape(), // Remove o padding ao usar um trilho retangular
+                                      trackHeight: 2,
+                                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                                      trackShape: const RectangularSliderTrackShape(),
                                     ),
                                     child: Slider(
                                       value: widget.rxPolygonSides.value.toDouble(),
@@ -304,7 +301,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                               child: RotatedBox(
                                 quarterTurns: -1,
                                 child: DrawlySliderFb3(
-                                  // value: widget.strokeSize.value,
                                   min: 2,
                                   max: 20,
                                   divisions: 10,
@@ -312,13 +308,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                                     widget.rxCurrentStrokeSize.value = value;
                                   },
                                   initialValue: widget.rxCurrentStrokeSize.value,
-                                  // accentColor:,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Colors.blue,
-                                      Colors.blue,
-                                    ],
-                                  ),
                                   showMinMaxText: false,
                                   minMaxTextStyle: const TextStyle(fontSize: 14),
                                   accentColor: Colors.blue,
@@ -346,12 +335,10 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                                 quarterTurns: -1,
                                 child: SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 2, // Trilho fino
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8), // Tamanho do thumb
-                                    overlayShape:
-                                        const RoundSliderOverlayShape(overlayRadius: 16), // Efeito de arrastar
-                                    trackShape:
-                                        const RectangularSliderTrackShape(), // Remove o padding ao usar um trilho retangular
+                                    trackHeight: 2,
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                                    trackShape: const RectangularSliderTrackShape(),
                                   ),
                                   child: DrawlySliderFb3(
                                     min: 10,
@@ -361,13 +348,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                                       widget.rxSelectedColorOpacity.value = value / 100;
                                     },
                                     initialValue: widget.rxSelectedColorOpacity.value * 100,
-                                    // accentColor:,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Colors.blue,
-                                        Colors.blue,
-                                      ],
-                                    ),
                                     showMinMaxText: false,
                                     minMaxTextStyle: const TextStyle(fontSize: 14),
                                     accentColor: Colors.blue,

@@ -25,8 +25,6 @@ class UndoRedoStack {
 
   void _strokesCountListener() {
     if (!_isRedoing && rxAllStrokes.value.length > _strokeCount) {
-      // if a new Stroke is drawn,
-      // history is invalidated so clear redo stack
       _redoStack.clear();
       _rxCanRedo.value = false;
       _strokeCount = rxAllStrokes.value.length;

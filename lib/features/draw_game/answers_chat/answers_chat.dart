@@ -92,8 +92,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
                   leftIcon: Icons.draw,
                   rightIcon: Icons.send,
                   onRightIconPressed: _sendAnswer,
-                  isCurrentDrawer:
-                      widget.isCurrentDrawer || !widget.isGameStarted || _rxIsCurrentUserCorrectAnswer.value,
+                  isBlocked: widget.isCurrentDrawer || !widget.isGameStarted || _rxIsCurrentUserCorrectAnswer.value,
                 ),
               ),
             ],
