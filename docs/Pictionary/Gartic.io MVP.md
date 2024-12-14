@@ -128,6 +128,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.13.0) implement random game theme
 - [x] (0.14.0) implement answer comparison in backend side if are correct, and emit back to front
 - [x] (0.15.0) refactoring socket.io events names
+- [x] (0.16.0) answer chat display green when correct
 - [ ] remover do servidor:
 	- [ ] (0.?.0) all answers, fazer como nos strokes, mandar um por vez
 	- [ ] (0.?.0) all messages, fazer como nos strokes, mandar um por vez

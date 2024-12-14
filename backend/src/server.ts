@@ -75,7 +75,7 @@ class Room {
   private participants: Set<string> = new Set();
   private turnQueue: string[] = [];
   private currentTurnIndex: number = 0;
-  public currentWord: string | null = null; // Word being drawn during the current turn
+  public currentWord: string | null = null;
 
   constructor(public name: string) { }
 
@@ -88,7 +88,7 @@ class Room {
     this.participants.delete(username);
     this.turnQueue = this.turnQueue.filter((user) => user !== username);
     if (this.currentTurnIndex >= this.turnQueue.length) {
-      this.currentTurnIndex = 0; // Reset turn if out of bounds
+      this.currentTurnIndex = 0;
     }
   }
 
@@ -268,11 +268,9 @@ const handleTurnActions = {
       return;
     }
 
-    // Select a random word and store it in the room
     const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
     room.currentWord = wordToDraw;
 
-    // Emit the 'newTurn' event with the word and other details
     io.to(roomName).emit('newTurn', {
       currentDrawer,
       word: wordToDraw,

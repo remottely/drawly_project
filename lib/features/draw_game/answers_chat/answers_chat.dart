@@ -1,3 +1,4 @@
+import 'package:drawly/features/draw_game/answers_chat/models/answer_model.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -22,15 +23,16 @@ class AnswersChat extends StatefulWidget {
 }
 
 abstract class PictionaryScreenViewModel extends State<AnswersChat> {
-  final _rxAllAnswers = ValueNotifier<List<String>>([]);
-  // final _rxIsCorrectAnswer = ValueNotifier<bool>(false);
+  final _rxAllAnswers = ValueNotifier<List<AnswerModel>>([]);
+  final _rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
   final answerController = TextEditingController();
 
   void _initializeChatSocket() {
     SocketManager.instance.on('answerChat:new', (data) {
-      _rxAllAnswers.value = List.from(_rxAllAnswers.value)..add("${data['username']}: ${data['answer']}");
+      final answer = AnswerModel.fromJson(data);
+      _rxAllAnswers.value = List.from(_rxAllAnswers.value)..add(answer);
 
-      // _rxIsCorrectAnswer.value = data['isCorrect'];
+      _rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
     });
   }
 
@@ -65,40 +67,60 @@ class _AnswersChatState extends PictionaryScreenViewModel {
   @override
   Widget build(BuildContext context) {
     return DrawlyContainer(
-      child: Column(
-        children: [
-          Expanded(
-            child: AnimatedBuilder(
-              animation: Listenable.merge([
-                _rxAllAnswers,
-                // _rxIsCorrectAnswer,
-              ]),
-              builder: (context, _) {
-                return ListView.builder(
-                  itemCount: _rxAllAnswers.value.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(
-                        _rxAllAnswers.value[index],
-                        // style: TextStyle(color: _rxIsCorrectAnswer.value ? Colors.green : Colors.grey),
-                      ),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_rxIsCurrentUserCorrectAnswer]),
+        builder: (context, _) {
+          return Column(
+            children: [
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([_rxAllAnswers]),
+                  builder: (context, _) {
+                    return ListView.builder(
+                      itemCount: _rxAllAnswers.value.length,
+                      itemBuilder: (context, index) {
+                        return _AnswerChatText(answer: _rxAllAnswers.value[index]);
+                      },
                     );
                   },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: DrawlyIconBorderedTextField(
-              controller: answerController,
-              leftIcon: Icons.draw,
-              rightIcon: Icons.send,
-              onRightIconPressed: _sendAnswer,
-              isCurrentDrawer: widget.isCurrentDrawer || !widget.isGameStarted,
-            ),
-          ),
-        ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DrawlyIconBorderedTextField(
+                  controller: answerController,
+                  leftIcon: Icons.draw,
+                  rightIcon: Icons.send,
+                  onRightIconPressed: _sendAnswer,
+                  isCurrentDrawer:
+                      widget.isCurrentDrawer || !widget.isGameStarted || _rxIsCurrentUserCorrectAnswer.value,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AnswerChatText extends StatelessWidget {
+  final AnswerModel answer;
+
+  const _AnswerChatText({
+    required this.answer,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Text(
+        "${answer.username}: ${answer.isCorrect ? '****' : answer.answer}",
+        style: TextStyle(
+          color: answer.isCorrect ? Colors.green : Colors.grey,
+          fontSize: 16,
+        ),
       ),
     );
   }
