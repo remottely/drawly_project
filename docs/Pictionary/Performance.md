@@ -61,7 +61,7 @@ void _sendBuffer(List<Offset> points) {
   final data = points
       .map((point) => {'dx': point.dx, 'dy': point.dy})
       .toList();
-  socket.emit('draw', {'room': room, 'points': data, 'color': selectedColor.value, 'width': strokeWidth});
+  socket.emit('drawing:draw', {'room': room, 'points': data, 'color': selectedColor.value, 'width': strokeWidth});
 }
 ```
 
@@ -72,7 +72,7 @@ void _sendBuffer(List<Offset> points) {
 Renderize apenas os traços recebidos, sem redesenhar todo o canvas. Isso melhora o desempenho do cliente:
 
 ```dart
-socket.on('draw', (data) {
+socket.on('drawing:draw', (data) {
   List<Offset> receivedPoints = (data['points'] as List)
       .map((e) => Offset(e['dx'], e['dy']))
       .toList();

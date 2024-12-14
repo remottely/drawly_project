@@ -102,8 +102,8 @@ const wordsList = [
     "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
 ];
 // Auxiliary functions
-const emitRoomList = () => io.emit("roomList", Object.keys(rooms));
-const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit("updateParticipants", ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
+const emitRoomList = () => io.emit('roomList', Object.keys(rooms));
+const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit('updateParticipants', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
 const handleRoomManagement = {
     create({ roomName }) {
         if (!rooms[roomName]) {
@@ -123,15 +123,15 @@ const handleRoomManagement = {
         currentRoom.addParticipant(username);
         socket.join(roomName);
         socketUserMap[socket.id] = { username, roomName };
-        io.to(roomName).emit("newMessageChat", { username, message: "joined the room." });
-        socket.emit("draw", { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
+        io.to(roomName).emit('messageChat:new', { username, message: "joined the room." });
+        socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
     },
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit("newMessageChat", { username, message: "left the room." });
+        io.to(roomName).emit('messageChat:new', { username, message: "left the room." });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = socketUserMap[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -147,51 +147,45 @@ const handleRoomManagement = {
 };
 const handleChatActions = {
     sendMessage({ username, roomName, message }) {
-        io.to(roomName).emit("newMessageChat", { username, message });
+        io.to(roomName).emit('messageChat:new', { username, message });
     },
     sendAnswer(socket, { username, roomName, answer }) {
         const room = rooms[roomName];
         if (!room) {
             console.error(`Room ${roomName} not found.`);
-            socket.emit("error", { message: `Room ${roomName} does not exist.` });
+            socket.emit('error', { message: `Room ${roomName} does not exist.` });
             return;
         }
         const correctWord = room.currentWord;
         if (!correctWord) {
             console.error(`No word is being drawn in room ${roomName}.`);
-            socket.emit("error", { message: `No word is currently being drawn.` });
+            socket.emit('error', { message: `No word is currently being drawn.` });
             return;
         }
         const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
-        io.to(roomName).emit("answerChatResult", { username, answer, isCorrect });
-        if (isCorrect) {
-            console.log(`${username} guessed the word correctly in room ${roomName}: ${answer}`);
-        }
-        else {
-            console.log(`${username} guessed incorrectly in room ${roomName}: ${answer}`);
-        }
+        io.to(roomName).emit('answerChat:new', { username, answer, isCorrect });
     },
 };
 const handleDrawingActions = {
     draw({ roomName, strokes }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokes(strokes);
-        io.to(roomName).emit("draw", { strokes });
+        io.to(roomName).emit('drawing:draw', { strokes });
     },
     clear({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.clear();
-        io.to(roomName).emit("clearDraw");
+        io.to(roomName).emit('drawing:clear');
     },
     undo({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.undo();
-        io.to(roomName).emit("undoDraw");
+        io.to(roomName).emit('drawing:undo');
     },
     redo({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.redo();
-        io.to(roomName).emit("redoDraw");
+        io.to(roomName).emit('drawing:redo');
     },
 };
 const handleTurnActions = {
@@ -216,7 +210,7 @@ const handleTurnActions = {
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         // Emit the 'newTurn' event with the word and other details
-        io.to(roomName).emit("newTurn", {
+        io.to(roomName).emit('newTurn', {
             currentDrawer,
             word: wordToDraw,
             totalDuration: totalDuration * 1000,
@@ -239,28 +233,28 @@ const handleDisconnect = (socket) => {
     handleRoomManagement.leave(socket, { username, roomName });
 };
 // Socket.IO Configuration
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.emit("roomList", Object.keys(rooms));
-    socket.on("createRoom", (data) => handleRoomManagement.create(data));
-    socket.on("joinRoom", (data) => handleRoomManagement.join(socket, data));
-    socket.on("leaveRoom", (data) => handleRoomManagement.leave(socket, data));
-    socket.on("sendAnswerChat", (data) => handleChatActions.sendAnswer(socket, data));
-    socket.on("sendMessageChat", (data) => handleChatActions.sendMessage(data));
-    socket.on("draw", (data) => handleDrawingActions.draw(data));
-    socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
-    socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
-    socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
-    socket.on("startTurns", ({ roomName }) => {
+    socket.emit('roomList', Object.keys(rooms));
+    socket.on('room:create', (data) => handleRoomManagement.create(data));
+    socket.on('room:join', (data) => handleRoomManagement.join(socket, data));
+    socket.on('room:leave', (data) => handleRoomManagement.leave(socket, data));
+    socket.on('answerChat:send', (data) => handleChatActions.sendAnswer(socket, data));
+    socket.on('messageChat:send', (data) => handleChatActions.sendMessage(data));
+    socket.on('drawing:draw', (data) => handleDrawingActions.draw(data));
+    socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
+    socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
+    socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
+    socket.on('game:startTurns', ({ roomName }) => {
         if (!rooms[roomName]) {
             console.error(`Room ${roomName} not found.`);
-            socket.emit("error", { message: `Room ${roomName} does not exist.` });
+            socket.emit('error', { message: `Room ${roomName} does not exist.` });
             return;
         }
         console.log(`Turns manually started for room ${roomName}`);
         handleTurnActions.startTurnTimer(roomName, 60);
     });
-    socket.on("disconnect", () => handleDisconnect(socket));
+    socket.on('disconnect', () => handleDisconnect(socket));
 });
 // Server startup
 server.listen(PORT, () => {

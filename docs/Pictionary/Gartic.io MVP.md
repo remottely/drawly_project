@@ -126,11 +126,13 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.11.2) bug: simulating disconnection not working as expected, problem with definedNumberOfPlayers
 - [x] (0.12.0) implement manual turn start functionality
 - [x] (0.13.0) implement random game theme
-- [ ] (0.14.0) implement answer comparison in backend side if are correct, and emit back to front
-- [ ] validar quantidade minima de jogadores
-- [ ] redoDraw
+- [x] (0.14.0) implement answer comparison in backend side if are correct, and emit back to front
+- [x] (0.15.0) refactoring socket.io events names
+- [ ] remover do servidor:
+	- [ ] (0.?.0) all answers, fazer como nos strokes, mandar um por vez
+	- [ ] (0.?.0) all messages, fazer como nos strokes, mandar um por vez
+- [ ] (0.?.0) validar quantidade minima de jogadores
+- [ ] (0.?.0) redoDraw
 	- [ ] get from server and not locally
 	- [ ] not working properly, when someone disconnect, lose some redos
-- [ ] (0.15.0) remover do servidor:
-	- [ ] all messages, fazer como nos strokes, mandar q por vez
-	- [ ] all answers, fazer como nos strokes, mandar q por vez
+- [ ] (0.?.0) remover do servidor:

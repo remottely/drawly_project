@@ -14,7 +14,7 @@ class Tests {
   }
 
   static void createRoom(String roomName) {
-    SocketManager.instance.emit('createRoom', {
+    SocketManager.instance.emit('room:create', {
       'roomName': roomName,
     });
   }

@@ -60,37 +60,37 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
   final scrollController = ScrollController();
 
   void _initializeClearDrawSocket() {
-    SocketManager.instance.on('clearDraw', (_) {
+    SocketManager.instance.on('drawing:clear', (_) {
       widget.undoRedoStack.clear();
     });
   }
 
   void _initializeUndoDrawSocket() {
-    SocketManager.instance.on('undoDraw', (_) {
+    SocketManager.instance.on('drawing:undo', (_) {
       widget.undoRedoStack.undo();
     });
   }
 
   void _initializeRedoDrawSocket() {
-    SocketManager.instance.on('redoDraw', (_) {
+    SocketManager.instance.on('drawing:redo', (_) {
       widget.undoRedoStack.redo();
     });
   }
 
   void _sendClearStrokes() {
-    SocketManager.instance.emit('clearDraw', {
+    SocketManager.instance.emit('drawing:clear', {
       'roomName': widget.roomName,
     });
   }
 
   void _sendUndoStroke() {
-    SocketManager.instance.emit('undoDraw', {
+    SocketManager.instance.emit('drawing:undo', {
       'roomName': widget.roomName,
     });
   }
 
   void _sendRedoStroke() {
-    SocketManager.instance.emit('redoDraw', {
+    SocketManager.instance.emit('drawing:redo', {
       'roomName': widget.roomName,
     });
   }
@@ -107,9 +107,9 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
 
   @override
   void dispose() {
-    SocketManager.instance.off('clearDraw');
-    SocketManager.instance.off('undoDraw');
-    SocketManager.instance.off('redoDraw');
+    SocketManager.instance.off('drawing:clear');
+    SocketManager.instance.off('drawing:undo');
+    SocketManager.instance.off('drawing:redo');
 
     super.dispose();
   }

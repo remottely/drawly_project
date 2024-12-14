@@ -77,14 +77,14 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void _joinGameRoom() {
-    SocketManager.instance.emit('joinRoom', {
+    SocketManager.instance.emit('room:join', {
       'username': widget.username,
       'roomName': widget.roomName,
     });
   }
 
   void _leaveRoom() {
-    SocketManager.instance.emit('leaveRoom', {
+    SocketManager.instance.emit('room:leave', {
       'username': widget.username,
       'roomName': widget.roomName,
     });
@@ -199,8 +199,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                 child: ElevatedButton(
                                                   onPressed: () {
                                                     SocketManager.instance.emit(
-                                                      "startTurns",
-                                                      {"roomName": widget.roomName},
+                                                      'game:startTurns',
+                                                      {'roomName': widget.roomName},
                                                     );
                                                   },
                                                   child: const Text("Start Game"),

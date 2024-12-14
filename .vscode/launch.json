@@ -5,7 +5,7 @@
       "name": "8081",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_dev_game_page_1.dart",
+      "program": "lib/main.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"]
     },
     {

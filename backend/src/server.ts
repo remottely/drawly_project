@@ -148,9 +148,9 @@ const wordsList = [
 ];
 
 // Auxiliary functions
-const emitRoomList = (): boolean => io.emit("roomList", Object.keys(rooms));
+const emitRoomList = (): boolean => io.emit('roomList', Object.keys(rooms));
 const emitParticipantsUpdate = (roomName: string): boolean =>
-  io.to(roomName).emit("updateParticipants", rooms[roomName]?.getParticipants() || []);
+  io.to(roomName).emit('updateParticipants', rooms[roomName]?.getParticipants() || []);
 
 const handleRoomManagement = {
   create({ roomName }: SocketRoom): void {
@@ -173,8 +173,8 @@ const handleRoomManagement = {
     socket.join(roomName);
     socketUserMap[socket.id] = { username, roomName };
 
-    io.to(roomName).emit("newMessageChat", { username, message: "joined the room." });
-    socket.emit("draw", { strokes: roomDrawings[roomName]?.getStrokes() });
+    io.to(roomName).emit('messageChat:new', { username, message: "joined the room." });
+    socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     emitParticipantsUpdate(roomName);
 
     console.log(`${username} joined room ${roomName}`);
@@ -182,7 +182,7 @@ const handleRoomManagement = {
 
   leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit("newMessageChat", { username, message: "left the room." });
+    io.to(roomName).emit('messageChat:new', { username, message: "left the room." });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
@@ -200,14 +200,14 @@ const handleRoomManagement = {
 
 const handleChatActions = {
   sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
-    io.to(roomName).emit("newMessageChat", { username, message });
+    io.to(roomName).emit('messageChat:new', { username, message });
   },
 
   sendAnswer(socket: Socket, { username, roomName, answer }: SocketRoomUserAnswer): void {
     const room = rooms[roomName];
     if (!room) {
       console.error(`Room ${roomName} not found.`);
-      socket.emit("error", { message: `Room ${roomName} does not exist.` });
+      socket.emit('error', { message: `Room ${roomName} does not exist.` });
       return;
     }
 
@@ -215,41 +215,35 @@ const handleChatActions = {
 
     if (!correctWord) {
       console.error(`No word is being drawn in room ${roomName}.`);
-      socket.emit("error", { message: `No word is currently being drawn.` });
+      socket.emit('error', { message: `No word is currently being drawn.` });
       return;
     }
 
     const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
 
-    io.to(roomName).emit("answerChatResult", { username, answer, isCorrect });
-
-    if (isCorrect) {
-      console.log(`${username} guessed the word correctly in room ${roomName}: ${answer}`);
-    } else {
-      console.log(`${username} guessed incorrectly in room ${roomName}: ${answer}`);
-    }
+    io.to(roomName).emit('answerChat:new', { username, answer, isCorrect });
   },
 };
 
 const handleDrawingActions = {
   draw({ roomName, strokes }: SocketRoomDraw): void {
     roomDrawings[roomName]?.addStrokes(strokes);
-    io.to(roomName).emit("draw", { strokes });
+    io.to(roomName).emit('drawing:draw', { strokes });
   },
 
   clear({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.clear();
-    io.to(roomName).emit("clearDraw");
+    io.to(roomName).emit('drawing:clear');
   },
 
   undo({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.undo();
-    io.to(roomName).emit("undoDraw");
+    io.to(roomName).emit('drawing:undo');
   },
 
   redo({ roomName }: SocketRoom): void {
     roomDrawings[roomName]?.redo();
-    io.to(roomName).emit("redoDraw");
+    io.to(roomName).emit('drawing:redo');
   },
 };
 const handleTurnActions = {
@@ -279,7 +273,7 @@ const handleTurnActions = {
     room.currentWord = wordToDraw;
 
     // Emit the 'newTurn' event with the word and other details
-    io.to(roomName).emit("newTurn", {
+    io.to(roomName).emit('newTurn', {
       currentDrawer,
       word: wordToDraw,
       totalDuration: totalDuration * 1000,
@@ -309,26 +303,26 @@ const handleDisconnect = (socket: Socket): void => {
 };
 
 // Socket.IO Configuration
-io.on("connection", (socket: Socket): void => {
+io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
-  socket.emit("roomList", Object.keys(rooms));
+  socket.emit('roomList', Object.keys(rooms));
 
-  socket.on("createRoom", (data: SocketRoom) => handleRoomManagement.create(data));
-  socket.on("joinRoom", (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
-  socket.on("leaveRoom", (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
+  socket.on('room:create', (data: SocketRoom) => handleRoomManagement.create(data));
+  socket.on('room:join', (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
+  socket.on('room:leave', (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(socket, data));
-  socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
+  socket.on('answerChat:send', (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(socket, data));
+  socket.on('messageChat:send', (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
 
-  socket.on("draw", (data) => handleDrawingActions.draw(data));
-  socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
-  socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
-  socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
+  socket.on('drawing:draw', (data) => handleDrawingActions.draw(data));
+  socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
+  socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
+  socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
 
-  socket.on("startTurns", ({ roomName }: { roomName: string }) => {
+  socket.on('game:startTurns', ({ roomName }: { roomName: string }) => {
     if (!rooms[roomName]) {
       console.error(`Room ${roomName} not found.`);
-      socket.emit("error", { message: `Room ${roomName} does not exist.` });
+      socket.emit('error', { message: `Room ${roomName} does not exist.` });
       return;
     }
 
@@ -336,7 +330,7 @@ io.on("connection", (socket: Socket): void => {
     handleTurnActions.startTurnTimer(roomName, 60);
   });
 
-  socket.on("disconnect", () => handleDisconnect(socket));
+  socket.on('disconnect', () => handleDisconnect(socket));
 });
 
 // Server startup

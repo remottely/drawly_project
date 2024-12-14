@@ -71,7 +71,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   /// Inicializa o listener do socket para eventos de desenho
   void _initializeDrawingSocket() {
-    SocketManager.instance.on('draw', (data) {
+    SocketManager.instance.on('drawing:draw', (data) {
       developer.log('Draw event received: $data');
 
       // Mapeia cada elemento da lista 'strokes' para uma instância de Stroke
@@ -93,7 +93,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     if (_rxCurrentStroke.value == null) return;
 
     // Envia os strokes ao servidor
-    SocketManager.instance.emit('draw', {
+    SocketManager.instance.emit('drawing:draw', {
       'roomName': widget.roomName,
       'strokes': [_rxCurrentStroke.value!.toJson()],
     });
@@ -122,7 +122,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
 
   @override
   void dispose() {
-    SocketManager.instance.off('draw');
+    SocketManager.instance.off('drawing:draw');
     super.dispose();
   }
 

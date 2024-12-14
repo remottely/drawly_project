@@ -30,7 +30,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
       developer.log('Connected to the server');
     });
 
-    SocketManager.instance.on("roomList", (data) {
+    SocketManager.instance.on('roomList', (data) {
       setState(() {
         allRooms
           ..clear()
@@ -46,7 +46,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _createRoom() {
     final roomName = roomController.text.trim();
     if (roomName.isNotEmpty && roomName.length >= 3) {
-      SocketManager.instance.emit('createRoom', {
+      SocketManager.instance.emit('room:create', {
         'roomName': roomName,
       });
       roomController.clear();
