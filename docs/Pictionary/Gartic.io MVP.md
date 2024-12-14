@@ -123,7 +123,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.10.1) bug: DrawingBoard not working undo and redo
 - [x] (0.11.0) when change currentDrawer, clean the board
 - [x] (0.11.1) bug: hot reload invoking multiple _joinGameRoom()
-- [ ] (0.11.2) bug: simulating disconnection not working as expected, problem with definedNumberOfPlayers
+- [x] (0.11.2) bug: simulating disconnection not working as expected, problem with definedNumberOfPlayers
 - [ ] redoDraw
 	- [ ] get from server and not locally
 	- [ ] not working properly, when someone disconnect, lose some redos

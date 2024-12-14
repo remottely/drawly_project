@@ -29,7 +29,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final totalDuration = ValueNotifier<int>(0);
   final timeLeft = ValueNotifier<int>(0);
 
-  bool _hasJoinedRoom = false;
+  // bool _hasJoinedRoom = false;
 
   void _initialize() {
     _initializeSocket();
@@ -39,11 +39,11 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
-      if (!_hasJoinedRoom) {
-        Tests.createRoom(widget.roomName);
-        _joinGameRoom();
-        _hasJoinedRoom = true;
-      }
+      // if (!_hasJoinedRoom) {
+      Tests.createRoom(widget.roomName);
+      _joinGameRoom();
+      // _hasJoinedRoom = true;
+      // }
     });
 
     SocketManager.instance.on('newTurn', (data) {
