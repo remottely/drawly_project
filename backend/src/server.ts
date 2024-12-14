@@ -236,6 +236,8 @@ const handleDrawingActions = {
 const handleTurnActions = {
   startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
+    handleDrawingActions.clear({roomName});
+
     if (!room) {
       console.error(`Room ${roomName} not found.`);
       return;
