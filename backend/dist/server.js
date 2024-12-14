@@ -122,10 +122,10 @@ const handleRoomManagement = {
         socket.emit("draw", { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
-        if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
-            console.log(`Starting turn timer in room ${roomName}`);
-            handleTurnActions.startTurnTimer(roomName, 60);
-        }
+        // if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
+        //   console.log(`Starting turn timer in room ${roomName}`);
+        //   handleTurnActions.startTurnTimer(roomName, 60);
+        // }
     },
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
@@ -223,12 +223,21 @@ io.on("connection", (socket) => {
     socket.on("createRoom", (data) => handleRoomManagement.create(data));
     socket.on("joinRoom", (data) => handleRoomManagement.join(socket, data));
     socket.on("leaveRoom", (data) => handleRoomManagement.leave(socket, data));
-    socket.on("sendMessageChat", (data) => handleChatActions.sendMessage(data));
     socket.on("sendAnswerChat", (data) => handleChatActions.sendAnswer(data));
+    socket.on("sendMessageChat", (data) => handleChatActions.sendMessage(data));
     socket.on("draw", (data) => handleDrawingActions.draw(data));
     socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
     socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
     socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
+    socket.on("startTurns", ({ roomName }) => {
+        if (!rooms[roomName]) {
+            console.error(`Room ${roomName} not found.`);
+            socket.emit("error", { message: `Room ${roomName} does not exist.` });
+            return;
+        }
+        console.log(`Turns manually started for room ${roomName}`);
+        handleTurnActions.startTurnTimer(roomName, 60); // Inicia os turnos com 60 segundos por turno
+    });
     socket.on("disconnect", () => handleDisconnect(socket));
 });
 // Server startup

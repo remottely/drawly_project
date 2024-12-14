@@ -7,12 +7,14 @@ class AnswersChat extends StatefulWidget {
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
+  final bool isGameStarted;
 
   const AnswersChat({
     super.key,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
+    required this.isGameStarted,
   })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
         assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
 
@@ -88,7 +90,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
               leftIcon: Icons.draw,
               rightIcon: Icons.send,
               onRightIconPressed: _sendAnswer,
-              isCurrentDrawer: widget.isCurrentDrawer,
+              isCurrentDrawer: widget.isCurrentDrawer || !widget.isGameStarted,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:ui';
 
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
@@ -6,6 +7,7 @@ import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomPage extends StatefulWidget {
@@ -111,6 +113,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
       children: [
         Scaffold(
           // backgroundColor: isCurrentDrawer.value ? lightPrimary : Colors.white,
+          backgroundColor: lightPrimary,
           appBar: AppBar(
             title: ValueListenableBuilder(
               valueListenable: currentDrawer,
@@ -154,45 +157,86 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                         children: [
                           Expanded(
                             flex: 3,
-                            child: ValueListenableBuilder(
-                              valueListenable: isCurrentDrawer,
-                              builder: (context, value, child) {
-                                return DrawingBoard(
-                                  username: widget.username,
-                                  roomName: widget.roomName,
-                                  isCurrentDrawer: value,
-                                );
-                              },
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // Drawing Board
+                                ValueListenableBuilder(
+                                  valueListenable: isCurrentDrawer,
+                                  builder: (context, value, child) {
+                                    return DrawingBoard(
+                                      username: widget.username,
+                                      roomName: widget.roomName,
+                                      isCurrentDrawer: value,
+                                    );
+                                  },
+                                ),
+
+                                // Overlay com efeito de blur
+                                ValueListenableBuilder(
+                                  valueListenable: totalDuration,
+                                  builder: (context, value, child) {
+                                    return AnimatedOpacity(
+                                      opacity: value == 0 ? 1.0 : 0.0,
+                                      duration: const Duration(milliseconds: 1000),
+                                      child: IgnorePointer(
+                                        ignoring: value != 0,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.5),
+                                            ),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                              child: Center(
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    SocketManager.instance.emit(
+                                                      "startTurns",
+                                                      {"roomName": widget.roomName},
+                                                    );
+                                                  },
+                                                  child: const Text("Start Game"),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                           Expanded(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: ValueListenableBuilder(
-                                    valueListenable: isCurrentDrawer,
-                                    builder: (context, value, child) {
-                                      return AnswersChat(
+                            child: AnimatedBuilder(
+                              animation: Listenable.merge([
+                                isCurrentDrawer,
+                                totalDuration,
+                              ]),
+                              builder: (context, _) {
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: AnswersChat(
                                         username: widget.username,
                                         roomName: widget.roomName,
-                                        isCurrentDrawer: value,
-                                      );
-                                    },
-                                  ),
-                                ),
-                                Expanded(
-                                  child: ValueListenableBuilder(
-                                    valueListenable: isCurrentDrawer,
-                                    builder: (context, value, child) {
-                                      return MessageChat(
+                                        isCurrentDrawer: isCurrentDrawer.value,
+                                        isGameStarted: totalDuration.value != 0,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: MessageChat(
                                         username: widget.username,
                                         roomName: widget.roomName,
-                                        isCurrentDrawer: value,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
+                                        isCurrentDrawer: isCurrentDrawer.value,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ],

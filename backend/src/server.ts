@@ -175,10 +175,10 @@ const handleRoomManagement = {
 
     console.log(`${username} joined room ${roomName}`);
 
-    if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
-      console.log(`Starting turn timer in room ${roomName}`);
-      handleTurnActions.startTurnTimer(roomName, 60);
-    }
+    // if (currentRoom.getParticipants().length === definedNumberOfPlayers) {
+    //   console.log(`Starting turn timer in room ${roomName}`);
+    //   handleTurnActions.startTurnTimer(roomName, 60);
+    // }
   },
 
 
@@ -236,7 +236,7 @@ const handleDrawingActions = {
 const handleTurnActions = {
   startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
-    handleDrawingActions.clear({roomName});
+    handleDrawingActions.clear({ roomName });
 
     if (!room) {
       console.error(`Room ${roomName} not found.`);
@@ -295,13 +295,24 @@ io.on("connection", (socket: Socket): void => {
   socket.on("joinRoom", (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
   socket.on("leaveRoom", (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
   socket.on("sendAnswerChat", (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(data));
+  socket.on("sendMessageChat", (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
 
   socket.on("draw", (data) => handleDrawingActions.draw(data));
   socket.on("clearDraw", (data) => handleDrawingActions.clear(data));
   socket.on("undoDraw", (data) => handleDrawingActions.undo(data));
   socket.on("redoDraw", (data) => handleDrawingActions.redo(data));
+
+  socket.on("startTurns", ({ roomName }: { roomName: string }) => {
+    if (!rooms[roomName]) {
+      console.error(`Room ${roomName} not found.`);
+      socket.emit("error", { message: `Room ${roomName} does not exist.` });
+      return;
+    }
+
+    console.log(`Turns manually started for room ${roomName}`);
+    handleTurnActions.startTurnTimer(roomName, 60); // Inicia os turnos com 60 segundos por turno
+  });
 
   socket.on("disconnect", () => handleDisconnect(socket));
 });
