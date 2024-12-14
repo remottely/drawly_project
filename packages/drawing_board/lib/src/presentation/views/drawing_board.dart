@@ -1,0 +1,121 @@
+import 'dart:ui' as ui;
+
+import 'package:drawing_board/src/src.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
+import 'package:flutter/material.dart';
+
+class DrawingBoard extends StatefulWidget {
+  final String username;
+  final String roomName;
+  final bool isCurrentDrawer;
+
+  const DrawingBoard({
+    super.key,
+    required this.username,
+    required this.roomName,
+    required this.isCurrentDrawer,
+  })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
+        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+
+  @override
+  State<DrawingBoard> createState() => _DrawingBoardState();
+}
+
+class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderStateMixin {
+  final rxCelectedColor = ValueNotifier<Color>(Colors.black);
+  final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
+  final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
+  final rxEraserSize = ValueNotifier<double>(30.0);
+  final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
+  final canvasGlobalKey = GlobalKey();
+  final rxIsFilled = ValueNotifier<bool>(false);
+  final rxPolygonSides = ValueNotifier<int>(3);
+  final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
+  final rxCurrentStroke = CurrentStrokeValueNotifier();
+  final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
+  final rxIsShowGrid = ValueNotifier<bool>(false);
+  late final UndoRedoStack undoRedoStack;
+
+  @override
+  void initState() {
+    super.initState();
+    undoRedoStack = UndoRedoStack(
+      rxCurrentStroke: rxCurrentStroke,
+      rxAllStrokes: rxAllStrokes,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !widget.isCurrentDrawer,
+      child: Scaffold(
+        backgroundColor: lightPrimary,
+        body: HotkeyListener(
+          onRedo: undoRedoStack.redo,
+          onUndo: undoRedoStack.undo,
+          child: Row(
+            children: [
+              CanvasSideBar(
+                rxDrawingTool: rxDrawingTool,
+                rxSelectedColor: rxCelectedColor,
+                rxSelectedColorOpacity: rxSelectedColorOpacity,
+                rxCurrentStrokeSize: rxCurrentStrokeSize,
+                rxEraserSize: rxEraserSize,
+                // rxCurrentSketch: rxCurrentStroke,
+                // allSketches: allStrokes,
+                rxIsFilled: rxIsFilled,
+                rxPolygonSides: rxPolygonSides,
+                // backgroundImage: backgroundImage,
+                rxIsShowGrid: rxIsShowGrid,
+                canvasGlobalKey: canvasGlobalKey,
+                undoRedoStack: undoRedoStack,
+                roomName: widget.roomName,
+                isCurrentDrawer: widget.isCurrentDrawer,
+              ),
+              Expanded(
+                flex: 5,
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    rxCurrentStroke,
+                    rxAllStrokes,
+                    rxCelectedColor,
+                    rxSelectedColorOpacity,
+                    rxCurrentStrokeSize,
+                    rxEraserSize,
+                    rxDrawingTool,
+                    rxIsFilled,
+                    rxPolygonSides,
+                    rxBackgroundImage,
+                    rxIsShowGrid,
+                  ]),
+                  builder: (context, _) {
+                    return DrawingCanvas(
+                      options: DrawingCanvasOptions(
+                        currentTool: rxDrawingTool.value,
+                        size: rxCurrentStrokeSize.value,
+                        strokeColor: rxCelectedColor.value,
+                        opacity: rxSelectedColorOpacity.value,
+                        backgroundColor: kCanvasColor,
+                        polygonSides: rxPolygonSides.value,
+                        showGrid: rxIsShowGrid.value,
+                        fillShape: rxIsFilled.value,
+                      ),
+                      rxCurrentStroke: rxCurrentStroke,
+                      rxAllStrokes: rxAllStrokes,
+                      rxBackgroundImage: rxBackgroundImage,
+                      canvasGlobalKey: canvasGlobalKey,
+                      username: widget.username,
+                      roomName: widget.roomName,
+                    );
+                  },
+                ),
+              ),
+              // _CustomAppBar(animationController: animationController),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
