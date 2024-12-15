@@ -114,56 +114,58 @@ class _DrawGameRoomPageState extends GamePageViewModel {
     return Stack(
       children: [
         AnimatedBuilder(
-            animation: Listenable.merge([
-              isCurrentDrawer,
-              word,
-            ]),
-            builder: (context, _) {
-              return Scaffold(
-                backgroundColor: isCurrentDrawer.value ? Colors.red : lightPrimary,
-                appBar: AppBar(
-                  title: AnimatedBuilder(
+          animation: Listenable.merge([
+            isCurrentDrawer,
+            word,
+          ]),
+          builder: (context, _) {
+            return Scaffold(
+              backgroundColor: isCurrentDrawer.value ? Colors.red : lightPrimary,
+              appBar: AppBar(
+                title: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    currentDrawer,
+                    word,
+                  ]),
+                  builder: (context, _) {
+                    return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${currentDrawer.value}' +
+                        ' > Word: ${word.value}');
+                  },
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: Tests.testReconnection,
+                    icon: const Icon(Icons.wifi_off_sharp),
+                  ),
+                ],
+              ),
+              body: Column(
+                children: [
+                  AnimatedBuilder(
                     animation: Listenable.merge([
-                      currentDrawer,
-                      word,
+                      timeLeft,
+                      totalDuration,
                     ]),
                     builder: (context, _) {
-                      return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${currentDrawer.value}' +
-                          ' > Word: ${word.value}');
+                      if (timeLeft.value <= 0) return const SizedBox.shrink();
+                      return LinearProgressIndicator(
+                        value: timeLeft.value / totalDuration.value,
+                        minHeight: 5,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isCurrentDrawer.value ? Colors.green : Colors.blue,
+                        ),
+                      );
                     },
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: Tests.testReconnection,
-                      icon: const Icon(Icons.wifi_off_sharp),
-                    ),
-                  ],
-                ),
-                body: Column(
-                  children: [
-                    AnimatedBuilder(
-                      animation: Listenable.merge([
-                        timeLeft,
-                        totalDuration,
-                      ]),
-                      builder: (context, _) {
-                        if (timeLeft.value <= 0) return const SizedBox.shrink();
-                        return LinearProgressIndicator(
-                          value: timeLeft.value / totalDuration.value,
-                          minHeight: 5,
-                          backgroundColor: Colors.grey[300],
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isCurrentDrawer.value ? Colors.green : Colors.blue,
-                          ),
-                        );
-                      },
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(child: AllParticipants()),
-                          Expanded(
-                            flex: 6,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(child: AllParticipants()),
+                        Expanded(
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: Column(
                               children: [
                                 Expanded(
@@ -245,13 +247,15 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            }),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
         MeteorShower(
           numberOfMeteors: 20,
           duration: Duration(seconds: 10),

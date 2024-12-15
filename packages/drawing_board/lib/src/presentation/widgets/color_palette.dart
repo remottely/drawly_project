@@ -5,11 +5,20 @@ import 'package:flutter_svg/svg.dart';
 
 class ColorPalette extends StatelessWidget {
   final ValueNotifier<Color> rxSelectedColor;
+  final GlobalKey _key = GlobalKey();
 
-  const ColorPalette({
+  ColorPalette({
     super.key,
     required this.rxSelectedColor,
   });
+
+  /// Método para obter a altura do componente
+  double getHeight() {
+    final context = _key.currentContext;
+    if (context == null) return 0;
+    final RenderBox box = context.findRenderObject() as RenderBox;
+    return box.size.height;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +28,12 @@ class ColorPalette extends StatelessWidget {
       Colors.grey,
       ...Colors.primaries,
     ];
+
     return ValueListenableBuilder(
       valueListenable: rxSelectedColor,
       builder: (context, selectedColor, child) {
         return Column(
+          key: _key, // Associa o GlobalKey ao widget
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,

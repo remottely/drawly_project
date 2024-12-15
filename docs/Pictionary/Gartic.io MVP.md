@@ -130,6 +130,7 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.15.0): Refactor `socket.io` event names.
 - [x] (0.16.0): Display the answer in green in the chat when correct.
 - [x] (0.17.0): Enhance code, remove unnecessary comments.
+- [x] (0.18.0): fix CanvasSideBar dynamically height
 - [ ] Server cleanup:
 	- [ ] (0.?.0): Handle answers individually like strokes.
 	- [ ] (0.?.0): Handle messages individually like strokes.
@@ -141,3 +142,4 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [ ] (0.?.0): Bug: Canvas border should not be dynamic.
 - [ ] (0.?.0): Bug: `cmd+z` and `cmd+y` do not work on the web. This might be expected, but find a workaround.
 - [ ] (0.?.0): Bug: `shiftLeft` and `shiftRight` do not work under any circumstances.
+- [ ] (0.?.0): error treatment on frontend side

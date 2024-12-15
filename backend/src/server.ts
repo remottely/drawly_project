@@ -71,6 +71,7 @@ class RoomDrawing {
     return this.strokes;
   }
 }
+
 class Room {
   private participants: Set<string> = new Set();
   private turnQueue: string[] = [];
@@ -246,6 +247,7 @@ const handleDrawingActions = {
     io.to(roomName).emit('drawing:redo');
   },
 };
+
 const handleTurnActions = {
   startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
@@ -286,6 +288,26 @@ const handleTurnActions = {
   },
 };
 
+const handleGameActions = {
+  startTurns(socket: Socket, { roomName }: SocketRoom): void {
+    const room = rooms[roomName];
+    if (!room) {
+      console.error(`Room ${roomName} not found.`);
+      socket.emit('error', { message: `Room ${roomName} does not exist.` });
+      return;
+    }
+
+    if (room.getParticipants().length < minimumNumberOfPlayers) {
+      console.error(`Not enough players in room ${roomName}. Minimum required: ${minimumNumberOfPlayers}`);
+      socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minimumNumberOfPlayers}.` });
+      return;
+    }
+
+    console.log(`Turns manually started for room ${roomName}`);
+    handleTurnActions.startTurnTimer(roomName, 60);
+  },
+};
+
 
 const handleDisconnect = (socket: Socket): void => {
   const userInfo = socketUserMap[socket.id];
@@ -317,16 +339,7 @@ io.on('connection', (socket: Socket): void => {
   socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
   socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
 
-  socket.on('game:startTurns', ({ roomName }: { roomName: string }) => {
-    if (!rooms[roomName]) {
-      console.error(`Room ${roomName} not found.`);
-      socket.emit('error', { message: `Room ${roomName} does not exist.` });
-      return;
-    }
-
-    console.log(`Turns manually started for room ${roomName}`);
-    handleTurnActions.startTurnTimer(roomName, 60);
-  });
+  socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
 
   socket.on('disconnect', () => handleDisconnect(socket));
 });

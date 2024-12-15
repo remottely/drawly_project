@@ -20,6 +20,7 @@ class DrawlyContainer extends StatelessWidget {
     final margin = MediaQuery.of(context).size.width * 0.003;
     return Container(
       margin: EdgeInsets.all(margin),
+      padding: EdgeInsets.all(margin),
       decoration: BoxDecoration(
         color: color ?? Colors.white,
         border: Border.all(

@@ -70,7 +70,7 @@ class Room {
         this.participants = new Set();
         this.turnQueue = [];
         this.currentTurnIndex = 0;
-        this.currentWord = null; // Word being drawn during the current turn
+        this.currentWord = null;
     }
     addParticipant(username) {
         this.participants.add(username);
@@ -80,7 +80,7 @@ class Room {
         this.participants.delete(username);
         this.turnQueue = this.turnQueue.filter((user) => user !== username);
         if (this.currentTurnIndex >= this.turnQueue.length) {
-            this.currentTurnIndex = 0; // Reset turn if out of bounds
+            this.currentTurnIndex = 0;
         }
     }
     getParticipants() {
@@ -206,10 +206,8 @@ const handleTurnActions = {
             console.error(`Failed to get the current drawer in room ${roomName}`);
             return;
         }
-        // Select a random word and store it in the room
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
-        // Emit the 'newTurn' event with the word and other details
         io.to(roomName).emit('newTurn', {
             currentDrawer,
             word: wordToDraw,
@@ -220,6 +218,23 @@ const handleTurnActions = {
             room.advanceTurn();
             handleTurnActions.startTurnTimer(roomName, totalDuration);
         }, totalDuration * 1000);
+    },
+};
+const handleGameActions = {
+    startTurns(socket, { roomName }) {
+        const room = rooms[roomName];
+        if (!room) {
+            console.error(`Room ${roomName} not found.`);
+            socket.emit('error', { message: `Room ${roomName} does not exist.` });
+            return;
+        }
+        if (room.getParticipants().length < minimumNumberOfPlayers) {
+            console.error(`Not enough players in room ${roomName}. Minimum required: ${minimumNumberOfPlayers}`);
+            socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minimumNumberOfPlayers}.` });
+            return;
+        }
+        console.log(`Turns manually started for room ${roomName}`);
+        handleTurnActions.startTurnTimer(roomName, 60);
     },
 };
 const handleDisconnect = (socket) => {
@@ -245,15 +260,7 @@ io.on('connection', (socket) => {
     socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
     socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
     socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
-    socket.on('game:startTurns', ({ roomName }) => {
-        if (!rooms[roomName]) {
-            console.error(`Room ${roomName} not found.`);
-            socket.emit('error', { message: `Room ${roomName} does not exist.` });
-            return;
-        }
-        console.log(`Turns manually started for room ${roomName}`);
-        handleTurnActions.startTurnTimer(roomName, 60);
-    });
+    socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
     socket.on('disconnect', () => handleDisconnect(socket));
 });
 // Server startup
