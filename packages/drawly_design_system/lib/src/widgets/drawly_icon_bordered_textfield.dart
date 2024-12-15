@@ -7,7 +7,7 @@ class DrawlyIconBorderedTextField extends StatefulWidget {
   final IconData leftIcon;
   final IconData rightIcon;
   final VoidCallback onRightIconPressed;
-  final bool isCurrentDrawer;
+  final bool isBlocked;
 
   const DrawlyIconBorderedTextField({
     super.key,
@@ -17,7 +17,7 @@ class DrawlyIconBorderedTextField extends StatefulWidget {
     required this.leftIcon,
     required this.rightIcon,
     required this.onRightIconPressed,
-    required this.isCurrentDrawer,
+    required this.isBlocked,
   });
 
   @override
@@ -31,7 +31,7 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      setState(() {}); // Atualiza a UI quando o foco muda
+      setState(() {});
     });
   }
 
@@ -44,7 +44,7 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
   @override
   Widget build(BuildContext context) {
     return TextField(
-      enabled: !widget.isCurrentDrawer,
+      enabled: !widget.isBlocked,
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       focusNode: _focusNode,
@@ -73,11 +73,18 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
             width: 1.5,
           ),
         ),
-        prefixIcon: Icon(widget.leftIcon, color: Colors.grey),
+        prefixIcon: Icon(
+          widget.leftIcon,
+          color: widget.isBlocked ? Colors.grey[300] : Colors.grey,
+        ),
         suffixIcon: IconButton(
           icon: Icon(
             widget.rightIcon,
-            color: _focusNode.hasFocus ? Colors.blue : Colors.grey, // Atualiza a cor com base no foco
+            color: widget.isBlocked
+                ? Colors.grey[300]
+                : _focusNode.hasFocus
+                    ? Colors.blue
+                    : Colors.grey,
           ),
           onPressed: widget.onRightIconPressed,
         ),

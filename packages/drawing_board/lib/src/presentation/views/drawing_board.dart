@@ -111,7 +111,6 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                   },
                 ),
               ),
-              // _CustomAppBar(animationController: animationController),
             ],
           ),
         ),

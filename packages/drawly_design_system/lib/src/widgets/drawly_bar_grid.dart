@@ -14,8 +14,8 @@ class DrawlyBarGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.count(
       crossAxisCount: crossAxisCount,
-      mainAxisSpacing: 5,
-      crossAxisSpacing: 5,
+      mainAxisSpacing: 2,
+      crossAxisSpacing: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: children,

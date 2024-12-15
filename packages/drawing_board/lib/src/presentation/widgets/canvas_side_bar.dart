@@ -22,12 +22,9 @@ class CanvasSideBar extends StatefulWidget {
   final ValueNotifier<double> rxCurrentStrokeSize;
   final ValueNotifier<double> rxEraserSize;
   final ValueNotifier<DrawingTool> rxDrawingTool;
-  // final CurrentStrokeValueNotifier rxCurrentSketch;
-  // final ValueNotifier<List<Stroke>> allSketches;
   final GlobalKey canvasGlobalKey;
   final ValueNotifier<bool> rxIsFilled;
   final ValueNotifier<int> rxPolygonSides;
-  // final ValueNotifier<ui.Image?> backgroundImage;
   final UndoRedoStack undoRedoStack;
   final ValueNotifier<bool> rxIsShowGrid;
   final String roomName;
@@ -40,63 +37,20 @@ class CanvasSideBar extends StatefulWidget {
     required this.rxCurrentStrokeSize,
     required this.rxEraserSize,
     required this.rxDrawingTool,
-    // required this.rxCurrentSketch,
-    // required this.allSketches,
     required this.canvasGlobalKey,
     required this.rxIsFilled,
     required this.rxPolygonSides,
-    // required this.backgroundImage,
     required this.undoRedoStack,
     required this.rxIsShowGrid,
     required this.roomName,
     required this.isCurrentDrawer,
-  }) : assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+  });
 
   @override
   State<CanvasSideBar> createState() => _CanvasSideBarState();
 }
 
 abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
-  final scrollController = ScrollController();
-
-  void _initializeClearDrawSocket() {
-    SocketManager.instance.on('clearDraw', (_) {
-      widget.undoRedoStack.clear();
-    });
-  }
-
-  void _initializeUndoDrawSocket() {
-    SocketManager.instance.on('undoDraw', (_) {
-      widget.undoRedoStack.undo();
-    });
-  }
-
-  void _initializeRedoDrawSocket() {
-    SocketManager.instance.on('redoDraw', (_) {
-      widget.undoRedoStack.redo();
-    });
-  }
-
-  void _sendClearStrokes() {
-    SocketManager.instance.emit('clearDraw', {
-      'roomName': widget.roomName,
-    });
-  }
-
-  void _sendUndoStroke() {
-    SocketManager.instance.emit('undoDraw', {
-      'roomName': widget.roomName,
-    });
-  }
-
-  void _sendRedoStroke() {
-    SocketManager.instance.emit('redoDraw', {
-      'roomName': widget.roomName,
-    });
-  }
-}
-
-class _CanvasSideBarState extends CanvasSideBarViewModel {
   @override
   void initState() {
     super.initState();
@@ -107,334 +61,357 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
 
   @override
   void dispose() {
-    SocketManager.instance.off('clearDraw');
-    SocketManager.instance.off('undoDraw');
-    SocketManager.instance.off('redoDraw');
+    SocketManager.instance.off('drawing:clear');
+    SocketManager.instance.off('drawing:undo');
+    SocketManager.instance.off('drawing:redo');
 
     super.dispose();
   }
 
+  void _initializeClearDrawSocket() {
+    SocketManager.instance.on('drawing:clear', (_) {
+      widget.undoRedoStack.clear();
+    });
+  }
+
+  void _initializeUndoDrawSocket() {
+    SocketManager.instance.on('drawing:undo', (_) {
+      widget.undoRedoStack.undo();
+    });
+  }
+
+  void _initializeRedoDrawSocket() {
+    SocketManager.instance.on('drawing:redo', (_) {
+      widget.undoRedoStack.redo();
+    });
+  }
+
+  void _sendClearStrokes() {
+    SocketManager.instance.emit('drawing:clear', {
+      'roomName': widget.roomName,
+    });
+  }
+
+  void _sendUndoStroke() {
+    SocketManager.instance.emit('drawing:undo', {
+      'roomName': widget.roomName,
+    });
+  }
+
+  void _sendRedoStroke() {
+    SocketManager.instance.emit('drawing:redo', {
+      'roomName': widget.roomName,
+    });
+  }
+}
+
+class _CanvasSideBarState extends CanvasSideBarViewModel {
   @override
   Widget build(BuildContext context) {
-    return !widget.isCurrentDrawer
-        ? const SizedBox.shrink()
-        : DrawlyContainer(
-            width: 100,
-            child: AnimatedBuilder(
-              animation: Listenable.merge([
-                widget.rxSelectedColor,
-                widget.rxSelectedColorOpacity,
-                widget.rxCurrentStrokeSize,
-                widget.rxEraserSize,
-                widget.rxDrawingTool,
-                widget.rxIsFilled,
-                widget.rxPolygonSides,
-                // widget.backgroundImage,
-                widget.rxIsShowGrid,
-              ]),
-              builder: (context, _) {
-                return Scrollbar(
-                  controller: scrollController,
-                  thumbVisibility: true,
-                  trackVisibility: false,
-                  child: ListView(
-                    padding: const EdgeInsets.all(10.0),
-                    controller: scrollController,
-                    children: [
-                      DrawlyBarGrid(
-                        children: [
-                          _IconBox(
-                            iconData: FontAwesomeIcons.pencil,
-                            selected: widget.rxDrawingTool.value == DrawingTool.pencil,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.pencil,
-                            tooltip: 'Pencil',
-                          ),
-                          _IconBox(
-                            selected: widget.rxDrawingTool.value == DrawingTool.line,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.line,
-                            tooltip: 'Line',
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 22,
-                                  height: 2,
-                                  color:
-                                      widget.rxDrawingTool.value == DrawingTool.line ? Colors.grey[900] : Colors.grey,
-                                ),
-                              ],
-                            ),
-                          ),
-                          _IconBox(
-                            iconData: FontAwesomeIcons.square,
-                            selected: widget.rxDrawingTool.value == DrawingTool.square,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.square,
-                            tooltip: 'Square',
-                          ),
-                          _IconBox(
-                            iconData: FontAwesomeIcons.circle,
-                            selected: widget.rxDrawingTool.value == DrawingTool.circle,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.circle,
-                            tooltip: 'Circle',
-                          ),
-                          _IconBox(
-                            iconData: Icons.hexagon_outlined,
-                            selected: widget.rxDrawingTool.value == DrawingTool.polygon,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.polygon,
-                            tooltip: 'Polygon',
-                          ),
-                          _IconBox(
-                            iconData: FontAwesomeIcons.eraser,
-                            selected: widget.rxDrawingTool.value == DrawingTool.eraser,
-                            onTap: () => widget.rxDrawingTool.value = DrawingTool.eraser,
-                            tooltip: 'Eraser',
-                          ),
-                        ],
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 150),
-                        child: widget.rxDrawingTool.value == DrawingTool.polygon
-                            ? Column(
-                                children: [
-                                  const SizedBox(height: 5),
-                                  SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 2, // Trilho fino
-                                      thumbShape:
-                                          const RoundSliderThumbShape(enabledThumbRadius: 8), // Tamanho do thumb
-                                      overlayShape:
-                                          const RoundSliderOverlayShape(overlayRadius: 16), // Efeito de arrastar
-                                      trackShape:
-                                          const RectangularSliderTrackShape(), // Remove o padding ao usar um trilho retangular
-                                    ),
-                                    child: Slider(
-                                      value: widget.rxPolygonSides.value.toDouble(),
-                                      min: 3,
-                                      max: 8,
-                                      divisions: 5,
-                                      label: '${widget.rxPolygonSides.value}',
-                                      onChanged: (val) {
-                                        widget.rxPolygonSides.value = val.toInt();
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 150),
-                        child: widget.rxDrawingTool.value == DrawingTool.polygon ||
-                                widget.rxDrawingTool.value == DrawingTool.square ||
-                                widget.rxDrawingTool.value == DrawingTool.circle
-                            ? Column(
-                                children: [
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        value: widget.rxIsFilled.value,
-                                        onChanged: (val) {
-                                          widget.rxIsFilled.value = val ?? false;
-                                        },
-                                      ),
-                                      const Text(
-                                        'Fill',
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 5),
-                      DrawlyBarGrid(
-                        children: [
-                          ValueListenableBuilder<List<Stroke>>(
-                            valueListenable: widget.undoRedoStack.rxAllStrokes,
-                            builder: (_, strokesNotifier, __) {
-                              return _IconBox(
-                                iconData: Icons.undo,
-                                selected: false,
-                                onTap: strokesNotifier.isNotEmpty ? () => _sendUndoStroke() : null,
-                                tooltip: 'Undo',
-                              );
-                            },
-                          ),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: widget.undoRedoStack.rxCanRedo,
-                            builder: (_, canRedo, __) {
-                              return _IconBox(
-                                iconData: Icons.redo,
-                                selected: false,
-                                onTap: canRedo ? () => _sendRedoStroke() : null,
-                                tooltip: 'Redo',
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      const DrawlyBarGrid(
-                        children: [
-                          // TextButton(
-                          //   onPressed: () async {
-                          //     if (widget.backgroundImage.value != null) {
-                          //       widget.backgroundImage.value = null;
-                          //     } else {
-                          //       widget.backgroundImage.value = await _getImage;
-                          //     }
-                          //   },
-                          //   child: Text(
-                          //     widget.backgroundImage.value == null ? 'Add Background' : 'Remove Background',
-                          //   ),
-                          // ),
-                        ],
-                      ),
-                      ColorPalette(
-                        rxSelectedColor: widget.rxSelectedColor,
-                        // selectedColorOpacityListenable: widget.selectedColorOpacity,
-                      ),
-                      SizedBox(
-                        height: 120,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: RotatedBox(
-                                quarterTurns: -1,
-                                child: DrawlySliderFb3(
-                                  // value: widget.strokeSize.value,
-                                  min: 2,
-                                  max: 20,
-                                  divisions: 10,
-                                  onChanged: (value) {
-                                    widget.rxCurrentStrokeSize.value = value;
-                                  },
-                                  initialValue: widget.rxCurrentStrokeSize.value,
-                                  // accentColor:,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Colors.blue,
-                                      Colors.blue,
-                                    ],
-                                  ),
-                                  showMinMaxText: false,
-                                  minMaxTextStyle: const TextStyle(fontSize: 14),
-                                  accentColor: Colors.blue,
-                                ),
-                              ),
-                            ),
-                            // Expanded(
-                            //   child: RotatedBox(
-                            //     quarterTurns: -1,
-                            //     child: Tooltip(
-                            //       message: 'Eraser Size',
-                            //       child: Slider(
-                            //         value: widget.eraserSize.value,
-                            //         min: 0,
-                            //         max: 80,
-                            //         onChanged: (val) {
-                            //           widget.eraserSize.value = val;
-                            //         },
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                            Expanded(
-                              child: RotatedBox(
-                                quarterTurns: -1,
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 2, // Trilho fino
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8), // Tamanho do thumb
-                                    overlayShape:
-                                        const RoundSliderOverlayShape(overlayRadius: 16), // Efeito de arrastar
-                                    trackShape:
-                                        const RectangularSliderTrackShape(), // Remove o padding ao usar um trilho retangular
-                                  ),
-                                  child: DrawlySliderFb3(
-                                    min: 10,
-                                    max: 100,
-                                    divisions: 9,
-                                    onChanged: (value) {
-                                      widget.rxSelectedColorOpacity.value = value / 100;
-                                    },
-                                    initialValue: widget.rxSelectedColorOpacity.value * 100,
-                                    // accentColor:,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Colors.blue,
-                                        Colors.blue,
-                                      ],
-                                    ),
-                                    showMinMaxText: false,
-                                    minMaxTextStyle: const TextStyle(fontSize: 14),
-                                    accentColor: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+    if (!widget.isCurrentDrawer) {
+      return const SizedBox.shrink();
+    }
 
-                      // DrawlyBarGrid(
-                      //   children: [
-                      //     SizedBox(
-                      //       width: 140,
-                      //       child: TextButton(
-                      //         child: const Text('Export PNG'),
-                      //         onPressed: () async {
-                      //           Uint8List? pngBytes = await getBytes();
-                      //           if (pngBytes != null) saveFile(pngBytes, 'png');
-                      //         },
-                      //       ),
-                      //     ),
-                      //     SizedBox(
-                      //       width: 140,
-                      //       child: TextButton(
-                      //         child: const Text('Export JPEG'),
-                      //         onPressed: () async {
-                      //           Uint8List? pngBytes = await getBytes();
-                      //           if (pngBytes != null) saveFile(pngBytes, 'jpeg');
-                      //         },
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // add about me button or follow buttons
-                      // Center(
-                      //   child: GestureDetector(
-                      //     onTap: () => _launchUrl('https://github.com/KevinKobori'),
-                      //     child: const Text(
-                      //       'Made with 💙 by Kevin Kobori',
-                      //       style: TextStyle(fontSize: 12),
-                      //     ),
-                      //   ),
-                      // ),
-                      DrawlyBarGrid(
-                        children: [
-                          _IconBox(
-                            iconData: FontAwesomeIcons.ruler,
-                            selected: widget.rxIsShowGrid.value,
-                            onTap: () => widget.rxIsShowGrid.value = !widget.rxIsShowGrid.value,
-                            tooltip: 'Guide Lines',
-                          ),
-                          _IconBox(
-                            iconData: Icons.delete_forever,
-                            selected: false,
-                            onTap: _sendClearStrokes,
-                            tooltip: 'Clear Strokes',
-                          ),
-                        ],
+    return DrawlyContainer(
+      width: 80,
+      // height: constraints.maxHeight,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([
+          widget.rxSelectedColor,
+          widget.rxSelectedColorOpacity,
+          widget.rxCurrentStrokeSize,
+          widget.rxEraserSize,
+          widget.rxDrawingTool,
+          widget.rxIsFilled,
+          widget.rxPolygonSides,
+          // widget.backgroundImage,
+          widget.rxIsShowGrid,
+        ]),
+        builder: (context, _) {
+          final list = [
+            DrawlyBarGrid(
+              children: [
+                _IconBox(
+                  iconData: FontAwesomeIcons.pencil,
+                  selected: widget.rxDrawingTool.value == DrawingTool.pencil,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.pencil,
+                  tooltip: 'Pencil',
+                ),
+                _IconBox(
+                  selected: widget.rxDrawingTool.value == DrawingTool.line,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.line,
+                  tooltip: 'Line',
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 18,
+                        height: 2,
+                        color: widget.rxDrawingTool.value == DrawingTool.line ? Colors.grey[900] : Colors.grey,
                       ),
                     ],
                   ),
-                );
-              },
+                ),
+                _IconBox(
+                  iconData: FontAwesomeIcons.square,
+                  selected: widget.rxDrawingTool.value == DrawingTool.square,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.square,
+                  tooltip: 'Square',
+                ),
+                _IconBox(
+                  iconData: FontAwesomeIcons.circle,
+                  selected: widget.rxDrawingTool.value == DrawingTool.circle,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.circle,
+                  tooltip: 'Circle',
+                ),
+                _IconBox(
+                  iconData: Icons.hexagon_outlined,
+                  selected: widget.rxDrawingTool.value == DrawingTool.polygon,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.polygon,
+                  tooltip: 'Polygon',
+                ),
+                _IconBox(
+                  iconData: FontAwesomeIcons.eraser,
+                  selected: widget.rxDrawingTool.value == DrawingTool.eraser,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.eraser,
+                  tooltip: 'Eraser',
+                ),
+              ],
             ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: widget.rxDrawingTool.value == DrawingTool.polygon
+                  ? Column(
+                      children: [
+                        const SizedBox(height: 5),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 2,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                            trackShape: const RectangularSliderTrackShape(),
+                          ),
+                          child: Slider(
+                            value: widget.rxPolygonSides.value.toDouble(),
+                            min: 3,
+                            max: 8,
+                            divisions: 5,
+                            label: '${widget.rxPolygonSides.value}',
+                            onChanged: (val) {
+                              widget.rxPolygonSides.value = val.toInt();
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: widget.rxDrawingTool.value == DrawingTool.polygon ||
+                      widget.rxDrawingTool.value == DrawingTool.square ||
+                      widget.rxDrawingTool.value == DrawingTool.circle
+                  ? Column(
+                      children: [
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: widget.rxIsFilled.value,
+                              onChanged: (val) {
+                                widget.rxIsFilled.value = val ?? false;
+                              },
+                            ),
+                            const Text(
+                              'Fill',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 5),
+            DrawlyBarGrid(
+              children: [
+                ValueListenableBuilder<List<Stroke>>(
+                  valueListenable: widget.undoRedoStack.rxAllStrokes,
+                  builder: (_, strokesNotifier, __) {
+                    return _IconBox(
+                      iconData: Icons.undo,
+                      selected: false,
+                      onTap: strokesNotifier.isNotEmpty ? () => _sendUndoStroke() : null,
+                      tooltip: 'Undo',
+                    );
+                  },
+                ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: widget.undoRedoStack.rxCanRedo,
+                  builder: (_, canRedo, __) {
+                    return _IconBox(
+                      iconData: Icons.redo,
+                      selected: false,
+                      onTap: canRedo ? () => _sendRedoStroke() : null,
+                      tooltip: 'Redo',
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            // TextButton(
+            //   onPressed: () async {
+            //     if (widget.backgroundImage.value != null) {
+            //       widget.backgroundImage.value = null;
+            //     } else {
+            //       widget.backgroundImage.value = await _getImage;
+            //     }
+            //   },
+            //   child: Text(
+            //     widget.backgroundImage.value == null ? 'Add Background' : 'Remove Background',
+            //   ),
+            // ),
+            ColorPalette(
+              rxSelectedColor: widget.rxSelectedColor,
+              // selectedColorOpacityListenable: widget.selectedColorOpacity,
+            ),
+            SizedBox(
+              height: 120,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: RotatedBox(
+                      quarterTurns: -1,
+                      child: DrawlySliderFb3(
+                        min: 2,
+                        max: 20,
+                        divisions: 10,
+                        onChanged: (value) {
+                          widget.rxCurrentStrokeSize.value = value;
+                        },
+                        initialValue: widget.rxCurrentStrokeSize.value,
+                        showMinMaxText: false,
+                        minMaxTextStyle: const TextStyle(fontSize: 14),
+                        accentColor: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  // Expanded(
+                  //   child: RotatedBox(
+                  //     quarterTurns: -1,
+                  //     child: Tooltip(
+                  //       message: 'Eraser Size',
+                  //       child: Slider(
+                  //         value: widget.eraserSize.value,
+                  //         min: 0,
+                  //         max: 80,
+                  //         onChanged: (val) {
+                  //           widget.eraserSize.value = val;
+                  //         },
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  Expanded(
+                    child: RotatedBox(
+                      quarterTurns: -1,
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 2,
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                          trackShape: const RectangularSliderTrackShape(),
+                        ),
+                        child: DrawlySliderFb3(
+                          min: 10,
+                          max: 100,
+                          divisions: 9,
+                          onChanged: (value) {
+                            widget.rxSelectedColorOpacity.value = value / 100;
+                          },
+                          initialValue: widget.rxSelectedColorOpacity.value * 100,
+                          showMinMaxText: false,
+                          minMaxTextStyle: const TextStyle(fontSize: 14),
+                          accentColor: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // DrawlyBarGrid(
+            //   children: [
+            //     SizedBox(
+            //       width: 140,
+            //       child: TextButton(
+            //         child: const Text('Export PNG'),
+            //         onPressed: () async {
+            //           Uint8List? pngBytes = await getBytes();
+            //           if (pngBytes != null) saveFile(pngBytes, 'png');
+            //         },
+            //       ),
+            //     ),
+            //     SizedBox(
+            //       width: 140,
+            //       child: TextButton(
+            //         child: const Text('Export JPEG'),
+            //         onPressed: () async {
+            //           Uint8List? pngBytes = await getBytes();
+            //           if (pngBytes != null) saveFile(pngBytes, 'jpeg');
+            //         },
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // add about me button or follow buttons
+            // Center(
+            //   child: GestureDetector(
+            //     onTap: () => _launchUrl('https://github.com/KevinKobori'),
+            //     child: const Text(
+            //       'Made with 💙 by Kevin Kobori',
+            //       style: TextStyle(fontSize: 12),
+            //     ),
+            //   ),
+            // ),
+            DrawlyBarGrid(
+              children: [
+                _IconBox(
+                  iconData: FontAwesomeIcons.ruler,
+                  selected: widget.rxIsShowGrid.value,
+                  onTap: () => widget.rxIsShowGrid.value = !widget.rxIsShowGrid.value,
+                  tooltip: 'Guide Lines',
+                ),
+                _IconBox(
+                  iconData: Icons.delete_forever,
+                  selected: false,
+                  onTap: _sendClearStrokes,
+                  tooltip: 'Clear Strokes',
+                ),
+              ],
+            ),
+          ];
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: constraints.maxHeight,
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    return list[index];
+                  },
+                ),
+              );
+            },
           );
+        },
+      ),
+    );
   }
 
   void saveFile(Uint8List bytes, String extension) async {
@@ -529,8 +506,6 @@ class _IconBox extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 35,
-          width: 35,
           decoration: BoxDecoration(
             border: Border.all(
               color: selected ? Colors.grey[900]! : Colors.grey,

@@ -21,7 +21,6 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.red,
       appBar: AppBar(
         title: const Text('Login - Pictionary App'),
       ),
@@ -29,7 +28,6 @@ class _AuthPageState extends State<AuthPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Username input field
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
@@ -38,7 +36,6 @@ class _AuthPageState extends State<AuthPage> {
               ),
             ),
             const SizedBox(height: 16),
-            // Button to navigate to the drawing screen
             ElevatedButton(
               onPressed: () {
                 final username = usernameController.text.trim();

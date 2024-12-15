@@ -1,9 +1,13 @@
+import 'dart:developer' as developer;
+import 'dart:ui';
+
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
 import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomPage extends StatefulWidget {
@@ -22,27 +26,33 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
+  final word = ValueNotifier<String>("???");
   final currentDrawer = ValueNotifier<String>("Waiting...");
   final isCurrentDrawer = ValueNotifier<bool>(false);
   final totalDuration = ValueNotifier<int>(0);
   final timeLeft = ValueNotifier<int>(0);
 
-  _initialize() {
+  // bool _hasJoinedRoom = false;
+
+  void _initialize() {
     _initializeSocket();
   }
 
-  /// Initializes the socket connection and defines event handlers
   void _initializeSocket() {
     SocketManager.instance.connect();
 
     SocketManager.instance.onConnect((_) {
+      // if (!_hasJoinedRoom) {
       Tests.createRoom(widget.roomName);
       _joinGameRoom();
+      // _hasJoinedRoom = true;
+      // }
     });
 
     SocketManager.instance.on('newTurn', (data) {
-      print("New turn event received: $data");
+      developer.log("New turn event received: $data");
 
+      word.value = data['word'];
       currentDrawer.value = data['currentDrawer'];
       totalDuration.value = data['totalDuration'];
       timeLeft.value = data['totalDuration'];
@@ -58,7 +68,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     Future.doWhile(() async {
       if (remaining <= 0) return false;
 
-      await Future.delayed(const Duration(milliseconds: 100)); // Reduz para verificar mais frequentemente
+      await Future.delayed(const Duration(milliseconds: 100));
       remaining -= 100;
       timeLeft.value = remaining;
 
@@ -67,14 +77,14 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void _joinGameRoom() {
-    SocketManager.instance.emit('joinRoom', {
+    SocketManager.instance.emit('room:join', {
       'username': widget.username,
       'roomName': widget.roomName,
     });
   }
 
   void _leaveRoom() {
-    SocketManager.instance.emit('leaveRoom', {
+    SocketManager.instance.emit('room:leave', {
       'username': widget.username,
       'roomName': widget.roomName,
     });
@@ -103,85 +113,133 @@ class _DrawGameRoomPageState extends GamePageViewModel {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Scaffold(
-          // backgroundColor: isCurrentDrawer.value ? lightPrimary : Colors.white,
-          appBar: AppBar(
-            title: ValueListenableBuilder(
-              valueListenable: currentDrawer,
-              builder: (context, value, child) {
-                return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: $value');
-              },
-            ),
-            actions: [
-              IconButton(
-                onPressed: Tests.testReconnection,
-                icon: const Icon(Icons.wifi_off_sharp),
+        AnimatedBuilder(
+          animation: Listenable.merge([
+            isCurrentDrawer,
+            word,
+          ]),
+          builder: (context, _) {
+            return Scaffold(
+              backgroundColor: isCurrentDrawer.value ? Colors.red : lightPrimary,
+              appBar: AppBar(
+                title: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    currentDrawer,
+                    word,
+                  ]),
+                  builder: (context, _) {
+                    return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${currentDrawer.value}' +
+                        ' > Word: ${word.value}');
+                  },
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: Tests.testReconnection,
+                    icon: const Icon(Icons.wifi_off_sharp),
+                  ),
+                ],
               ),
-            ],
-          ),
-          body: Column(
-            children: [
-              AnimatedBuilder(
-                animation: Listenable.merge([
-                  timeLeft,
-                  totalDuration,
-                ]),
-                builder: (context, _) {
-                  if (timeLeft.value <= 0) return const SizedBox.shrink();
-                  return LinearProgressIndicator(
-                    value: timeLeft.value / totalDuration.value,
-                    minHeight: 5,
-                    backgroundColor: Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      isCurrentDrawer.value ? Colors.green : Colors.blue,
-                    ),
-                  );
-                },
-              ),
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(child: AllParticipants()),
-                    Expanded(
-                      flex: 6,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: ValueListenableBuilder(
-                              valueListenable: isCurrentDrawer,
-                              builder: (context, value, child) {
-                                return DrawingBoard(
-                                  username: widget.username,
-                                  roomName: widget.roomName,
-                                  isCurrentDrawer: value,
-                                );
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
+              body: Column(
+                children: [
+                  AnimatedBuilder(
+                    animation: Listenable.merge([
+                      timeLeft,
+                      totalDuration,
+                    ]),
+                    builder: (context, _) {
+                      if (timeLeft.value <= 0) return const SizedBox.shrink();
+                      return LinearProgressIndicator(
+                        value: timeLeft.value / totalDuration.value,
+                        minHeight: 5,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isCurrentDrawer.value ? Colors.green : Colors.blue,
+                        ),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(child: AllParticipants()),
+                        Expanded(
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
                               children: [
                                 Expanded(
-                                  child: ValueListenableBuilder(
-                                    valueListenable: isCurrentDrawer,
-                                    builder: (context, value, child) {
-                                      return AnswersChat(
+                                  flex: 3,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      DrawingBoard(
                                         username: widget.username,
                                         roomName: widget.roomName,
-                                        isCurrentDrawer: value,
-                                      );
-                                    },
+                                        isCurrentDrawer: isCurrentDrawer.value,
+                                      ),
+                                      ValueListenableBuilder(
+                                        valueListenable: totalDuration,
+                                        builder: (context, value, child) {
+                                          return AnimatedOpacity(
+                                            opacity: value == 0 ? 1.0 : 0.0,
+                                            duration: const Duration(milliseconds: 1000),
+                                            child: IgnorePointer(
+                                              ignoring: value != 0,
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(10),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.5),
+                                                  ),
+                                                  child: BackdropFilter(
+                                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                                    child: Center(
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          SocketManager.instance.emit(
+                                                            'game:startTurns',
+                                                            {'roomName': widget.roomName},
+                                                          );
+                                                        },
+                                                        child: const Text("Start Game"),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Expanded(
-                                  child: ValueListenableBuilder(
-                                    valueListenable: isCurrentDrawer,
-                                    builder: (context, value, child) {
-                                      return MessageChat(
-                                        username: widget.username,
-                                        roomName: widget.roomName,
-                                        isCurrentDrawer: value,
+                                  child: AnimatedBuilder(
+                                    animation: Listenable.merge([
+                                      totalDuration,
+                                      word,
+                                    ]),
+                                    builder: (context, _) {
+                                      return Row(
+                                        children: [
+                                          Expanded(
+                                            child: AnswersChat(
+                                              username: widget.username,
+                                              roomName: widget.roomName,
+                                              isCurrentDrawer: isCurrentDrawer.value,
+                                              isGameStarted: totalDuration.value != 0 && word.value.isNotEmpty,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: MessageChat(
+                                              username: widget.username,
+                                              roomName: widget.roomName,
+                                              isCurrentDrawer: isCurrentDrawer.value,
+                                            ),
+                                          ),
+                                        ],
                                       );
                                     },
                                   ),
@@ -189,20 +247,20 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
-        // MeteorShower(
-        //   numberOfMeteors: 20,
-        //   duration: Duration(seconds: 10),
-        //   child: Center(),
-        // ),
+        MeteorShower(
+          numberOfMeteors: 20,
+          duration: Duration(seconds: 10),
+          child: Center(),
+        ),
       ],
     );
   }
