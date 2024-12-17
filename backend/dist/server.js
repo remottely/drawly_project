@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DrawGameMessage = exports.DrawGameAnswer = void 0;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -123,7 +124,7 @@ const handleRoomManagement = {
         currentRoom.addParticipant(username);
         socket.join(roomName);
         socketUserMap[socket.id] = { username, roomName };
-        io.to(roomName).emit('message:new', { username, message: "joined the room." });
+        io.to(roomName).emit('message:new', { icon: 'info', username, message: "joined" });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
@@ -131,7 +132,7 @@ const handleRoomManagement = {
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { username, message: "left the room." });
+        io.to(roomName).emit('message:new', { icon: 'user', username, message: "left" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = socketUserMap[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -145,8 +146,16 @@ const handleRoomManagement = {
         }
     },
 };
+class DrawGameAnswer {
+    constructor(username, answer, isCorrect) {
+        this.username = username;
+        this.answer = answer;
+        this.isCorrect = isCorrect;
+    }
+}
+exports.DrawGameAnswer = DrawGameAnswer;
 const handleAnswerActions = {
-    sendAnswer(socket, { username, roomName, answer }) {
+    send(socket, { username, roomName, answer }) {
         const room = rooms[roomName];
         if (!room) {
             console.error(`Room ${roomName} not found.`);
@@ -160,12 +169,20 @@ const handleAnswerActions = {
             return;
         }
         const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
-        io.to(roomName).emit('answer:new', { username, answer, isCorrect });
+        io.to(roomName).emit('answer:new', new DrawGameAnswer(username, answer, isCorrect));
     },
 };
+class DrawGameMessage {
+    constructor(icon, username, message) {
+        this.icon = icon;
+        this.username = username;
+        this.message = message;
+    }
+}
+exports.DrawGameMessage = DrawGameMessage;
 const handleMessageActions = {
-    sendMessage({ username, roomName, message }) {
-        io.to(roomName).emit('message:new', { username, message });
+    send({ username, roomName, message }) {
+        io.to(roomName).emit('message:new', new DrawGameMessage(null, username, message));
     },
 };
 const handleDrawingActions = {
@@ -260,8 +277,8 @@ io.on('connection', (socket) => {
     socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
     socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
     socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
-    socket.on('answer:send', (data) => handleAnswerActions.sendAnswer(socket, data));
-    socket.on('message:send', (data) => handleMessageActions.sendMessage(data));
+    socket.on('answer:send', (data) => handleAnswerActions.send(socket, data));
+    socket.on('message:send', (data) => handleMessageActions.send(data));
     socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
     socket.on('disconnect', () => handleDisconnect(socket));
 });

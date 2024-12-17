@@ -132,17 +132,17 @@
 - [x] (0.15.0): Refactor `socket.io` event names.
 - [x] (0.16.0): Display the answer in green in the chat when correct.
 - [x] (0.17.0): Enhance code, remove unnecessary comments.
-- [x] (0.18.2): fix CanvasSideBar dynamically height
+- [x] (0.19.0): fix CanvasSideBar dynamically height
 - [x] (0.18.1): fix message chat
 - [x] (0.18.2): enchance code
-- [ ] (0.19.0) message icon
+- [x] (0.19.0) message icon
 - [ ] (0.20.0) answer icon
-- [ ] Intervalo..., A resposta era: "answer", vez de "username"
-- [ ] mensagem bloqueada no chat "contendo qualquer parte da resposta"
-- [ ] esperar 15s para trocar de sala
-- [ ] criar novos temas
-- [ ] salas favoritadas
-- [ ] converse no chat
+- [ ] (0.?.0): Timeout..., The answer was: "answer", turn of "username"
+- [ ] (0.?.0): Message blocked in chat "containing any part of the answer"
+- [ ] (0.?.0): Wait 15s to switch rooms
+- [ ] (0.?.0): Create new themes
+- [ ] (0.?.0): Favorited rooms
+- [ ] (0.?.0): Chat in the chat
 - [ ] (0.?.0): Validate the minimum number of players.
 - [ ] (0.?.0): RedoDraw.
 	- [ ] Retrieve from the server instead of locally.

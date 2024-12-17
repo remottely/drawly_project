@@ -174,7 +174,7 @@ const handleRoomManagement = {
     socket.join(roomName);
     socketUserMap[socket.id] = { username, roomName };
 
-    io.to(roomName).emit('message:new', { username, message: "joined the room." });
+    io.to(roomName).emit('message:new', { icon: 'info', username, message: "joined" });
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     emitParticipantsUpdate(roomName);
 
@@ -183,7 +183,7 @@ const handleRoomManagement = {
 
   leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { username, message: "left the room." });
+    io.to(roomName).emit('message:new', { icon: 'user', username, message: "left" });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
@@ -199,8 +199,20 @@ const handleRoomManagement = {
   },
 };
 
+export class DrawGameAnswer {
+  username: string;
+  answer: string;
+  isCorrect: boolean;
+
+  constructor(username: string, answer: string, isCorrect: boolean) {
+    this.username = username;
+    this.answer = answer;
+    this.isCorrect = isCorrect;
+  }
+}
+
 const handleAnswerActions = {
-  sendAnswer(socket: Socket, { username, roomName, answer }: SocketRoomUserAnswer): void {
+  send(socket: Socket, { username, roomName, answer }: SocketRoomUserAnswer): void {
     const room = rooms[roomName];
     if (!room) {
       console.error(`Room ${roomName} not found.`);
@@ -218,13 +230,25 @@ const handleAnswerActions = {
 
     const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
 
-    io.to(roomName).emit('answer:new', { username, answer, isCorrect });
+    io.to(roomName).emit('answer:new', new DrawGameAnswer(username, answer, isCorrect));
   },
 };
 
+export class DrawGameMessage {
+  icon: string | null;
+  username: string;
+  message: string;
+
+  constructor(icon: string | null, username: string, message: string) {
+    this.icon = icon;
+    this.username = username;
+    this.message = message;
+  }
+}
+
 const handleMessageActions = {
-  sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
-    io.to(roomName).emit('message:new', { username, message });
+  send({ username, roomName, message }: SocketRoomUserMessage): void {
+    io.to(roomName).emit('message:new', new DrawGameMessage(null, username, message));
   },
 };
 
@@ -338,9 +362,9 @@ io.on('connection', (socket: Socket): void => {
   socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
   socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
 
-  socket.on('answer:send', (data: SocketRoomUserAnswer) => handleAnswerActions.sendAnswer(socket, data));
-  
-  socket.on('message:send', (data: SocketRoomUserMessage) => handleMessageActions.sendMessage(data));
+  socket.on('answer:send', (data: SocketRoomUserAnswer) => handleAnswerActions.send(socket, data));
+
+  socket.on('message:send', (data: SocketRoomUserMessage) => handleMessageActions.send(data));
 
   socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
 

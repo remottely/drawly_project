@@ -2,8 +2,8 @@ import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:drawing_board/drawing_board.dart';
-import 'package:drawly/features/draw_game/answers_chat/answers_chat.dart';
-import 'package:drawly/features/draw_game/message_chat/message_chat.dart';
+import 'package:drawly/features/draw_game/answers_chat/answers_chat_view.dart';
+import 'package:drawly/features/draw_game/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -225,7 +225,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                       return Row(
                                         children: [
                                           Expanded(
-                                            child: AnswersChat(
+                                            child: AnswersChatView(
                                               username: widget.username,
                                               roomName: widget.roomName,
                                               isCurrentDrawer: rxIsCurrentDrawer.value,
@@ -233,7 +233,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                             ),
                                           ),
                                           Expanded(
-                                            child: MessageChat(
+                                            child: MessagesChatView(
                                               username: widget.username,
                                               roomName: widget.roomName,
                                               isCurrentDrawer: rxIsCurrentDrawer.value,

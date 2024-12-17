@@ -39,10 +39,28 @@ class DrawingCanvas extends StatefulWidget {
 }
 
 abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
-  CurrentStrokeValueNotifier get _rxCurrentStroke => widget.rxCurrentStroke;
-  ValueNotifier<List<Stroke>> get _rxAllStrokes => widget.rxAllStrokes;
+  CurrentStrokeValueNotifier get rxCurrentStroke => widget.rxCurrentStroke;
+  ValueNotifier<List<Stroke>> get rxAllStrokes => widget.rxAllStrokes;
 
   final double _canvasSize = 500.0;
+
+  final rxIsShowGrid = ValueNotifier<bool>(false);
+  Color get strokeColor => widget.options.strokeColor;
+  double get size => widget.options.size;
+  double get opacity => widget.options.opacity;
+  DrawingTool get currentTool => widget.options.currentTool;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDrawingSocket();
+  }
+
+  @override
+  void dispose() {
+    SocketManager.instance.off('drawing:draw');
+    super.dispose();
+  }
 
   double _calculateScale(BoxConstraints constraints) {
     final availableWidth = constraints.maxWidth;
@@ -72,49 +90,31 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       List<Stroke> receivedStrokes =
           (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
 
-      _rxAllStrokes.value = List<Stroke>.from(_rxAllStrokes.value)
-        ..addAll(receivedStrokes.where((stroke) => !_rxAllStrokes.value.contains(stroke)));
+      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+        ..addAll(receivedStrokes.where((stroke) => !rxAllStrokes.value.contains(stroke)));
     });
 
     SocketManager.instance.on('connect', (_) {
-      _rxAllStrokes.value = [];
+      rxAllStrokes.value = [];
     });
   }
 
   void _sendBufferedPoints() {
-    if (_rxCurrentStroke.value == null) return;
+    if (rxCurrentStroke.value == null) return;
 
     SocketManager.instance.emit('drawing:draw', {
       'roomName': widget.roomName,
-      'strokes': [_rxCurrentStroke.value!.toJson()],
+      'strokes': [rxCurrentStroke.value!.toJson()],
     });
 
-    _rxCurrentStroke.clear();
+    rxCurrentStroke.clear();
   }
 }
 
 class _DrawingCanvasState extends DrawingCanvasViewModel {
-  final _rxIsShowGrid = ValueNotifier<bool>(false);
-  Color get strokeColor => widget.options.strokeColor;
-  double get size => widget.options.size;
-  double get opacity => widget.options.opacity;
-  DrawingTool get currentTool => widget.options.currentTool;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDrawingSocket();
-  }
-
-  @override
-  void dispose() {
-    SocketManager.instance.off('drawing:draw');
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    _rxIsShowGrid.value = widget.options.showGrid;
+    rxIsShowGrid.value = widget.options.showGrid;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -135,7 +135,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                     onPointerDown: (details) {
                       final localPosition = details.localPosition;
                       if (_isInsideCanvas(localPosition)) {
-                        _rxCurrentStroke.startStroke(
+                        rxCurrentStroke.startStroke(
                           localPosition,
                           color: strokeColor,
                           size: size / scale,
@@ -144,18 +144,18 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                           sides: widget.options.polygonSides,
                           filled: widget.options.fillShape,
                         );
-                        // widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                        // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
                       }
                     },
                     onPointerMove: (details) {
                       final localPosition = details.localPosition;
                       if (_isInsideCanvas(localPosition)) {
-                        _rxCurrentStroke.addPoint(localPosition);
-                        // widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                        rxCurrentStroke.addPoint(localPosition);
+                        // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
                       }
                     },
                     onPointerUp: (_) {
-                      if (_rxCurrentStroke.hasStroke) {
+                      if (rxCurrentStroke.hasStroke) {
                         _sendBufferedPoints();
                         // widget.onDrawingStrokeChanged?.call(null);
                       }
@@ -165,10 +165,10 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       child: CustomPaint(
                         isComplex: true,
                         painter: _DrawingCanvasPainter(
-                          rxAllStrokes: _rxAllStrokes,
-                          rxCurrentStroke: _rxCurrentStroke,
+                          rxAllStrokes: rxAllStrokes,
+                          rxCurrentStroke: rxCurrentStroke,
                           backgroundColor: widget.options.backgroundColor,
-                          rxIsShowGrid: _rxIsShowGrid,
+                          rxIsShowGrid: rxIsShowGrid,
                           rxBackgroundImage: widget.rxBackgroundImage,
                         ),
                       ),
