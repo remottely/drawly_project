@@ -28,7 +28,7 @@ abstract class PictionaryScreenViewModel extends State<AnswersChat> {
   final answerController = TextEditingController();
 
   void _initializeChatSocket() {
-    SocketManager.instance.on('answerChat:new', (data) {
+    SocketManager.instance.on('answer:new', (data) {
       final answer = AnswerModel.fromJson(data);
       _rxAllAnswers.value = List.from(_rxAllAnswers.value)..add(answer);
 
@@ -39,7 +39,7 @@ abstract class PictionaryScreenViewModel extends State<AnswersChat> {
   void _sendAnswer() {
     if (answerController.text.isNotEmpty) {
       final answer = answerController.text;
-      SocketManager.instance.emit('answerChat:send', {
+      SocketManager.instance.emit('answer:send', {
         'username': widget.username,
         'roomName': widget.roomName,
         'answer': answer,
@@ -60,7 +60,7 @@ class _AnswersChatState extends PictionaryScreenViewModel {
   @override
   void dispose() {
     answerController.dispose();
-    SocketManager.instance.off('answerChat:new');
+    SocketManager.instance.off('answer:new');
     super.dispose();
   }
 

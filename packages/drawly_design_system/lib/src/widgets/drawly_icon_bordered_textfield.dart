@@ -6,7 +6,7 @@ class DrawlyIconBorderedTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final IconData leftIcon;
   final IconData rightIcon;
-  final VoidCallback onRightIconPressed;
+  final void Function() onRightIconPressed;
   final bool isBlocked;
 
   const DrawlyIconBorderedTextField({

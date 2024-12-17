@@ -12,7 +12,7 @@ class DrawingCanvas extends StatefulWidget {
   final ValueNotifier<ui.Image?>? rxBackgroundImage;
   final CurrentStrokeValueNotifier rxCurrentStroke;
   final DrawingCanvasOptions options;
-  final Function(Stroke?)? onDrawingStrokeChanged;
+  // final Function(Stroke?)? onDrawingStrokeChanged;
   final GlobalKey canvasGlobalKey;
 
   const DrawingCanvas({
@@ -21,7 +21,7 @@ class DrawingCanvas extends StatefulWidget {
     this.rxBackgroundImage,
     required this.rxCurrentStroke,
     required this.options,
-    this.onDrawingStrokeChanged,
+    // this.onDrawingStrokeChanged,
     required this.canvasGlobalKey,
     required this.username,
     required this.roomName,
@@ -144,20 +144,20 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                           sides: widget.options.polygonSides,
                           filled: widget.options.fillShape,
                         );
-                        widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                        // widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
                       }
                     },
                     onPointerMove: (details) {
                       final localPosition = details.localPosition;
                       if (_isInsideCanvas(localPosition)) {
                         _rxCurrentStroke.addPoint(localPosition);
-                        widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
+                        // widget.onDrawingStrokeChanged?.call(_rxCurrentStroke.value);
                       }
                     },
                     onPointerUp: (_) {
                       if (_rxCurrentStroke.hasStroke) {
                         _sendBufferedPoints();
-                        widget.onDrawingStrokeChanged?.call(null);
+                        // widget.onDrawingStrokeChanged?.call(null);
                       }
                     },
                     child: RepaintBoundary(

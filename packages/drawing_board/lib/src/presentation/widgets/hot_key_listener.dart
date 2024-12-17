@@ -6,9 +6,9 @@ typedef BoolCallback = void Function(bool);
 
 class HotkeyListener extends StatefulWidget {
   final Widget child;
-  final VoidCallback? onUndo;
-  final VoidCallback? onRedo;
-  final VoidCallback? onChangeTool;
+  final void Function()? onUndo;
+  final void Function()? onRedo;
+  final void Function()? onChangeTool;
   final BoolCallback? onShiftPressed;
 
   const HotkeyListener({

@@ -487,7 +487,7 @@ class _IconBox extends StatelessWidget {
   final IconData? iconData;
   final Widget? child;
   final bool selected;
-  final VoidCallback? onTap;
+  final void Function()? onTap;
   final String? tooltip;
 
   const _IconBox({

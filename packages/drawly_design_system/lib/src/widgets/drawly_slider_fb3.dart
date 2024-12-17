@@ -7,7 +7,7 @@ class DrawlySliderFb3 extends StatefulWidget {
   final bool showMinMaxText;
   final int divisions;
   final Color accentColor;
-  final Function(double) onChanged;
+  final void Function(double) onChanged;
   final TextStyle minMaxTextStyle;
 
   const DrawlySliderFb3({

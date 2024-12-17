@@ -123,7 +123,7 @@ const handleRoomManagement = {
         currentRoom.addParticipant(username);
         socket.join(roomName);
         socketUserMap[socket.id] = { username, roomName };
-        io.to(roomName).emit('messageChat:new', { username, message: "joined the room." });
+        io.to(roomName).emit('message:new', { username, message: "joined the room." });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
@@ -131,7 +131,7 @@ const handleRoomManagement = {
     leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('messageChat:new', { username, message: "left the room." });
+        io.to(roomName).emit('message:new', { username, message: "left the room." });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = socketUserMap[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -145,10 +145,7 @@ const handleRoomManagement = {
         }
     },
 };
-const handleChatActions = {
-    sendMessage({ username, roomName, message }) {
-        io.to(roomName).emit('messageChat:new', { username, message });
-    },
+const handleAnswerActions = {
     sendAnswer(socket, { username, roomName, answer }) {
         const room = rooms[roomName];
         if (!room) {
@@ -163,7 +160,12 @@ const handleChatActions = {
             return;
         }
         const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
-        io.to(roomName).emit('answerChat:new', { username, answer, isCorrect });
+        io.to(roomName).emit('answer:new', { username, answer, isCorrect });
+    },
+};
+const handleMessageActions = {
+    sendMessage({ username, roomName, message }) {
+        io.to(roomName).emit('message:new', { username, message });
     },
 };
 const handleDrawingActions = {
@@ -254,12 +256,12 @@ io.on('connection', (socket) => {
     socket.on('room:create', (data) => handleRoomManagement.create(data));
     socket.on('room:join', (data) => handleRoomManagement.join(socket, data));
     socket.on('room:leave', (data) => handleRoomManagement.leave(socket, data));
-    socket.on('answerChat:send', (data) => handleChatActions.sendAnswer(socket, data));
-    socket.on('messageChat:send', (data) => handleChatActions.sendMessage(data));
     socket.on('drawing:draw', (data) => handleDrawingActions.draw(data));
     socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
     socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
     socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
+    socket.on('answer:send', (data) => handleAnswerActions.sendAnswer(socket, data));
+    socket.on('message:send', (data) => handleMessageActions.sendMessage(data));
     socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
     socket.on('disconnect', () => handleDisconnect(socket));
 });

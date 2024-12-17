@@ -18,8 +18,8 @@ app.use(express.json());
 
 // Classes
 interface Offset {
-  x: number;
-  y: number;
+  dx: number;
+  dy: number;
 }
 
 enum StrokeType {
@@ -174,7 +174,7 @@ const handleRoomManagement = {
     socket.join(roomName);
     socketUserMap[socket.id] = { username, roomName };
 
-    io.to(roomName).emit('messageChat:new', { username, message: "joined the room." });
+    io.to(roomName).emit('message:new', { username, message: "joined the room." });
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     emitParticipantsUpdate(roomName);
 
@@ -183,7 +183,7 @@ const handleRoomManagement = {
 
   leave(socket: Socket, { username, roomName }: SocketRoomUser): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('messageChat:new', { username, message: "left the room." });
+    io.to(roomName).emit('message:new', { username, message: "left the room." });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
@@ -199,11 +199,7 @@ const handleRoomManagement = {
   },
 };
 
-const handleChatActions = {
-  sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
-    io.to(roomName).emit('messageChat:new', { username, message });
-  },
-
+const handleAnswerActions = {
   sendAnswer(socket: Socket, { username, roomName, answer }: SocketRoomUserAnswer): void {
     const room = rooms[roomName];
     if (!room) {
@@ -222,7 +218,13 @@ const handleChatActions = {
 
     const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
 
-    io.to(roomName).emit('answerChat:new', { username, answer, isCorrect });
+    io.to(roomName).emit('answer:new', { username, answer, isCorrect });
+  },
+};
+
+const handleMessageActions = {
+  sendMessage({ username, roomName, message }: SocketRoomUserMessage): void {
+    io.to(roomName).emit('message:new', { username, message });
   },
 };
 
@@ -331,13 +333,14 @@ io.on('connection', (socket: Socket): void => {
   socket.on('room:join', (data: SocketRoomUser) => handleRoomManagement.join(socket, data));
   socket.on('room:leave', (data: SocketRoomUser) => handleRoomManagement.leave(socket, data));
 
-  socket.on('answerChat:send', (data: SocketRoomUserAnswer) => handleChatActions.sendAnswer(socket, data));
-  socket.on('messageChat:send', (data: SocketRoomUserMessage) => handleChatActions.sendMessage(data));
-
   socket.on('drawing:draw', (data) => handleDrawingActions.draw(data));
   socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
   socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
   socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
+
+  socket.on('answer:send', (data: SocketRoomUserAnswer) => handleAnswerActions.sendAnswer(socket, data));
+  
+  socket.on('message:send', (data: SocketRoomUserMessage) => handleMessageActions.sendMessage(data));
 
   socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
 

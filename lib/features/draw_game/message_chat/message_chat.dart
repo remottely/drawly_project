@@ -25,7 +25,7 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
   final TextEditingController messageController = TextEditingController();
 
   void _initializeChatSocket() {
-    SocketManager.instance.on('messageChat:new', (data) {
+    SocketManager.instance.on('message:new', (data) {
       final message = MessageModel.fromJson(data);
       _rxAllMessages.value = List.from(_rxAllMessages.value)..add(message);
     });
@@ -36,7 +36,7 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
   void _sendMessage() {
     if (messageController.text.isNotEmpty) {
       final message = messageController.text;
-      SocketManager.instance.emit('messageChat:send', {
+      SocketManager.instance.emit('message:send', {
         'username': widget.username,
         'roomName': widget.roomName,
         'message': message,
@@ -57,7 +57,7 @@ class _MessageChatState extends PictionaryScreenViewModel {
   @override
   void dispose() {
     messageController.dispose();
-    SocketManager.instance.off('messageChat:new');
+    SocketManager.instance.off('message:new');
     super.dispose();
   }
 

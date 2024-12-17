@@ -26,11 +26,11 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
-  final word = ValueNotifier<String>("???");
-  final currentDrawer = ValueNotifier<String>("Waiting...");
-  final isCurrentDrawer = ValueNotifier<bool>(false);
-  final totalDuration = ValueNotifier<int>(0);
-  final timeLeft = ValueNotifier<int>(0);
+  final rxWord = ValueNotifier<String>("???");
+  final rxCurrentDrawer = ValueNotifier<String>("Waiting...");
+  final rxIsCurrentDrawer = ValueNotifier<bool>(false);
+  final rxTotalDuration = ValueNotifier<int>(0);
+  final rxTimeLeft = ValueNotifier<int>(0);
 
   // bool _hasJoinedRoom = false;
 
@@ -52,13 +52,13 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.on('newTurn', (data) {
       developer.log("New turn event received: $data");
 
-      word.value = data['word'];
-      currentDrawer.value = data['currentDrawer'];
-      totalDuration.value = data['totalDuration'];
-      timeLeft.value = data['totalDuration'];
-      isCurrentDrawer.value = currentDrawer.value == widget.username;
+      rxWord.value = data['word'];
+      rxCurrentDrawer.value = data['currentDrawer'];
+      rxTotalDuration.value = data['totalDuration'];
+      rxTimeLeft.value = data['totalDuration'];
+      rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
 
-      startCountdown(totalDuration.value);
+      startCountdown(rxTotalDuration.value);
     });
   }
 
@@ -70,7 +70,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
       await Future.delayed(const Duration(milliseconds: 100));
       remaining -= 100;
-      timeLeft.value = remaining;
+      rxTimeLeft.value = remaining;
 
       return true;
     });
@@ -102,10 +102,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
   void dispose() {
     SocketManager.instance.off('newTurn');
     _leaveRoom();
-    currentDrawer.dispose();
-    isCurrentDrawer.dispose();
-    totalDuration.dispose();
-    timeLeft.dispose();
+    rxCurrentDrawer.dispose();
+    rxIsCurrentDrawer.dispose();
+    rxTotalDuration.dispose();
+    rxTimeLeft.dispose();
     super.dispose();
   }
 
@@ -115,21 +115,21 @@ class _DrawGameRoomPageState extends GamePageViewModel {
       children: [
         AnimatedBuilder(
           animation: Listenable.merge([
-            isCurrentDrawer,
-            word,
+            rxIsCurrentDrawer,
+            rxWord,
           ]),
           builder: (context, _) {
             return Scaffold(
-              backgroundColor: isCurrentDrawer.value ? Colors.red : lightPrimary,
+              backgroundColor: rxIsCurrentDrawer.value ? Colors.red : lightPrimary,
               appBar: AppBar(
                 title: AnimatedBuilder(
                   animation: Listenable.merge([
-                    currentDrawer,
-                    word,
+                    rxCurrentDrawer,
+                    rxWord,
                   ]),
                   builder: (context, _) {
-                    return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${currentDrawer.value}' +
-                        ' > Word: ${word.value}');
+                    return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${rxCurrentDrawer.value}' +
+                        ' > Word: ${rxWord.value}');
                   },
                 ),
                 actions: [
@@ -143,17 +143,17 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                 children: [
                   AnimatedBuilder(
                     animation: Listenable.merge([
-                      timeLeft,
-                      totalDuration,
+                      rxTimeLeft,
+                      rxTotalDuration,
                     ]),
                     builder: (context, _) {
-                      if (timeLeft.value <= 0) return const SizedBox.shrink();
+                      if (rxTimeLeft.value <= 0) return const SizedBox.shrink();
                       return LinearProgressIndicator(
-                        value: timeLeft.value / totalDuration.value,
+                        value: rxTimeLeft.value / rxTotalDuration.value,
                         minHeight: 5,
                         backgroundColor: Colors.grey[300],
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          isCurrentDrawer.value ? Colors.green : Colors.blue,
+                          rxIsCurrentDrawer.value ? Colors.green : Colors.blue,
                         ),
                       );
                     },
@@ -176,10 +176,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                       DrawingBoard(
                                         username: widget.username,
                                         roomName: widget.roomName,
-                                        isCurrentDrawer: isCurrentDrawer.value,
+                                        isCurrentDrawer: rxIsCurrentDrawer.value,
                                       ),
                                       ValueListenableBuilder(
-                                        valueListenable: totalDuration,
+                                        valueListenable: rxTotalDuration,
                                         builder: (context, value, child) {
                                           return AnimatedOpacity(
                                             opacity: value == 0 ? 1.0 : 0.0,
@@ -218,8 +218,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                 Expanded(
                                   child: AnimatedBuilder(
                                     animation: Listenable.merge([
-                                      totalDuration,
-                                      word,
+                                      rxTotalDuration,
+                                      rxWord,
                                     ]),
                                     builder: (context, _) {
                                       return Row(
@@ -228,15 +228,15 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                             child: AnswersChat(
                                               username: widget.username,
                                               roomName: widget.roomName,
-                                              isCurrentDrawer: isCurrentDrawer.value,
-                                              isGameStarted: totalDuration.value != 0 && word.value.isNotEmpty,
+                                              isCurrentDrawer: rxIsCurrentDrawer.value,
+                                              isGameStarted: rxTotalDuration.value != 0 && rxWord.value.isNotEmpty,
                                             ),
                                           ),
                                           Expanded(
                                             child: MessageChat(
                                               username: widget.username,
                                               roomName: widget.roomName,
-                                              isCurrentDrawer: isCurrentDrawer.value,
+                                              isCurrentDrawer: rxIsCurrentDrawer.value,
                                             ),
                                           ),
                                         ],
