@@ -33,7 +33,6 @@ abstract class PictionaryScreenViewModel extends State<MessageChat> {
     SocketManager.instance.onDisconnect((_) {});
   }
 
-  /// Sends a chat message to the server
   void _sendMessage() {
     if (messageController.text.isNotEmpty) {
       final message = messageController.text;
@@ -108,7 +107,7 @@ class _MessageChatText extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Text(
-        "${message.username}: ${message.answer}",
+        "${message.username}: ${message.message}",
         style: TextStyle(
           color: Colors.grey,
           fontSize: 16,

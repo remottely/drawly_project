@@ -130,7 +130,8 @@ Criar um **MVP (Minimum Viable Product)** semelhante ao Gartic.io exige o desenv
 - [x] (0.15.0): Refactor `socket.io` event names.
 - [x] (0.16.0): Display the answer in green in the chat when correct.
 - [x] (0.17.0): Enhance code, remove unnecessary comments.
-- [x] (0.18.0): fix CanvasSideBar dynamically height
+- [x] (0.18.1): fix CanvasSideBar dynamically height
+- [ ] (0.18.1): fix message chat
 - [ ] Server cleanup:
 	- [ ] (0.?.0): Handle answers individually like strokes.
 	- [ ] (0.?.0): Handle messages individually like strokes.

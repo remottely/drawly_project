@@ -42,15 +42,12 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   CurrentStrokeValueNotifier get _rxCurrentStroke => widget.rxCurrentStroke;
   ValueNotifier<List<Stroke>> get _rxAllStrokes => widget.rxAllStrokes;
 
-  /// Tamanho fixo do canvas
   final double _canvasSize = 500.0;
 
-  /// Calcula o fator de escala global com base no espaço disponível para 16:9
   double _calculateScale(BoxConstraints constraints) {
     final availableWidth = constraints.maxWidth;
     final availableHeight = constraints.maxHeight;
 
-    // Calcula a proporção máxima que mantém o aspecto 16:9
     final canvasWidth = availableWidth;
     final canvasHeight = availableWidth / (16 / 9);
 
@@ -61,7 +58,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     }
   }
 
-  /// Verifica se um ponto está dentro dos limites do canvas 16:9
   bool _isInsideCanvas(Offset point) {
     final canvasWidth = _canvasSize;
     final canvasHeight = _canvasSize / (16 / 9);

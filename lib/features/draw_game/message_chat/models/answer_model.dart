@@ -1,23 +1,23 @@
 class MessageModel {
   final String username;
-  final String answer;
+  final String message;
 
   MessageModel({
     required this.username,
-    required this.answer,
+    required this.message,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
     return MessageModel(
       username: json['username'] as String,
-      answer: json['answer'] as String,
+      message: json['message'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'username': username,
-      'answer': answer,
+      'message': message,
     };
   }
 }

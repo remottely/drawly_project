@@ -365,7 +365,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
             //     ),
             //   ],
             // ),
-            // add about me button or follow buttons
             // Center(
             //   child: GestureDetector(
             //     onTap: () => _launchUrl('https://github.com/KevinKobori'),
