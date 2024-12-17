@@ -1,16 +1,16 @@
-import 'package:drawly/features/draw_game/message_chat/draw_game_message.dart';
+import 'package:drawly/features/draw_game/message_chat/message.dart';
 import 'package:drawly/features/draw_game/message_chat/messages_chat_view.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 abstract class MessagesChatViewModel extends State<MessagesChatView> {
-  final rxAllMessages = ValueNotifier<List<DrawGameMessage>>([]);
+  final rxAllMessages = ValueNotifier<List<Message>>([]);
   final TextEditingController messageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializeChatSocket();
+    _initializeSocket();
   }
 
   @override
@@ -20,9 +20,9 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
     super.dispose();
   }
 
-  void _initializeChatSocket() {
+  void _initializeSocket() {
     SocketManager.instance.on('message:new', (data) {
-      final message = DrawGameMessage.fromJson(data);
+      final message = Message.fromJson(data);
       rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
     });
 

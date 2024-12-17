@@ -53,7 +53,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   @override
   void initState() {
     super.initState();
-    _initializeDrawingSocket();
+    _initializeSocket();
   }
 
   @override
@@ -83,7 +83,11 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     return point.dx >= 0 && point.dx <= canvasWidth && point.dy >= 0 && point.dy <= canvasHeight;
   }
 
-  void _initializeDrawingSocket() {
+  void _initializeSocket() {
+    SocketManager.instance.on('connect', (_) {
+      rxAllStrokes.value = [];
+    });
+
     SocketManager.instance.on('drawing:draw', (data) {
       developer.log('Draw event received: $data');
 
@@ -92,10 +96,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
       rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
         ..addAll(receivedStrokes.where((stroke) => !rxAllStrokes.value.contains(stroke)));
-    });
-
-    SocketManager.instance.on('connect', (_) {
-      rxAllStrokes.value = [];
     });
   }
 

@@ -54,9 +54,7 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
   @override
   void initState() {
     super.initState();
-    _initializeClearDrawSocket();
-    _initializeUndoDrawSocket();
-    _initializeRedoDrawSocket();
+    _initializeSocket();
   }
 
   @override
@@ -68,19 +66,15 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
     super.dispose();
   }
 
-  void _initializeClearDrawSocket() {
+  void _initializeSocket() {
     SocketManager.instance.on('drawing:clear', (_) {
       widget.undoRedoStack.clear();
     });
-  }
 
-  void _initializeUndoDrawSocket() {
     SocketManager.instance.on('drawing:undo', (_) {
       widget.undoRedoStack.undo();
     });
-  }
 
-  void _initializeRedoDrawSocket() {
     SocketManager.instance.on('drawing:redo', (_) {
       widget.undoRedoStack.redo();
     });

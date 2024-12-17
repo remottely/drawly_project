@@ -1,4 +1,4 @@
-import 'package:drawly/features/draw_game/message_chat/draw_game_message.dart';
+import 'package:drawly/features/draw_game/message_chat/message.dart';
 import 'package:drawly/features/draw_game/message_chat/messages_chat_viewmodel.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +27,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
       child: Column(
         children: [
           Expanded(
-            child: ValueListenableBuilder<List<DrawGameMessage>>(
+            child: ValueListenableBuilder<List<Message>>(
               valueListenable: rxAllMessages,
               builder: (context, value, child) {
                 return ListView.builder(
@@ -56,7 +56,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
 }
 
 class _MessageChatText extends StatelessWidget {
-  final DrawGameMessage message;
+  final Message message;
 
   const _MessageChatText({
     required this.message,

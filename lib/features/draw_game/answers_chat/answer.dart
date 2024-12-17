@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// A model representing an answer in the draw game.
-class DrawGameAnswer extends Equatable {
+class Answer extends Equatable {
   /// The username of the person who provided the answer.
   final String username;
 
@@ -11,23 +11,23 @@ class DrawGameAnswer extends Equatable {
   /// Whether the answer is correct or not.
   final bool isCorrect;
 
-  /// Creates an instance of [DrawGameAnswer].
-  DrawGameAnswer({
+  /// Creates an instance of [Answer].
+  Answer({
     required this.username,
     required this.answer,
     required this.isCorrect,
   });
 
-  /// Creates an instance of [DrawGameAnswer] from a JSON object.
-  factory DrawGameAnswer.fromJson(Map<String, dynamic> json) {
-    return DrawGameAnswer(
+  /// Creates an instance of [Answer] from a JSON object.
+  factory Answer.fromJson(Map<String, dynamic> json) {
+    return Answer(
       username: json['username'] as String,
       answer: json['answer'] as String,
       isCorrect: json['isCorrect'] as bool,
     );
   }
 
-  /// Converts the [DrawGameAnswer] instance to a JSON object.
+  /// Converts the [Answer] instance to a JSON object.
   Map<String, dynamic> toJson() {
     return {
       'username': username,
@@ -36,13 +36,13 @@ class DrawGameAnswer extends Equatable {
     };
   }
 
-  /// Creates a copy of the current [DrawGameAnswer] with new values.
-  DrawGameAnswer copyWith({
+  /// Creates a copy of the current [Answer] with new values.
+  Answer copyWith({
     String? username,
     String? answer,
     bool? isCorrect,
   }) {
-    return DrawGameAnswer(
+    return Answer(
       username: username ?? this.username,
       answer: answer ?? this.answer,
       isCorrect: isCorrect ?? this.isCorrect,

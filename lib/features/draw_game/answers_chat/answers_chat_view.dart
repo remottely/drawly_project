@@ -1,5 +1,5 @@
+import 'package:drawly/features/draw_game/answers_chat/answer.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat_viewmodel.dart';
-import 'package:drawly/features/draw_game/answers_chat/draw_game_answer.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -63,7 +63,7 @@ class _AnswersChatViewState extends AnswersChatViewModel {
 }
 
 class _AnswerChatText extends StatelessWidget {
-  final DrawGameAnswer answer;
+  final Answer answer;
 
   const _AnswerChatText({
     required this.answer,

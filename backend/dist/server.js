@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DrawGameMessage = exports.DrawGameAnswer = void 0;
+exports.Message = exports.Answer = exports.RoomUserAnswerSocket = exports.RoomUserMessageSocket = exports.RoomUserSocket = exports.RoomDrawingSocket = exports.RoomSocket = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.handleUserDisconnect = handleUserDisconnect;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -18,6 +19,14 @@ const PORT = process.env.PORT || 5555;
 // Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Classes
+class Offset {
+    constructor(dx, dy) {
+        this.dx = dx;
+        this.dy = dy;
+    }
+}
+exports.Offset = Offset;
 var StrokeType;
 (function (StrokeType) {
     StrokeType["normal"] = "normal";
@@ -37,7 +46,8 @@ class Stroke {
         this.filled = filled;
     }
 }
-class RoomDrawing {
+exports.Stroke = Stroke;
+class Drawing {
     constructor() {
         this.strokes = [];
         this.backupStrokes = [];
@@ -65,6 +75,7 @@ class RoomDrawing {
         return this.strokes;
     }
 }
+exports.Drawing = Drawing;
 class Room {
     constructor(name) {
         this.name = name;
@@ -94,27 +105,83 @@ class Room {
         this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
     }
 }
+exports.Room = Room;
+// Memory storage
+class RoomSocket {
+    constructor(roomName) {
+        this.roomName = roomName;
+    }
+}
+exports.RoomSocket = RoomSocket;
+class RoomDrawingSocket extends RoomSocket {
+    constructor(roomName, strokes) {
+        super(roomName);
+        this.strokes = strokes;
+    }
+}
+exports.RoomDrawingSocket = RoomDrawingSocket;
+class RoomUserSocket extends RoomSocket {
+    constructor(roomName, username) {
+        super(roomName);
+        this.username = username;
+    }
+}
+exports.RoomUserSocket = RoomUserSocket;
+class RoomUserMessageSocket extends RoomUserSocket {
+    constructor(roomName, username, message) {
+        super(roomName, username);
+        this.message = message;
+    }
+}
+exports.RoomUserMessageSocket = RoomUserMessageSocket;
+class RoomUserAnswerSocket extends RoomUserSocket {
+    constructor(roomName, username, answer) {
+        super(roomName, username);
+        this.answer = answer;
+    }
+}
+exports.RoomUserAnswerSocket = RoomUserAnswerSocket;
+class Answer {
+    constructor(username, answer, isCorrect) {
+        this.username = username;
+        this.answer = answer;
+        this.isCorrect = isCorrect;
+    }
+}
+exports.Answer = Answer;
+class Message {
+    constructor(username, message, icon) {
+        this.username = username;
+        this.message = message;
+        this.icon = icon;
+    }
+}
+exports.Message = Message;
 const rooms = {};
 const roomDrawings = {};
-const socketUserMap = {};
+const roomUsers = {};
 const minimumNumberOfPlayers = 2;
 const wordsList = [
     "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
     "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
 ];
-// Auxiliary functions
-const emitRoomList = () => io.emit('roomList', Object.keys(rooms));
-const emitParticipantsUpdate = (roomName) => { var _a; return io.to(roomName).emit('updateParticipants', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []); };
-const handleRoomManagement = {
-    create({ roomName }) {
+class RoomManager {
+    static emitRoomList() {
+        return io.emit('roomList', Object.keys(rooms));
+    }
+    static emitParticipantsUpdate(roomName) {
+        var _a;
+        return io.to(roomName).emit('updateParticipants', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []);
+    }
+    static create({ roomName }) {
         if (!rooms[roomName]) {
             rooms[roomName] = new Room(roomName);
-            roomDrawings[roomName] = new RoomDrawing();
+            roomDrawings[roomName] = new Drawing();
             console.log(`Room created: ${roomName}`);
-            emitRoomList();
+            RoomManager.emitRoomList();
         }
-    },
-    join(socket, { username, roomName }) {
+    }
+    static join(socket, { roomName, username }) {
         var _a;
         if (!rooms[roomName]) {
             console.log(`Room ${roomName} does not exist`);
@@ -123,39 +190,32 @@ const handleRoomManagement = {
         const currentRoom = rooms[roomName];
         currentRoom.addParticipant(username);
         socket.join(roomName);
-        socketUserMap[socket.id] = { username, roomName };
+        roomUsers[socket.id] = { roomName, username };
         io.to(roomName).emit('message:new', { icon: 'info', username, message: "joined" });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
-        emitParticipantsUpdate(roomName);
+        RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
-    },
-    leave(socket, { username, roomName }) {
+    }
+    static leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
         io.to(roomName).emit('message:new', { icon: 'user', username, message: "left" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
-        if (((_b = socketUserMap[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
-            delete socketUserMap[socket.id];
-        emitParticipantsUpdate(roomName);
+        if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
+            delete roomUsers[socket.id];
+        RoomManager.emitParticipantsUpdate(roomName);
         if (((_c = rooms[roomName]) === null || _c === void 0 ? void 0 : _c.getParticipants().length) === 0) {
             delete rooms[roomName];
             delete roomDrawings[roomName];
             console.log(`Room ${roomName} is now empty and has been removed.`);
-            emitRoomList();
+            RoomManager.emitRoomList();
         }
-    },
-};
-class DrawGameAnswer {
-    constructor(username, answer, isCorrect) {
-        this.username = username;
-        this.answer = answer;
-        this.isCorrect = isCorrect;
     }
 }
-exports.DrawGameAnswer = DrawGameAnswer;
-const handleAnswerActions = {
-    send(socket, { username, roomName, answer }) {
+;
+class AnswerActions {
+    static send(socket, { roomName, username, answer }) {
         const room = rooms[roomName];
         if (!room) {
             console.error(`Room ${roomName} not found.`);
@@ -169,48 +229,43 @@ const handleAnswerActions = {
             return;
         }
         const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
-        io.to(roomName).emit('answer:new', new DrawGameAnswer(username, answer, isCorrect));
-    },
-};
-class DrawGameMessage {
-    constructor(icon, username, message) {
-        this.icon = icon;
-        this.username = username;
-        this.message = message;
+        io.to(roomName).emit('answer:new', new Answer(username, answer, isCorrect));
     }
 }
-exports.DrawGameMessage = DrawGameMessage;
-const handleMessageActions = {
-    send({ username, roomName, message }) {
-        io.to(roomName).emit('message:new', new DrawGameMessage(null, username, message));
-    },
-};
-const handleDrawingActions = {
-    draw({ roomName, strokes }) {
+;
+class MessageActions {
+    static send({ roomName, username, message }) {
+        io.to(roomName).emit('message:new', new Message(username, message, null));
+    }
+}
+;
+class DrawingActions {
+    static draw({ roomName, strokes }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokes(strokes);
         io.to(roomName).emit('drawing:draw', { strokes });
-    },
-    clear({ roomName }) {
+    }
+    static clear({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.clear();
         io.to(roomName).emit('drawing:clear');
-    },
-    undo({ roomName }) {
+    }
+    static undo({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.undo();
         io.to(roomName).emit('drawing:undo');
-    },
-    redo({ roomName }) {
+    }
+    static redo({ roomName }) {
         var _a;
         (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.redo();
         io.to(roomName).emit('drawing:redo');
-    },
-};
-const handleTurnActions = {
-    startTurnTimer(roomName, totalDuration = 60) {
+    }
+}
+;
+class TurnManager {
+    static startTurnTimer(roomName, totalDuration = 60) {
         const room = rooms[roomName];
-        handleDrawingActions.clear({ roomName });
+        DrawingActions.clear({ roomName });
         if (!room) {
             console.error(`Room ${roomName} not found.`);
             return;
@@ -235,12 +290,13 @@ const handleTurnActions = {
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
         setTimeout(() => {
             room.advanceTurn();
-            handleTurnActions.startTurnTimer(roomName, totalDuration);
+            TurnManager.startTurnTimer(roomName, totalDuration);
         }, totalDuration * 1000);
-    },
-};
-const handleGameActions = {
-    startTurns(socket, { roomName }) {
+    }
+}
+;
+class GameManager {
+    static startTurns(socket, { roomName }) {
         const room = rooms[roomName];
         if (!room) {
             console.error(`Room ${roomName} not found.`);
@@ -253,34 +309,36 @@ const handleGameActions = {
             return;
         }
         console.log(`Turns manually started for room ${roomName}`);
-        handleTurnActions.startTurnTimer(roomName, 60);
-    },
-};
-const handleDisconnect = (socket) => {
-    const userInfo = socketUserMap[socket.id];
+        TurnManager.startTurnTimer(roomName, 60);
+    }
+}
+;
+function handleUserDisconnect(socket) {
+    const userInfo = roomUsers[socket.id];
     if (!userInfo) {
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }
-    const { username, roomName } = userInfo;
+    const { roomName, username } = userInfo;
     console.log(`User ${username} disconnected from room ${roomName}`);
-    handleRoomManagement.leave(socket, { username, roomName });
-};
+    RoomManager.leave(socket, { roomName, username });
+}
+;
 // Socket.IO Configuration
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
     socket.emit('roomList', Object.keys(rooms));
-    socket.on('room:create', (data) => handleRoomManagement.create(data));
-    socket.on('room:join', (data) => handleRoomManagement.join(socket, data));
-    socket.on('room:leave', (data) => handleRoomManagement.leave(socket, data));
-    socket.on('drawing:draw', (data) => handleDrawingActions.draw(data));
-    socket.on('drawing:clear', (data) => handleDrawingActions.clear(data));
-    socket.on('drawing:undo', (data) => handleDrawingActions.undo(data));
-    socket.on('drawing:redo', (data) => handleDrawingActions.redo(data));
-    socket.on('answer:send', (data) => handleAnswerActions.send(socket, data));
-    socket.on('message:send', (data) => handleMessageActions.send(data));
-    socket.on('game:startTurns', (data) => handleGameActions.startTurns(socket, data));
-    socket.on('disconnect', () => handleDisconnect(socket));
+    socket.on('room:create', (data) => RoomManager.create(data));
+    socket.on('room:join', (data) => RoomManager.join(socket, data));
+    socket.on('room:leave', (data) => RoomManager.leave(socket, data));
+    socket.on('drawing:draw', (data) => DrawingActions.draw(data));
+    socket.on('drawing:clear', (data) => DrawingActions.clear(data));
+    socket.on('drawing:undo', (data) => DrawingActions.undo(data));
+    socket.on('drawing:redo', (data) => DrawingActions.redo(data));
+    socket.on('answer:send', (data) => AnswerActions.send(socket, data));
+    socket.on('message:send', (data) => MessageActions.send(data));
+    socket.on('game:startTurns', (data) => GameManager.startTurns(socket, data));
+    socket.on('disconnect', () => handleUserDisconnect(socket));
 });
 // Server startup
 server.listen(PORT, () => {

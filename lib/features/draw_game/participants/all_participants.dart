@@ -15,7 +15,7 @@ class _AllParticipantsState extends State<AllParticipants> {
   @override
   void initState() {
     super.initState();
-    _initializeParticipantListener();
+    _initializeSocket();
   }
 
   @override
@@ -25,7 +25,7 @@ class _AllParticipantsState extends State<AllParticipants> {
     super.dispose();
   }
 
-  void _initializeParticipantListener() {
+  void _initializeSocket() {
     SocketManager.instance.on('updateParticipants', (data) {
       final List<String> allParticipants = List<String>.from(data);
       rxAllParticipants.value = allParticipants;

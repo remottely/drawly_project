@@ -1,17 +1,17 @@
+import 'package:drawly/features/draw_game/answers_chat/answer.dart';
 import 'package:drawly/features/draw_game/answers_chat/answers_chat_view.dart';
-import 'package:drawly/features/draw_game/answers_chat/draw_game_answer.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 abstract class AnswersChatViewModel extends State<AnswersChatView> {
-  final rxAllAnswers = ValueNotifier<List<DrawGameAnswer>>([]);
+  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
   final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
   final answerController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _initializeChatSocket();
+    _initializeSocket();
   }
 
   @override
@@ -21,9 +21,9 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
     super.dispose();
   }
 
-  void _initializeChatSocket() {
+  void _initializeSocket() {
     SocketManager.instance.on('answer:new', (data) {
-      final answer = DrawGameAnswer.fromJson(data);
+      final answer = Answer.fromJson(data);
       rxAllAnswers.value = List.from(rxAllAnswers.value)..add(answer);
 
       rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
