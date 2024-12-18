@@ -89,6 +89,11 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
           onPressed: widget.onRightIconPressed,
         ),
       ),
+      onSubmitted: (_) {
+        if (!widget.isBlocked) {
+          widget.onRightIconPressed();
+        }
+      },
     );
   }
 }
