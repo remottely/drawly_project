@@ -1,5 +1,5 @@
-import 'package:drawly/features/draw_game/chat/message.dart';
-import 'package:drawly/features/draw_game/chat/message_chat/messages_chat_view.dart';
+import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
+import 'package:drawly/features/draw_game/chats/models/message.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
@@ -32,11 +32,13 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
   void sendMessage() {
     if (messageController.text.isNotEmpty) {
       final message = messageController.text;
-      SocketManager.instance.emit('message:send', {
-        'roomName': widget.roomName,
-        'username': widget.username,
-        'text': message,
-      });
+      final payload = RoomUserMessageDTO(
+        roomName: widget.roomName,
+        username: widget.username,
+        text: message,
+      ).toJson();
+
+      SocketManager.instance.emit('message:send', payload);
 
       messageController.clear();
     }

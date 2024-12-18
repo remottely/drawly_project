@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.Message = exports.Answer = exports.RoomUserAnswerSocket = exports.RoomUserMessageSocket = exports.RoomUserSocket = exports.RoomDrawingSocket = exports.RoomSocket = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.Answer = exports.Message = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
@@ -106,50 +106,41 @@ class Room {
     }
 }
 exports.Room = Room;
-// Memory storage
-class RoomSocket {
+// DTOs
+class RoomDTO {
     constructor(roomName) {
         this.roomName = roomName;
     }
 }
-exports.RoomSocket = RoomSocket;
-class RoomDrawingSocket extends RoomSocket {
+exports.RoomDTO = RoomDTO;
+class RoomDrawingDTO extends RoomDTO {
     constructor(roomName, strokes) {
         super(roomName);
         this.strokes = strokes;
     }
 }
-exports.RoomDrawingSocket = RoomDrawingSocket;
-class RoomUserSocket extends RoomSocket {
+exports.RoomDrawingDTO = RoomDrawingDTO;
+class RoomUserDTO extends RoomDTO {
     constructor(roomName, username) {
         super(roomName);
         this.username = username;
     }
 }
-exports.RoomUserSocket = RoomUserSocket;
-class RoomUserMessageSocket extends RoomUserSocket {
+exports.RoomUserDTO = RoomUserDTO;
+class RoomUserMessageDTO extends RoomUserDTO {
     constructor(roomName, username, text) {
         super(roomName, username);
         this.text = text;
     }
 }
-exports.RoomUserMessageSocket = RoomUserMessageSocket;
-class RoomUserAnswerSocket extends RoomUserSocket {
+exports.RoomUserMessageDTO = RoomUserMessageDTO;
+class RoomUserAnswerDTO extends RoomUserDTO {
     constructor(roomName, username, text) {
         super(roomName, username);
         this.text = text;
     }
 }
-exports.RoomUserAnswerSocket = RoomUserAnswerSocket;
-class Answer {
-    constructor(icon, username, text, isCorrect) {
-        this.icon = icon;
-        this.username = username;
-        this.text = text;
-        this.isCorrect = isCorrect;
-    }
-}
-exports.Answer = Answer;
+exports.RoomUserAnswerDTO = RoomUserAnswerDTO;
 class Message {
     constructor(icon, username, text) {
         this.icon = icon;
@@ -158,6 +149,13 @@ class Message {
     }
 }
 exports.Message = Message;
+class Answer extends Message {
+    constructor(icon, username, text, isCorrect) {
+        super(icon, username, text);
+        this.isCorrect = isCorrect;
+    }
+}
+exports.Answer = Answer;
 const rooms = {};
 const roomDrawings = {};
 const roomUsers = {};

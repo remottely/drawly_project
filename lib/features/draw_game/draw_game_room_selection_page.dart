@@ -46,9 +46,11 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _createRoom() {
     final roomName = roomController.text.trim();
     if (roomName.isNotEmpty && roomName.length >= 3) {
-      SocketManager.instance.emit('room:create', {
-        'roomName': roomName,
-      });
+      final payload = RoomDTO(
+        roomName: roomName,
+      ).toJson();
+
+      SocketManager.instance.emit('room:create', payload);
       roomController.clear();
     }
   }

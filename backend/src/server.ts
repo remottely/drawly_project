@@ -108,14 +108,14 @@ export class Room {
   }
 }
 
-// Memory storage
-export class RoomSocket {
+// DTOs
+export class RoomDTO {
   constructor(
     public roomName: string
   ) { }
 }
 
-export class RoomDrawingSocket extends RoomSocket {
+export class RoomDrawingDTO extends RoomDTO {
   constructor(
     roomName: string,
     public strokes: Stroke[]
@@ -124,7 +124,7 @@ export class RoomDrawingSocket extends RoomSocket {
   }
 }
 
-export class RoomUserSocket extends RoomSocket {
+export class RoomUserDTO extends RoomDTO {
   constructor(
     roomName: string,
     public username: string
@@ -133,7 +133,7 @@ export class RoomUserSocket extends RoomSocket {
   }
 }
 
-export class RoomUserMessageSocket extends RoomUserSocket {
+export class RoomUserMessageDTO extends RoomUserDTO {
   constructor(
     roomName: string,
     username: string,
@@ -143,7 +143,7 @@ export class RoomUserMessageSocket extends RoomUserSocket {
   }
 }
 
-export class RoomUserAnswerSocket extends RoomUserSocket {
+export class RoomUserAnswerDTO extends RoomUserDTO {
   constructor(
     roomName: string,
     username: string,
@@ -151,15 +151,6 @@ export class RoomUserAnswerSocket extends RoomUserSocket {
   ) {
     super(roomName, username);
   }
-}
-
-export class Answer {
-  constructor(
-    public icon: string | null,
-    public username: string,
-    public text: string,
-    public isCorrect: boolean
-  ) { }
 }
 
 export class Message {
@@ -170,9 +161,20 @@ export class Message {
   ) { }
 }
 
+export class Answer extends Message {
+  constructor(
+    icon: string | null,
+    username: string,
+    text: string,
+    public isCorrect: boolean
+  ) {
+    super(icon, username, text);
+  }
+}
+
 const rooms: { [roomName: string]: Room } = {};
 const roomDrawings: { [roomName: string]: Drawing } = {};
-const roomUsers: { [socketId: string]: RoomUserSocket } = {};
+const roomUsers: { [socketId: string]: RoomUserDTO } = {};
 const minimumNumberOfPlayers = 2;
 const wordsList = [
   "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
@@ -189,7 +191,7 @@ export class RoomManager {
   }
 
 
-  static create({ roomName }: RoomSocket): void {
+  static create({ roomName }: RoomDTO): void {
     if (!rooms[roomName]) {
       rooms[roomName] = new Room(roomName);
       roomDrawings[roomName] = new Drawing();
@@ -198,7 +200,7 @@ export class RoomManager {
     }
   }
 
-  static join(socket: Socket, { roomName, username }: RoomUserSocket): void {
+  static join(socket: Socket, { roomName, username }: RoomUserDTO): void {
     if (!rooms[roomName]) {
       console.log(`Room ${roomName} does not exist`);
       return;
@@ -216,7 +218,7 @@ export class RoomManager {
     console.log(`${username} joined room ${roomName}`);
   }
 
-  static leave(socket: Socket, { username, roomName }: RoomUserSocket): void {
+  static leave(socket: Socket, { username, roomName }: RoomUserDTO): void {
     console.log(`${username} left room ${roomName}`);
     io.to(roomName).emit('message:new', { icon: 'user', username, text: "left" });
     rooms[roomName]?.removeParticipant(username);
@@ -235,7 +237,7 @@ export class RoomManager {
 };
 
 export class AnswerActions {
-  static send(socket: Socket, { roomName, username, text }: RoomUserAnswerSocket): void {
+  static send(socket: Socket, { roomName, username, text }: RoomUserAnswerDTO): void {
     const room = rooms[roomName];
     const answer = text;
     if (!room) {
@@ -260,28 +262,28 @@ export class AnswerActions {
 };
 
 export class MessageActions {
-  static send({ roomName, username, text }: RoomUserMessageSocket): void {
+  static send({ roomName, username, text }: RoomUserMessageDTO): void {
     io.to(roomName).emit('message:new', new Message(null, username, text));
   }
 };
 
 export class DrawingActions {
-  static draw({ roomName, strokes }: RoomDrawingSocket): void {
+  static draw({ roomName, strokes }: RoomDrawingDTO): void {
     roomDrawings[roomName]?.addStrokes(strokes);
     io.to(roomName).emit('drawing:draw', { strokes });
   }
 
-  static clear({ roomName }: RoomSocket): void {
+  static clear({ roomName }: RoomDTO): void {
     roomDrawings[roomName]?.clear();
     io.to(roomName).emit('drawing:clear');
   }
 
-  static undo({ roomName }: RoomSocket): void {
+  static undo({ roomName }: RoomDTO): void {
     roomDrawings[roomName]?.undo();
     io.to(roomName).emit('drawing:undo');
   }
 
-  static redo({ roomName }: RoomSocket): void {
+  static redo({ roomName }: RoomDTO): void {
     roomDrawings[roomName]?.redo();
     io.to(roomName).emit('drawing:redo');
   }
@@ -328,7 +330,7 @@ export class TurnManager {
 };
 
 export class GameManager {
-  static startTurns(socket: Socket, { roomName }: RoomSocket): void {
+  static startTurns(socket: Socket, { roomName }: RoomDTO): void {
     const room = rooms[roomName];
     if (!room) {
       console.error(`Room ${roomName} not found.`);
@@ -365,18 +367,18 @@ io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
   socket.emit('roomList', Object.keys(rooms));
 
-  socket.on('room:create', (data: RoomSocket) => RoomManager.create(data));
-  socket.on('room:join', (data: RoomUserSocket) => RoomManager.join(socket, data));
-  socket.on('room:leave', (data: RoomUserSocket) => RoomManager.leave(socket, data));
+  socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
+  socket.on('room:join', (data: RoomUserDTO) => RoomManager.join(socket, data));
+  socket.on('room:leave', (data: RoomUserDTO) => RoomManager.leave(socket, data));
 
   socket.on('drawing:draw', (data) => DrawingActions.draw(data));
   socket.on('drawing:clear', (data) => DrawingActions.clear(data));
   socket.on('drawing:undo', (data) => DrawingActions.undo(data));
   socket.on('drawing:redo', (data) => DrawingActions.redo(data));
 
-  socket.on('answer:send', (data: RoomUserAnswerSocket) => AnswerActions.send(socket, data));
+  socket.on('answer:send', (data: RoomUserAnswerDTO) => AnswerActions.send(socket, data));
 
-  socket.on('message:send', (data: RoomUserMessageSocket) => MessageActions.send(data));
+  socket.on('message:send', (data: RoomUserMessageDTO) => MessageActions.send(data));
 
   socket.on('game:startTurns', (data) => GameManager.startTurns(socket, data));
 

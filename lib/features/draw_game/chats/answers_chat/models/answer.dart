@@ -1,4 +1,4 @@
-import 'package:drawly/features/draw_game/chat/message.dart';
+import 'package:drawly/features/draw_game/chats/models/message.dart';
 
 class Answer extends Message {
   final bool isCorrect;
@@ -17,7 +17,7 @@ class Answer extends Message {
       icon: message.icon,
       username: message.username,
       text: message.text,
-      isCorrect: json['isCorrect'] as bool,
+      isCorrect: json['isCorrect'],
     );
   }
 

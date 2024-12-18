@@ -102,10 +102,12 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   void _sendBufferedPoints() {
     if (rxCurrentStroke.value == null) return;
 
-    SocketManager.instance.emit('drawing:draw', {
-      'roomName': widget.roomName,
-      'strokes': [rxCurrentStroke.value!.toJson()],
-    });
+    final payload = RoomDrawingDTO(
+      roomName: widget.roomName,
+      strokes: [rxCurrentStroke.value!],
+    ).toJson();
+
+    SocketManager.instance.emit('drawing:draw', payload);
 
     rxCurrentStroke.clear();
   }

@@ -2,8 +2,8 @@ import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:drawing_board/drawing_board.dart';
-import 'package:drawly/features/draw_game/chat/answers_chat/answers_chat_view.dart';
-import 'package:drawly/features/draw_game/chat/message_chat/messages_chat_view.dart';
+import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
+import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -77,17 +77,21 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void _joinGameRoom() {
-    SocketManager.instance.emit('room:join', {
-      'roomName': widget.roomName,
-      'username': widget.username,
-    });
+    final payload = RoomUserDTO(
+      roomName: widget.roomName,
+      username: widget.username,
+    ).toJson();
+
+    SocketManager.instance.emit('room:join', payload);
   }
 
   void _leaveRoom() {
-    SocketManager.instance.emit('room:leave', {
-      'roomName': widget.roomName,
-      'username': widget.username,
-    });
+    final payload = RoomUserDTO(
+      roomName: widget.roomName,
+      username: widget.username,
+    ).toJson();
+
+    SocketManager.instance.emit('room:leave', payload);
   }
 }
 
@@ -197,9 +201,13 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                     child: Center(
                                                       child: ElevatedButton(
                                                         onPressed: () {
+                                                          final payload = RoomDTO(
+                                                            roomName: widget.roomName,
+                                                          ).toJson();
+
                                                           SocketManager.instance.emit(
                                                             'game:startTurns',
-                                                            {'roomName': widget.roomName},
+                                                            payload,
                                                           );
                                                         },
                                                         child: const Text("Start Game"),

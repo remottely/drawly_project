@@ -1,5 +1,5 @@
-import 'package:drawly/features/draw_game/chat/message.dart';
-import 'package:drawly/features/draw_game/chat/message_chat/messages_chat_viewmodel.dart';
+import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_viewmodel.dart';
+import 'package:drawly/features/draw_game/chats/models/message.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
