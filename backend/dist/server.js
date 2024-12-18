@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Message = exports.Answer = exports.RoomUserAnswerSocket = exports.RoomUserMessageSocket = exports.RoomUserSocket = exports.RoomDrawingSocket = exports.RoomSocket = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.Message = exports.Answer = exports.RoomUserAnswerSocket = exports.RoomUserMessageSocket = exports.RoomUserSocket = exports.RoomDrawingSocket = exports.RoomSocket = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
@@ -128,32 +128,33 @@ class RoomUserSocket extends RoomSocket {
 }
 exports.RoomUserSocket = RoomUserSocket;
 class RoomUserMessageSocket extends RoomUserSocket {
-    constructor(roomName, username, message) {
+    constructor(roomName, username, text) {
         super(roomName, username);
-        this.message = message;
+        this.text = text;
     }
 }
 exports.RoomUserMessageSocket = RoomUserMessageSocket;
 class RoomUserAnswerSocket extends RoomUserSocket {
-    constructor(roomName, username, answer) {
+    constructor(roomName, username, text) {
         super(roomName, username);
-        this.answer = answer;
+        this.text = text;
     }
 }
 exports.RoomUserAnswerSocket = RoomUserAnswerSocket;
 class Answer {
-    constructor(username, answer, isCorrect) {
+    constructor(icon, username, text, isCorrect) {
+        this.icon = icon;
         this.username = username;
-        this.answer = answer;
+        this.text = text;
         this.isCorrect = isCorrect;
     }
 }
 exports.Answer = Answer;
 class Message {
-    constructor(username, message, icon) {
-        this.username = username;
-        this.message = message;
+    constructor(icon, username, text) {
         this.icon = icon;
+        this.username = username;
+        this.text = text;
     }
 }
 exports.Message = Message;
@@ -191,7 +192,7 @@ class RoomManager {
         currentRoom.addParticipant(username);
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, username };
-        io.to(roomName).emit('message:new', { icon: 'info', username, message: "joined" });
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "joined" });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
@@ -199,7 +200,7 @@ class RoomManager {
     static leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'user', username, message: "left" });
+        io.to(roomName).emit('message:new', { icon: 'user', username, text: "left" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -213,10 +214,12 @@ class RoomManager {
         }
     }
 }
+exports.RoomManager = RoomManager;
 ;
 class AnswerActions {
-    static send(socket, { roomName, username, answer }) {
+    static send(socket, { roomName, username, text }) {
         const room = rooms[roomName];
+        const answer = text;
         if (!room) {
             console.error(`Room ${roomName} not found.`);
             socket.emit('error', { message: `Room ${roomName} does not exist.` });
@@ -229,15 +232,18 @@ class AnswerActions {
             return;
         }
         const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
-        io.to(roomName).emit('answer:new', new Answer(username, answer, isCorrect));
+        const icon = isCorrect ? 'check' : null;
+        io.to(roomName).emit('answer:new', new Answer(icon, username, answer, isCorrect));
     }
 }
+exports.AnswerActions = AnswerActions;
 ;
 class MessageActions {
-    static send({ roomName, username, message }) {
-        io.to(roomName).emit('message:new', new Message(username, message, null));
+    static send({ roomName, username, text }) {
+        io.to(roomName).emit('message:new', new Message(null, username, text));
     }
 }
+exports.MessageActions = MessageActions;
 ;
 class DrawingActions {
     static draw({ roomName, strokes }) {
@@ -261,6 +267,7 @@ class DrawingActions {
         io.to(roomName).emit('drawing:redo');
     }
 }
+exports.DrawingActions = DrawingActions;
 ;
 class TurnManager {
     static startTurnTimer(roomName, totalDuration = 60) {
@@ -294,6 +301,7 @@ class TurnManager {
         }, totalDuration * 1000);
     }
 }
+exports.TurnManager = TurnManager;
 ;
 class GameManager {
     static startTurns(socket, { roomName }) {
@@ -312,6 +320,7 @@ class GameManager {
         TurnManager.startTurnTimer(roomName, 60);
     }
 }
+exports.GameManager = GameManager;
 ;
 function handleUserDisconnect(socket) {
     const userInfo = roomUsers[socket.id];

@@ -50,7 +50,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: lightPrimary,
+        backgroundColor: widget.isCurrentDrawer ? Colors.red : lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,

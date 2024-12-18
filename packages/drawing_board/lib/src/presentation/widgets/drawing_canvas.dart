@@ -122,55 +122,52 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
 
         return Transform.scale(
           scale: scale,
-          child: Container(
-            color: Colors.transparent,
-            child: Center(
-              child: DrawlyContainer(
-                color: widget.options.backgroundColor,
-                width: _canvasSize,
-                height: _canvasSize / (16 / 9),
-                child: MouseRegion(
-                  cursor: widget.options.currentTool.cursor,
-                  child: Listener(
-                    onPointerDown: (details) {
-                      final localPosition = details.localPosition;
-                      if (_isInsideCanvas(localPosition)) {
-                        rxCurrentStroke.startStroke(
-                          localPosition,
-                          color: strokeColor,
-                          size: size / scale,
-                          opacity: opacity,
-                          type: currentTool.strokeType,
-                          sides: widget.options.polygonSides,
-                          filled: widget.options.fillShape,
-                        );
-                        // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
-                      }
-                    },
-                    onPointerMove: (details) {
-                      final localPosition = details.localPosition;
-                      if (_isInsideCanvas(localPosition)) {
-                        rxCurrentStroke.addPoint(localPosition);
-                        // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
-                      }
-                    },
-                    onPointerUp: (_) {
-                      if (rxCurrentStroke.hasStroke) {
-                        _sendBufferedPoints();
-                        // widget.onDrawingStrokeChanged?.call(null);
-                      }
-                    },
-                    child: RepaintBoundary(
-                      key: widget.canvasGlobalKey,
-                      child: CustomPaint(
-                        isComplex: true,
-                        painter: _DrawingCanvasPainter(
-                          rxAllStrokes: rxAllStrokes,
-                          rxCurrentStroke: rxCurrentStroke,
-                          backgroundColor: widget.options.backgroundColor,
-                          rxIsShowGrid: rxIsShowGrid,
-                          rxBackgroundImage: widget.rxBackgroundImage,
-                        ),
+          child: Center(
+            child: DrawlyContainer(
+              color: widget.options.backgroundColor,
+              width: _canvasSize,
+              height: _canvasSize / (16 / 9),
+              child: MouseRegion(
+                cursor: widget.options.currentTool.cursor,
+                child: Listener(
+                  onPointerDown: (details) {
+                    final localPosition = details.localPosition;
+                    if (_isInsideCanvas(localPosition)) {
+                      rxCurrentStroke.startStroke(
+                        localPosition,
+                        color: strokeColor,
+                        size: size / scale,
+                        opacity: opacity,
+                        type: currentTool.strokeType,
+                        sides: widget.options.polygonSides,
+                        filled: widget.options.fillShape,
+                      );
+                      // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
+                    }
+                  },
+                  onPointerMove: (details) {
+                    final localPosition = details.localPosition;
+                    if (_isInsideCanvas(localPosition)) {
+                      rxCurrentStroke.addPoint(localPosition);
+                      // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
+                    }
+                  },
+                  onPointerUp: (_) {
+                    if (rxCurrentStroke.hasStroke) {
+                      _sendBufferedPoints();
+                      // widget.onDrawingStrokeChanged?.call(null);
+                    }
+                  },
+                  child: RepaintBoundary(
+                    key: widget.canvasGlobalKey,
+                    child: CustomPaint(
+                      isComplex: true,
+                      painter: _DrawingCanvasPainter(
+                        rxAllStrokes: rxAllStrokes,
+                        rxCurrentStroke: rxCurrentStroke,
+                        backgroundColor: widget.options.backgroundColor,
+                        rxIsShowGrid: rxIsShowGrid,
+                        rxBackgroundImage: widget.rxBackgroundImage,
                       ),
                     ),
                   ),

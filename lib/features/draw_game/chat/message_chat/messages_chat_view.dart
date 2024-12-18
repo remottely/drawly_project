@@ -1,5 +1,5 @@
-import 'package:drawly/features/draw_game/message_chat/message.dart';
-import 'package:drawly/features/draw_game/message_chat/messages_chat_viewmodel.dart';
+import 'package:drawly/features/draw_game/chat/message.dart';
+import 'package:drawly/features/draw_game/chat/message_chat/messages_chat_viewmodel.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -64,23 +64,24 @@ class _MessageChatText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final IconData? icon = message.icon == 'info' ? Icons.info : null;
-    final Color? color = message.icon == 'info' ? Colors.blue : null;
+    final icon = message.getIcon();
+    final color = message.getColor();
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Row(
         children: [
           if (icon != null) ...[
             Icon(
-              Icons.info,
+              icon,
               color: color,
             ),
             SizedBox(width: 4)
           ],
           Text(
-            "${message.username}: ${message.message}",
+            "${message.username}: ${message.text}",
             style: TextStyle(
-              color: color ?? Colors.grey,
+              color: color,
               fontSize: 16,
             ),
           ),

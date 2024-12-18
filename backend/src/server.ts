@@ -137,7 +137,7 @@ export class RoomUserMessageSocket extends RoomUserSocket {
   constructor(
     roomName: string,
     username: string,
-    public message: string
+    public text: string
   ) {
     super(roomName, username);
   }
@@ -147,7 +147,7 @@ export class RoomUserAnswerSocket extends RoomUserSocket {
   constructor(
     roomName: string,
     username: string,
-    public answer: string
+    public text: string
   ) {
     super(roomName, username);
   }
@@ -155,17 +155,18 @@ export class RoomUserAnswerSocket extends RoomUserSocket {
 
 export class Answer {
   constructor(
+    public icon: string | null,
     public username: string,
-    public answer: string,
+    public text: string,
     public isCorrect: boolean
   ) { }
 }
 
 export class Message {
   constructor(
+    public icon: string | null,
     public username: string,
-    public message: string,
-    public icon: string | null
+    public text: string
   ) { }
 }
 
@@ -208,7 +209,7 @@ export class RoomManager {
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, username };
 
-    io.to(roomName).emit('message:new', { icon: 'info', username, message: "joined" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "joined" });
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
@@ -217,7 +218,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { username, roomName }: RoomUserSocket): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'user', username, message: "left" });
+    io.to(roomName).emit('message:new', { icon: 'user', username, text: "left" });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
@@ -234,8 +235,9 @@ export class RoomManager {
 };
 
 export class AnswerActions {
-  static send(socket: Socket, { roomName, username, answer }: RoomUserAnswerSocket): void {
+  static send(socket: Socket, { roomName, username, text }: RoomUserAnswerSocket): void {
     const room = rooms[roomName];
+    const answer = text;
     if (!room) {
       console.error(`Room ${roomName} not found.`);
       socket.emit('error', { message: `Room ${roomName} does not exist.` });
@@ -251,14 +253,15 @@ export class AnswerActions {
     }
 
     const isCorrect = correctWord.toLowerCase() === answer.toLowerCase();
+    const icon = isCorrect ? 'check' : null;
 
-    io.to(roomName).emit('answer:new', new Answer(username, answer, isCorrect));
+    io.to(roomName).emit('answer:new', new Answer(icon, username, answer, isCorrect));
   }
 };
 
 export class MessageActions {
-  static send({ roomName, username, message }: RoomUserMessageSocket): void {
-    io.to(roomName).emit('message:new', new Message(username, message, null));
+  static send({ roomName, username, text }: RoomUserMessageSocket): void {
+    io.to(roomName).emit('message:new', new Message(null, username, text));
   }
 };
 

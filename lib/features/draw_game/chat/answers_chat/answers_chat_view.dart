@@ -1,5 +1,5 @@
-import 'package:drawly/features/draw_game/answers_chat/answer.dart';
-import 'package:drawly/features/draw_game/answers_chat/answers_chat_viewmodel.dart';
+import 'package:drawly/features/draw_game/chat/answers_chat/answer.dart';
+import 'package:drawly/features/draw_game/chat/answers_chat/answers_chat_viewmodel.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -71,14 +71,52 @@ class _AnswerChatText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // final IconData? icon = answer.icon == 'info' ? Icons.info : null;
+    // final Color? color = answer.icon == 'info' ? Colors.blue : null;
+
+    // return Padding(
+    //   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    //   child: Row(
+    //     children: [
+    //       if (icon != null) ...[
+    //         Icon(
+    //           Icons.info,
+    //           color: color,
+    //         ),
+    //         SizedBox(width: 4)
+    //       ],
+    //       Text(
+    //         "${answer.username}: ${answer.isCorrect ? '****' : answer.text}",
+    //         style: TextStyle(
+    //           color: color,
+    //           fontSize: 16,
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
+    final icon = answer.getIcon();
+    final color = answer.getColor();
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Text(
-        "${answer.username}: ${answer.isCorrect ? '****' : answer.answer}",
-        style: TextStyle(
-          color: answer.isCorrect ? Colors.green : Colors.grey,
-          fontSize: 16,
-        ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              color: color,
+            ),
+            SizedBox(width: 4)
+          ],
+          Text(
+            "${answer.username}: ${answer.isCorrect ? '****' : answer.text}",
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }

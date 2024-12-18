@@ -2,8 +2,8 @@ import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:drawing_board/drawing_board.dart';
-import 'package:drawly/features/draw_game/answers_chat/answers_chat_view.dart';
-import 'package:drawly/features/draw_game/message_chat/messages_chat_view.dart';
+import 'package:drawly/features/draw_game/chat/answers_chat/answers_chat_view.dart';
+import 'package:drawly/features/draw_game/chat/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -78,15 +78,15 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
   void _joinGameRoom() {
     SocketManager.instance.emit('room:join', {
-      'username': widget.username,
       'roomName': widget.roomName,
+      'username': widget.username,
     });
   }
 
   void _leaveRoom() {
     SocketManager.instance.emit('room:leave', {
-      'username': widget.username,
       'roomName': widget.roomName,
+      'username': widget.username,
     });
   }
 }

@@ -1,5 +1,5 @@
-import 'package:drawly/features/draw_game/answers_chat/answer.dart';
-import 'package:drawly/features/draw_game/answers_chat/answers_chat_view.dart';
+import 'package:drawly/features/draw_game/chat/answers_chat/answer.dart';
+import 'package:drawly/features/draw_game/chat/answers_chat/answers_chat_view.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
@@ -34,9 +34,9 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
     if (answerController.text.isNotEmpty) {
       final answer = answerController.text;
       SocketManager.instance.emit('answer:send', {
-        'username': widget.username,
         'roomName': widget.roomName,
-        'answer': answer,
+        'username': widget.username,
+        'text': answer,
       });
 
       answerController.clear();
