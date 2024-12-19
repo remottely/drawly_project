@@ -52,7 +52,12 @@ class _DrawlyChatTextFieldState extends State<DrawlyChatTextField> {
       focusNode: _focusNode,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: TextStyle(color: widget.hintColor ?? Colors.grey),
+        hintStyle: TextStyle(
+            color:
+                // widget.disabled
+                //     ? Colors.grey[300]
+                //     :
+                widget.hintColor ?? Colors.grey),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         border: OutlineInputBorder(

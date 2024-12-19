@@ -162,9 +162,14 @@ const roomDrawings = {};
 const roomUsers = {};
 const minimumNumberOfPlayers = 2;
 const wordsList = [
-    "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
-    "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+    "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
+    "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
+    "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 ];
+// const wordsList = [
+//   "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+//   "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+// ];
 class RoomManager {
     static emitRoomList() {
         return io.emit('room:all', {
@@ -191,11 +196,13 @@ class RoomManager {
             console.log(`Room ${roomName} does not exist`);
             return;
         }
+        console.log(`Join Room ${roomName} 1`);
         const currentRoom = rooms[roomName];
         currentRoom.addParticipant(username);
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, username };
-        io.to(roomName).emit('message:new', { icon: 'info', username, text: "joined" });
+        console.log(`Join Room ${roomName} 2`);
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "entrou" }); // joined
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
@@ -203,7 +210,7 @@ class RoomManager {
     static leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'info', username, text: "left" });
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)

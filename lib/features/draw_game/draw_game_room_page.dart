@@ -32,7 +32,7 @@ class DrawGameRoomPage extends StatefulWidget {
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxWord = ValueNotifier<String>('');
-  final rxCurrentDrawer = ValueNotifier<String>('Waiting...');
+  final rxCurrentDrawer = ValueNotifier<String?>(null);
   final rxIsCurrentDrawer = ValueNotifier<bool>(false);
   final rxTotalDuration = ValueNotifier<int>(0);
   final rxTimeLeft = ValueNotifier<int>(0);
@@ -61,9 +61,9 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void _initializeSocket() {
-    SocketManager.instance.connect();
+    Tests.createRoom(widget.roomName);
+    _joinGameRoom();
     _onConnectEvent = (_) {
-      Tests.createRoom(widget.roomName);
       _joinGameRoom();
     };
     _onNewTurnEvent = (data) {
@@ -193,8 +193,9 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                     )
                                   else
                                     DrawlyTitleContainer(
-                                      text:
-                                          'Current drawer: ${rxCurrentDrawer.value}',
+                                      text: rxCurrentDrawer.value == null
+                                          ? 'Intervalo...'
+                                          : 'Vez de ${rxCurrentDrawer.value}',
                                     ),
                                   if (Tests.isTesting)
                                     const IconButton(

@@ -31,8 +31,8 @@ class _AuthPageState extends State<AuthPage> {
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
-                labelText: 'Username',
-                hintText: 'Enter your username...',
+                labelText: 'Apelido', // Nick
+                hintText: 'Insira um apelido', // Enter your nickname
               ),
             ),
             const SizedBox(height: 16),
@@ -49,7 +49,7 @@ class _AuthPageState extends State<AuthPage> {
                   );
                 }
               },
-              child: const Text('Join'),
+              child: const Text('Entrar'), // Join
             ),
           ],
         ),

@@ -178,9 +178,14 @@ const roomDrawings: { [roomName: string]: Drawing } = {};
 const roomUsers: { [socketId: string]: RoomUserDTO } = {};
 const minimumNumberOfPlayers = 2;
 const wordsList = [
-  "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
-  "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+  "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
+  "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
+  "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 ];
+// const wordsList = [
+//   "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+//   "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+// ];
 
 export class RoomManager {
   static emitRoomList(): boolean {
@@ -210,13 +215,15 @@ export class RoomManager {
       console.log(`Room ${roomName} does not exist`);
       return;
     }
+    console.log(`Join Room ${roomName} 1`);
 
     const currentRoom = rooms[roomName];
     currentRoom.addParticipant(username);
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, username };
+    console.log(`Join Room ${roomName} 2`);
 
-    io.to(roomName).emit('message:new', { icon: 'info', username, text: "joined" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "entrou" }); // joined
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
@@ -225,7 +232,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { username, roomName }: RoomUserDTO): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'info', username, text: "left" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
