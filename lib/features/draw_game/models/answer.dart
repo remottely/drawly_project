@@ -1,4 +1,4 @@
-import 'package:drawly/features/draw_game/chats/models/message.dart';
+import 'package:drawly/features/draw_game/models/message.dart';
 
 class Answer extends Message {
   final bool isCorrect;

@@ -144,9 +144,10 @@
 - [x]  (0.21.0): Add keyboard enter to send messages and answers in chat.
 - [x]  (0.22.0): Add all socket DTOs.
 - [x]  (0.22.1): Enhance the UI
-- [ ]  (0.?.0): Clean the answers chat each turn.
-- [ ]  Message and answer chats should keep the scroll always showing the latest message and add padding to indicate that new messages will appear.
-- [ ]  (0.?.0): Bold "username" in the chat.
+-  (0.23.0):
+	- [x] Clean the answers chat each turn.
+	- [x] Message and answer chats should keep the scroll always showing the latest message and add padding to indicate that new messages will appear.
+- [x]  (0.?.0): Bold "username" in the chat.
 - [ ]  (0.?.0): Detect inactivity, warn the user, and kick after one minute.
 - [ ]  (0.?.0): Timeout... The answer was: "answer". Next turn for "username".
 - [ ]  (0.?.0): Block chat messages "containing any part of the answer."
@@ -194,3 +195,5 @@
     - [ ]  General report functionality
 - **Accumulate in the database**:
     - [ ]  Store all points earned from games completed by the user. These points can be used within the Remottely ecosystem.
+- [ ]  Limit the number of messages each user can send per second or minute.
+- [ ]  Bug: When drawing near the end of the turn timer, strokes are carried over to the next turn.

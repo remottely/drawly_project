@@ -1,5 +1,5 @@
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_viewmodel.dart';
-import 'package:drawly/features/draw_game/chats/models/message.dart';
+import 'package:drawly/features/draw_game/models/message.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +30,13 @@ class _MessagesChatViewState extends MessagesChatViewModel {
             child: ValueListenableBuilder<List<Message>>(
               valueListenable: rxAllMessages,
               builder: (context, value, child) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (scrollController.hasClients) {
+                    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+                  }
+                });
                 return ListView.builder(
+                  controller: scrollController,
                   itemCount: value.length,
                   itemBuilder: (context, index) {
                     return _MessageChatText(message: rxAllMessages.value[index]);

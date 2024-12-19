@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.Answer = exports.Message = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
@@ -106,6 +106,21 @@ class Room {
     }
 }
 exports.Room = Room;
+class Message {
+    constructor(icon, username, text) {
+        this.icon = icon;
+        this.username = username;
+        this.text = text;
+    }
+}
+exports.Message = Message;
+class Answer extends Message {
+    constructor(icon, username, text, isCorrect) {
+        super(icon, username, text);
+        this.isCorrect = isCorrect;
+    }
+}
+exports.Answer = Answer;
 // DTOs
 class RoomDTO {
     constructor(roomName) {
@@ -141,21 +156,7 @@ class RoomUserAnswerDTO extends RoomUserDTO {
     }
 }
 exports.RoomUserAnswerDTO = RoomUserAnswerDTO;
-class Message {
-    constructor(icon, username, text) {
-        this.icon = icon;
-        this.username = username;
-        this.text = text;
-    }
-}
-exports.Message = Message;
-class Answer extends Message {
-    constructor(icon, username, text, isCorrect) {
-        super(icon, username, text);
-        this.isCorrect = isCorrect;
-    }
-}
-exports.Answer = Answer;
+// Global variables
 const rooms = {};
 const roomDrawings = {};
 const roomUsers = {};
@@ -285,9 +286,10 @@ class TurnManager {
             console.error(`Failed to get the current drawer in room ${roomName}`);
             return;
         }
+        // io.to(roomName).emit('answers:clear');
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
-        io.to(roomName).emit('newTurn', {
+        io.to(roomName).emit('turn:new', {
             currentDrawer,
             word: wordToDraw,
             totalDuration: totalDuration * 1000,
@@ -300,7 +302,6 @@ class TurnManager {
     }
 }
 exports.TurnManager = TurnManager;
-;
 class GameManager {
     static startTurns(socket, { roomName }) {
         const room = rooms[roomName];
@@ -315,7 +316,8 @@ class GameManager {
             return;
         }
         console.log(`Turns manually started for room ${roomName}`);
-        TurnManager.startTurnTimer(roomName, 60);
+        // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
+        TurnManager.startTurnTimer(roomName, 20);
     }
 }
 exports.GameManager = GameManager;

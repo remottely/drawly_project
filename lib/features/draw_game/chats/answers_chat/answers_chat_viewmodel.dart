@@ -1,12 +1,11 @@
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
-import 'package:drawly/features/draw_game/chats/answers_chat/models/answer.dart';
+import 'package:drawly/features/draw_game/models/answer.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 abstract class AnswersChatViewModel extends State<AnswersChatView> {
-  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
-  final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
   final answerController = TextEditingController();
+  final scrollController = ScrollController();
 
   @override
   void initState() {
@@ -24,9 +23,9 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   void _initializeSocket() {
     SocketManager.instance.on('answer:new', (data) {
       final answer = Answer.fromJson(data);
-      rxAllAnswers.value = List.from(rxAllAnswers.value)..add(answer);
+      widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)..add(answer);
 
-      rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
+      widget.rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
     });
   }
 

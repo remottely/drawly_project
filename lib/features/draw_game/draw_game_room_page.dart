@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
+import 'package:drawly/features/draw_game/models/answer.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/testing/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -31,8 +32,27 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxIsCurrentDrawer = ValueNotifier<bool>(false);
   final rxTotalDuration = ValueNotifier<int>(0);
   final rxTimeLeft = ValueNotifier<int>(0);
+  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
+  final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
   // bool _hasJoinedRoom = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  @override
+  void dispose() {
+    SocketManager.instance.off('turn:new');
+    _leaveRoom();
+    rxCurrentDrawer.dispose();
+    rxIsCurrentDrawer.dispose();
+    rxTotalDuration.dispose();
+    rxTimeLeft.dispose();
+    super.dispose();
+  }
 
   void _initialize() {
     _initializeSocket();
@@ -49,7 +69,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       // }
     });
 
-    SocketManager.instance.on('newTurn', (data) {
+    SocketManager.instance.on('turn:new', (data) {
       developer.log("New turn event received: $data");
 
       rxWord.value = data['word'];
@@ -57,6 +77,9 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       rxTotalDuration.value = data['totalDuration'];
       rxTimeLeft.value = data['totalDuration'];
       rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
+
+      rxAllAnswers.value = [];
+      rxIsCurrentUserCorrectAnswer.value = false;
 
       startCountdown(rxTotalDuration.value);
     });
@@ -96,23 +119,6 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 }
 
 class _DrawGameRoomPageState extends GamePageViewModel {
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
-  @override
-  void dispose() {
-    SocketManager.instance.off('newTurn');
-    _leaveRoom();
-    rxCurrentDrawer.dispose();
-    rxIsCurrentDrawer.dispose();
-    rxTotalDuration.dispose();
-    rxTimeLeft.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -180,23 +186,14 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                             children: [
                               DrawlyFakeAppBar(
                                 children: [
-                                  AnimatedBuilder(
-                                    animation: Listenable.merge([
-                                      // rxCurrentDrawer,
-                                      // rxWord,
-                                    ]),
-                                    builder: (context, _) {
-                                      // return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${rxCurrentDrawer.value}' +
-                                      //     ' > Word: ${rxWord.value}');
-                                      return rxIsCurrentDrawer.value
-                                          ? DrawlyTitleContainer(
-                                              text: rxWord.value,
-                                            )
-                                          : DrawlyTitleContainer(
-                                              text: 'Current drawer: ${rxCurrentDrawer.value}',
-                                            );
-                                    },
-                                  ),
+                                  if (rxIsCurrentDrawer.value)
+                                    DrawlyTitleContainer(
+                                      text: rxWord.value,
+                                    )
+                                  else
+                                    DrawlyTitleContainer(
+                                      text: 'Current drawer: ${rxCurrentDrawer.value}',
+                                    ),
                                   // Tests.isTesting
                                   //     ? IconButton(
                                   //         onPressed: Tests.testReconnection,
@@ -216,7 +213,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                       word: rxWord.value,
                                       isCurrentDrawer: rxIsCurrentDrawer.value,
                                     ),
-                                    ValueListenableBuilder(
+                                    ValueListenableBuilder<int>(
                                       valueListenable: rxTotalDuration,
                                       builder: (context, value, child) {
                                         return Opacity(
@@ -271,6 +268,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                             roomName: widget.roomName,
                                             isCurrentDrawer: rxIsCurrentDrawer.value,
                                             isGameStarted: rxTotalDuration.value != 0 && rxWord.value.isNotEmpty,
+                                            rxAllAnswers: rxAllAnswers,
+                                            rxIsCurrentUserCorrectAnswer: rxIsCurrentUserCorrectAnswer,
                                           ),
                                         ),
                                         Expanded(

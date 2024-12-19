@@ -315,7 +315,7 @@ export class TurnManager {
     const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
     room.currentWord = wordToDraw;
 
-    io.to(roomName).emit('newTurn', {
+    io.to(roomName).emit('turn:new', {
       currentDrawer,
       word: wordToDraw,
       totalDuration: totalDuration * 1000,
@@ -328,7 +328,7 @@ export class TurnManager {
       TurnManager.startTurnTimer(roomName, totalDuration);
     }, totalDuration * 1000);
   }
-};
+}
 
 export class GameManager {
   static startTurns(socket: Socket, { roomName }: RoomDTO): void {
@@ -346,7 +346,8 @@ export class GameManager {
     }
 
     console.log(`Turns manually started for room ${roomName}`);
-    TurnManager.startTurnTimer(roomName, 60);
+    // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
+    TurnManager.startTurnTimer(roomName, 20);
   }
 };
 

@@ -58,6 +58,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
+    SocketManager.instance.off('connect');
     SocketManager.instance.off('drawing:draw');
     super.dispose();
   }
