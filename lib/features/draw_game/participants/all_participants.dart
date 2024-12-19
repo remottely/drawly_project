@@ -10,25 +10,25 @@ class AllParticipants extends StatefulWidget {
 }
 
 class _AllParticipantsState extends State<AllParticipants> {
-  final _rxAllParticipants = ValueNotifier<List<String>>([]);
+  final rxAllParticipants = ValueNotifier<List<String>>([]);
 
   @override
   void initState() {
     super.initState();
-    _initializeParticipantListener();
+    _initializeSocket();
   }
 
   @override
   void dispose() {
     SocketManager.instance.off('updateParticipants');
-    _rxAllParticipants.dispose();
+    rxAllParticipants.dispose();
     super.dispose();
   }
 
-  void _initializeParticipantListener() {
+  void _initializeSocket() {
     SocketManager.instance.on('updateParticipants', (data) {
       final List<String> allParticipants = List<String>.from(data);
-      _rxAllParticipants.value = allParticipants;
+      rxAllParticipants.value = allParticipants;
     });
   }
 
@@ -36,13 +36,19 @@ class _AllParticipantsState extends State<AllParticipants> {
   Widget build(BuildContext context) {
     return DrawlyContainer(
       child: ValueListenableBuilder<List<String>>(
-        valueListenable: _rxAllParticipants,
+        valueListenable: rxAllParticipants,
         builder: (context, value, _) {
           return ListView.builder(
             itemCount: value.length,
             itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(value[index]),
+              return Wrap(
+                direction: Axis.horizontal,
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  const Icon(Icons.person),
+                  Text(value[index]),
+                ],
               );
             },
           );

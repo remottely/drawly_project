@@ -5,24 +5,24 @@ const Color kCanvasColor = Color(0xfff2f3f7);
 
 ThemeData lightTheme = ThemeData(
   useMaterial3: true,
-  primaryColor: lightPrimary,
+  primaryColor: AppColors.lightPrimary,
   colorScheme: ColorScheme.fromSwatch().copyWith(
-    secondary: lightAccent,
+    secondary: AppColors.lightAccent,
     brightness: Brightness.light,
   ),
   // scaffoldBackgroundColor: lightBG,
-  appBarTheme: AppBarTheme(
-    backgroundColor: lightPrimary.withOpacity(0.7),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.transparent,
     elevation: 0.0,
-    titleTextStyle: const TextStyle(
+    titleTextStyle: TextStyle(
       color: Colors.white,
       fontSize: 20,
       fontWeight: FontWeight.bold,
     ),
-    iconTheme: const IconThemeData(color: Colors.white),
+    iconTheme: IconThemeData(color: Colors.white),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    backgroundColor: lightPrimary.withOpacity(0.7),
+    backgroundColor: AppColors.lightPrimary.withOpacity(0.7),
   ),
   inputDecorationTheme: const InputDecorationTheme(
     border: InputBorder.none,

@@ -12,10 +12,11 @@ class DrawlyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "Drawly",
       theme: lightTheme,
       home: DrawGameRoomPage(
-        username: 'Ana',
+        username: 'Danillo',
         roomName: '2323',
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:drawly_core/drawly_core.dart';
 
 class Tests {
+  static const isTesting = true;
   static void testReconnection() {
     print("Simulando desconexão...");
     SocketManager.instance.disconnect();
@@ -12,8 +13,10 @@ class Tests {
   }
 
   static void createRoom(String roomName) {
-    SocketManager.instance.emit('room:create', {
-      'roomName': roomName,
-    });
+    final payload = RoomDTO(
+      roomName: roomName,
+    ).toJson();
+
+    SocketManager.instance.emit('room:create', payload);
   }
 }

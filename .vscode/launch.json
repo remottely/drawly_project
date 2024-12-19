@@ -5,28 +5,28 @@
       "name": "8081",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_dev_game_page_1.dart",
+      "program": "lib/testing/main_dev_game_page_1.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"]
     },
     {
       "name": "8082",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_dev_game_page_2.dart",
+      "program": "lib/testing/main_dev_game_page_2.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"]
     },
     {
       "name": "8083",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_dev_game_page_3.dart",
+      "program": "lib/testing/main_dev_game_page_3.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"]
     },
     {
       "name": "8084",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_dev_game_page_4.dart",
+      "program": "lib/testing/main_dev_game_page_4.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"]
     }
   ],

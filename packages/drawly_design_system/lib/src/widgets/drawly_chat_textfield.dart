@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
 
-class DrawlyIconBorderedTextField extends StatefulWidget {
+class DrawlyChatTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? hintText;
+  final Color? hintColor;
   final TextInputType keyboardType;
   final IconData leftIcon;
   final IconData rightIcon;
-  final VoidCallback onRightIconPressed;
-  final bool isBlocked;
+  final void Function() onRightIconPressed;
+  final bool disabled;
 
-  const DrawlyIconBorderedTextField({
+  const DrawlyChatTextField({
     super.key,
     this.controller,
     this.hintText,
+    this.hintColor,
     this.keyboardType = TextInputType.text,
     required this.leftIcon,
     required this.rightIcon,
     required this.onRightIconPressed,
-    required this.isBlocked,
+    required this.disabled,
   });
 
   @override
-  State<DrawlyIconBorderedTextField> createState() => _DrawlyIconBorderedTextFieldState();
+  State<DrawlyChatTextField> createState() => _DrawlyChatTextFieldState();
 }
 
-class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextField> {
+class _DrawlyChatTextFieldState extends State<DrawlyChatTextField> {
   final FocusNode _focusNode = FocusNode();
 
   @override
@@ -44,13 +46,13 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
   @override
   Widget build(BuildContext context) {
     return TextField(
-      enabled: !widget.isBlocked,
+      enabled: !widget.disabled,
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       focusNode: _focusNode,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
+        hintStyle: TextStyle(color: widget.hintColor ?? Colors.grey),
         contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -75,12 +77,12 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
         ),
         prefixIcon: Icon(
           widget.leftIcon,
-          color: widget.isBlocked ? Colors.grey[300] : Colors.grey,
+          color: widget.disabled ? Colors.grey[300] : Colors.grey,
         ),
         suffixIcon: IconButton(
           icon: Icon(
             widget.rightIcon,
-            color: widget.isBlocked
+            color: widget.disabled
                 ? Colors.grey[300]
                 : _focusNode.hasFocus
                     ? Colors.blue
@@ -89,6 +91,12 @@ class _DrawlyIconBorderedTextFieldState extends State<DrawlyIconBorderedTextFiel
           onPressed: widget.onRightIconPressed,
         ),
       ),
+      onSubmitted: (_) {
+        if (!widget.disabled) {
+          widget.onRightIconPressed();
+          _focusNode.requestFocus();
+        }
+      },
     );
   }
 }

@@ -54,9 +54,7 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
   @override
   void initState() {
     super.initState();
-    _initializeClearDrawSocket();
-    _initializeUndoDrawSocket();
-    _initializeRedoDrawSocket();
+    _initializeSocket();
   }
 
   @override
@@ -68,40 +66,42 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
     super.dispose();
   }
 
-  void _initializeClearDrawSocket() {
+  void _initializeSocket() {
     SocketManager.instance.on('drawing:clear', (_) {
       widget.undoRedoStack.clear();
     });
-  }
 
-  void _initializeUndoDrawSocket() {
     SocketManager.instance.on('drawing:undo', (_) {
       widget.undoRedoStack.undo();
     });
-  }
 
-  void _initializeRedoDrawSocket() {
     SocketManager.instance.on('drawing:redo', (_) {
       widget.undoRedoStack.redo();
     });
   }
 
   void _sendClearStrokes() {
-    SocketManager.instance.emit('drawing:clear', {
-      'roomName': widget.roomName,
-    });
+    final payload = RoomDTO(
+      roomName: widget.roomName,
+    ).toJson();
+
+    SocketManager.instance.emit('drawing:clear', payload);
   }
 
   void _sendUndoStroke() {
-    SocketManager.instance.emit('drawing:undo', {
-      'roomName': widget.roomName,
-    });
+    final payload = RoomDTO(
+      roomName: widget.roomName,
+    ).toJson();
+
+    SocketManager.instance.emit('drawing:undo', payload);
   }
 
   void _sendRedoStroke() {
-    SocketManager.instance.emit('drawing:redo', {
-      'roomName': widget.roomName,
-    });
+    final payload = RoomDTO(
+      roomName: widget.roomName,
+    ).toJson();
+
+    SocketManager.instance.emit('drawing:redo', payload);
   }
 }
 
@@ -114,7 +114,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
 
     return DrawlyContainer(
       width: 80,
-      // height: constraints.maxHeight,
       child: AnimatedBuilder(
         animation: Listenable.merge([
           widget.rxSelectedColor,
@@ -365,7 +364,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
             //     ),
             //   ],
             // ),
-            // add about me button or follow buttons
             // Center(
             //   child: GestureDetector(
             //     onTap: () => _launchUrl('https://github.com/KevinKobori'),
@@ -488,7 +486,7 @@ class _IconBox extends StatelessWidget {
   final IconData? iconData;
   final Widget? child;
   final bool selected;
-  final VoidCallback? onTap;
+  final void Function()? onTap;
   final String? tooltip;
 
   const _IconBox({

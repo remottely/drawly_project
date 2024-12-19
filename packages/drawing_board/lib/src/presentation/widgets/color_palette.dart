@@ -12,7 +12,6 @@ class ColorPalette extends StatelessWidget {
     required this.rxSelectedColor,
   });
 
-  /// Método para obter a altura do componente
   double getHeight() {
     final context = _key.currentContext;
     if (context == null) return 0;
@@ -33,7 +32,7 @@ class ColorPalette extends StatelessWidget {
       valueListenable: rxSelectedColor,
       builder: (context, selectedColor, child) {
         return Column(
-          key: _key, // Associa o GlobalKey ao widget
+          key: _key,
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
