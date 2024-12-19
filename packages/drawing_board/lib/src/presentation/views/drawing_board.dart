@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:drawing_board/src/src.dart';
+import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,8 @@ class DrawingBoard extends StatefulWidget {
 
 class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderStateMixin {
   final canvasGlobalKey = GlobalKey();
-  late final UndoRedoStack undoRedoStack;
+  late UndoRedoStack undoRedoStack;
+  var rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxSelectedColor = ValueNotifier<Color>(Colors.black);
   final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
   final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
@@ -34,7 +36,6 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
   final rxIsFilled = ValueNotifier<bool>(false);
   final rxPolygonSides = ValueNotifier<int>(3);
   final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
-  final rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
   final rxIsShowGrid = ValueNotifier<bool>(false);
 
@@ -45,6 +46,35 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
       rxCurrentStroke: rxCurrentStroke,
       rxAllStrokes: rxAllStrokes,
     );
+    _initializeSocket();
+  }
+
+  @override
+  void dispose() {
+    SocketManager.instance.offEvent('turn:new', (data) => _onNewTurnEvent(data));
+    super.dispose();
+  }
+
+  void _onNewTurnEvent(dynamic data) {
+    undoRedoStack = UndoRedoStack(
+      rxCurrentStroke: rxCurrentStroke,
+      rxAllStrokes: rxAllStrokes,
+    );
+    rxCurrentStroke = CurrentStrokeValueNotifier();
+    rxSelectedColor.value = Colors.black;
+    rxSelectedColorOpacity.value = 1.0;
+    rxCurrentStrokeSize.value = 10.0;
+    rxEraserSize.value = 30.0;
+    rxDrawingTool.value = DrawingTool.pencil;
+    rxIsFilled.value = false;
+    rxPolygonSides.value = 3;
+    rxBackgroundImage.value = null;
+    rxAllStrokes.value = [];
+    rxIsShowGrid.value = false;
+  }
+
+  void _initializeSocket() {
+    SocketManager.instance.onEvent('turn:new', (data) => _onNewTurnEvent(data));
   }
 
   @override
