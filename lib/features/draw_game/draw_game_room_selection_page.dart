@@ -1,46 +1,55 @@
-import 'dart:developer' as developer;
-
 import 'package:drawly/features/draw_game/draw_game_room_page.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomSelectionPage extends StatefulWidget {
-  const DrawGameRoomSelectionPage({super.key, required this.username});
+  const DrawGameRoomSelectionPage({required this.username, super.key});
 
   final String username;
 
   @override
-  State<DrawGameRoomSelectionPage> createState() => _DrawGameRoomSelectionPageState();
+  State<DrawGameRoomSelectionPage> createState() =>
+      _DrawGameRoomSelectionPageState();
 }
 
 class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
-  final TextEditingController roomController = TextEditingController();
+  final roomController = TextEditingController();
   final List<String> allRooms = [];
+
+  late final void Function(dynamic) _onAllRoomsEvent;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
 
   @override
   void initState() {
-    super.initState();
     _initializeSocket();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    roomController.dispose();
+    SocketManager.instance.offEvent('room:all', _onAllRoomsEvent);
+    super.dispose();
   }
 
   void _initializeSocket() {
-    SocketManager.instance.connect();
-
-    SocketManager.instance.onConnect((_) {
-      developer.log('Connected to the server');
-    });
-
-    SocketManager.instance.on('roomList', (data) {
-      setState(() {
-        allRooms
-          ..clear()
-          ..addAll(List<String>.from(data));
-      });
-    });
-
-    SocketManager.instance.onDisconnect((_) {
-      developer.log('Disconnected from the server');
-    });
+    _onAllRoomsEvent = (data) {
+      final rooms = (data as Map<String, dynamic>)['allRooms'];
+      if (rooms is List<dynamic>) {
+        setState(() {
+          allRooms
+            ..clear()
+            ..addAll(rooms.whereType<String>());
+        });
+      } else {
+        debugPrint('Unexpected data type: ${data.runtimeType}');
+      }
+    };
+    SocketManager.instance.onEvent('room:all', _onAllRoomsEvent);
   }
 
   void _createRoom() {
@@ -59,16 +68,10 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DrawGameRoomPage(username: widget.username, roomName: roomName),
+        builder: (context) =>
+            DrawGameRoomPage(username: widget.username, roomName: roomName),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    roomController.dispose();
-    SocketManager.instance.off("roomList");
-    super.dispose();
   }
 
   @override
@@ -78,27 +81,34 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
         title: const Text('Select or Create a Room'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: roomController,
               decoration: const InputDecoration(
-                labelText: 'Room Name',
-                hintText: 'Enter a room name...',
+                labelText: 'Nome da sala', // Room Name
+                hintText: 'Insira o nome da sala...', // Enter a room name...
               ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _createRoom,
-              child: const Text('Create Room'),
+              child: const Text('Nova Sala'), // Create Room
             ),
             const SizedBox(height: 16),
-            const Text('Available Rooms:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Salas disponíveis:', // Available Rooms:
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Expanded(
               child: allRooms.isEmpty
-                  ? const Center(child: Text('No rooms available'))
+                  ? const Center(
+                      child: Text(
+                        'Nenhuma sala disponível no momento!',
+                      ),
+                    ) // No rooms available
                   : ListView.builder(
                       itemCount: allRooms.length,
                       itemBuilder: (context, index) {
@@ -107,7 +117,8 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
                           title: Text(roomName),
                           trailing: ElevatedButton(
                             onPressed: () => _joinRoom(roomName),
-                            child: const Text('Join'),
+                            child:
+                                const Text('Entrar na sala'), // Join the room
                           ),
                         );
                       },

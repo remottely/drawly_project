@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:drawing_board/src/src.dart';
+import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -16,27 +17,36 @@ class DrawingBoard extends StatefulWidget {
     required this.roomName,
     required this.word,
     required this.isCurrentDrawer,
-  })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+  })  : assert(
+          username.length >= 3,
+          'The username must be at least 3 characters long',
+        ),
+        assert(
+          roomName.length >= 3,
+          'The roomName must be at least 3 characters long',
+        );
 
   @override
   State<DrawingBoard> createState() => _DrawingBoardState();
 }
 
-class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderStateMixin {
-  final rxCelectedColor = ValueNotifier<Color>(Colors.black);
+class _DrawingBoardState extends State<DrawingBoard>
+    with SingleTickerProviderStateMixin {
+  final canvasGlobalKey = GlobalKey();
+  late UndoRedoStack undoRedoStack;
+  var rxCurrentStroke = CurrentStrokeValueNotifier();
+  final rxSelectedColor = ValueNotifier<Color>(Colors.black);
   final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
   final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
-  final rxEraserSize = ValueNotifier<double>(30.0);
+  // final rxEraserSize = ValueNotifier<double>(30.0);
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
-  final canvasGlobalKey = GlobalKey();
   final rxIsFilled = ValueNotifier<bool>(false);
   final rxPolygonSides = ValueNotifier<int>(3);
   final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
-  final rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
   final rxIsShowGrid = ValueNotifier<bool>(false);
-  late final UndoRedoStack undoRedoStack;
+
+  late final void Function(dynamic) _onNewTurnEvent;
 
   @override
   void initState() {
@@ -45,6 +55,34 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
       rxCurrentStroke: rxCurrentStroke,
       rxAllStrokes: rxAllStrokes,
     );
+    _initializeSocket();
+  }
+
+  @override
+  void dispose() {
+    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
+    super.dispose();
+  }
+
+  void _initializeSocket() {
+    _onNewTurnEvent = (_) {
+      undoRedoStack = UndoRedoStack(
+        rxCurrentStroke: rxCurrentStroke,
+        rxAllStrokes: rxAllStrokes,
+      );
+      rxCurrentStroke = CurrentStrokeValueNotifier();
+      rxSelectedColor.value = Colors.black;
+      rxSelectedColorOpacity.value = 1.0;
+      rxCurrentStrokeSize.value = 10.0;
+      // rxEraserSize.value = 30.0;
+      rxDrawingTool.value = DrawingTool.pencil;
+      rxIsFilled.value = false;
+      rxPolygonSides.value = 3;
+      rxBackgroundImage.value = null;
+      rxAllStrokes.value = [];
+      rxIsShowGrid.value = false;
+    };
+    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
   }
 
   @override
@@ -52,7 +90,9 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: widget.isCurrentDrawer ? AppColors.lightSecondary : AppColors.lightPrimary,
+        backgroundColor: widget.isCurrentDrawer
+            ? AppColors.lightSecondary
+            : AppColors.lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,
@@ -60,10 +100,10 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
             children: [
               CanvasSideBar(
                 rxDrawingTool: rxDrawingTool,
-                rxSelectedColor: rxCelectedColor,
+                rxSelectedColor: rxSelectedColor,
                 rxSelectedColorOpacity: rxSelectedColorOpacity,
                 rxCurrentStrokeSize: rxCurrentStrokeSize,
-                rxEraserSize: rxEraserSize,
+                // rxEraserSize: rxEraserSize,
                 // rxCurrentSketch: rxCurrentStroke,
                 // allSketches: allStrokes,
                 rxIsFilled: rxIsFilled,
@@ -79,17 +119,17 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                 flex: 5,
                 child: AnimatedBuilder(
                   animation: Listenable.merge([
+                    rxDrawingTool,
+                    rxCurrentStrokeSize,
+                    rxSelectedColor,
+                    rxSelectedColorOpacity,
+                    // rxEraserSize,
+                    rxPolygonSides,
+                    rxIsShowGrid,
+                    rxIsFilled,
                     rxCurrentStroke,
                     rxAllStrokes,
-                    rxCelectedColor,
-                    rxSelectedColorOpacity,
-                    rxCurrentStrokeSize,
-                    rxEraserSize,
-                    rxDrawingTool,
-                    rxIsFilled,
-                    rxPolygonSides,
                     rxBackgroundImage,
-                    rxIsShowGrid,
                   ]),
                   builder: (context, _) {
                     return Stack(
@@ -98,7 +138,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                           options: DrawingCanvasOptions(
                             currentTool: rxDrawingTool.value,
                             size: rxCurrentStrokeSize.value,
-                            strokeColor: rxCelectedColor.value,
+                            strokeColor: rxSelectedColor.value,
                             opacity: rxSelectedColorOpacity.value,
                             backgroundColor: kCanvasColor,
                             polygonSides: rxPolygonSides.value,

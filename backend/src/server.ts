@@ -178,17 +178,26 @@ const roomDrawings: { [roomName: string]: Drawing } = {};
 const roomUsers: { [socketId: string]: RoomUserDTO } = {};
 const minimumNumberOfPlayers = 2;
 const wordsList = [
-  "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
-  "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+  "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
+  "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
+  "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 ];
+// const wordsList = [
+//   "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
+//   "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
+// ];
 
 export class RoomManager {
   static emitRoomList(): boolean {
-    return io.emit('roomList', Object.keys(rooms));
+    return io.emit('room:all', {
+      allRooms: Object.keys(rooms)
+    });
   }
 
   static emitParticipantsUpdate(roomName: string): boolean {
-    return io.to(roomName).emit('updateParticipants', rooms[roomName]?.getParticipants() || []);
+    return io.to(roomName).emit('room:participants:update', {
+      participants: rooms[roomName]?.getParticipants() || []
+    });
   }
 
 
@@ -206,13 +215,15 @@ export class RoomManager {
       console.log(`Room ${roomName} does not exist`);
       return;
     }
+    console.log(`Join Room ${roomName} 1`);
 
     const currentRoom = rooms[roomName];
     currentRoom.addParticipant(username);
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, username };
+    console.log(`Join Room ${roomName} 2`);
 
-    io.to(roomName).emit('message:new', { icon: 'info', username, text: "joined" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "entrou" }); // joined
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
@@ -221,7 +232,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { username, roomName }: RoomUserDTO): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'info', username, text: "left" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 
@@ -315,7 +326,7 @@ export class TurnManager {
     const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
     room.currentWord = wordToDraw;
 
-    io.to(roomName).emit('newTurn', {
+    io.to(roomName).emit('turn:new', {
       currentDrawer,
       word: wordToDraw,
       totalDuration: totalDuration * 1000,
@@ -328,7 +339,7 @@ export class TurnManager {
       TurnManager.startTurnTimer(roomName, totalDuration);
     }, totalDuration * 1000);
   }
-};
+}
 
 export class GameManager {
   static startTurns(socket: Socket, { roomName }: RoomDTO): void {
@@ -346,7 +357,8 @@ export class GameManager {
     }
 
     console.log(`Turns manually started for room ${roomName}`);
-    TurnManager.startTurnTimer(roomName, 60);
+    // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
+    TurnManager.startTurnTimer(roomName, 20);
   }
 };
 
@@ -366,7 +378,9 @@ export function handleUserDisconnect(socket: Socket): void {
 // Socket.IO Configuration
 io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
-  socket.emit('roomList', Object.keys(rooms));
+  socket.emit('room:all', {
+    allRooms: Object.keys(rooms)
+  });
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
   socket.on('room:join', (data: RoomUserDTO) => RoomManager.join(socket, data));
@@ -381,7 +395,7 @@ io.on('connection', (socket: Socket): void => {
 
   socket.on('message:send', (data: RoomUserMessageDTO) => MessageActions.send(data));
 
-  socket.on('game:startTurns', (data) => GameManager.startTurns(socket, data));
+  socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
 
   socket.on('disconnect', () => handleUserDisconnect(socket));
 });

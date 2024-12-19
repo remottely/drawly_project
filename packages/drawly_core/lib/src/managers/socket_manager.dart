@@ -5,16 +5,23 @@ import 'package:socket_io_client/socket_io_client.dart' as socket_io_client;
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
 
-  late final socket_io_client.Socket _socket;
-
-  final List<Function(dynamic)> _connectListeners = [];
-  final List<Function(dynamic)> _disconnectListeners = [];
-
   SocketManager._internal() {
     _initializeSocket();
   }
 
   static SocketManager get instance => _instance;
+
+  late final socket_io_client.Socket _socket;
+
+  final Map<String, List<Function(dynamic)>> _eventListeners = {};
+
+  _onConnect() {
+    developer.log('Connected to server');
+  }
+
+  _onDisconnect() {
+    developer.log('Disconnected from server');
+  }
 
   void _initializeSocket() {
     _socket = socket_io_client.io(
@@ -30,33 +37,10 @@ class SocketManager {
     _socket.io.options?['reconnectionDelay'] = 2000;
     _socket.io.options?['reconnectionDelayMax'] = 5000;
 
-    _socket.on('connect', (_) {
-      developer.log('Conectado ao servidor');
-      for (var listener in _connectListeners) {
-        listener(null);
-      }
-    });
+    onEvent('connect', (_) => _onConnect());
+    onEvent('disconnect', (_) => _onDisconnect());
 
-    _socket.on('disconnect', (_) {
-      developer.log('Desconectado do servidor');
-      for (var listener in _disconnectListeners) {
-        listener(null);
-      }
-    });
-
-    _socket.on('reconnect_attempt', (_) {
-      developer.log('Tentando reconectar...');
-    });
-
-    _socket.on('reconnect', (_) {
-      developer.log('Reconectado com sucesso');
-    });
-
-    _socket.on('reconnect_failed', (_) {
-      developer.log('Falha na reconexão');
-    });
-
-    _socket.connect();
+    connect();
   }
 
   void connect() {
@@ -71,29 +55,46 @@ class SocketManager {
     }
   }
 
-  void onConnect(Function(dynamic) callback) {
-    _connectListeners.add(callback);
+  /// Register a callback for a specific event
+  void onEvent(String event, Function(dynamic) callback) {
+    _eventListeners.putIfAbsent(event, () => []);
+
+    // Add the callback to the list
+    _eventListeners[event]!.add(callback);
+
+    // Register the event with the socket only once
+    if (_eventListeners[event]!.length == 1) {
+      _socket.on(event, (data) {
+        for (var listener in _eventListeners[event]!) {
+          listener(data);
+        }
+      });
+    }
   }
 
-  void onDisconnect(Function(dynamic) callback) {
-    _disconnectListeners.add(callback);
+  /// Remove a specific callback from an event
+  void offEvent(String event, Function(dynamic) callback) {
+    if (_eventListeners[event] != null) {
+      _eventListeners[event]!.remove(callback);
+
+      // If no callbacks are left, remove the event listener from the socket
+      if (_eventListeners[event]!.isEmpty) {
+        _eventListeners.remove(event);
+        _socket.off(event);
+      }
+    }
   }
 
+  /// Emit an event to the server
   void emit(String event, dynamic data) {
     _socket.emit(event, data);
   }
 
-  void on(String event, Function(dynamic) callback) {
-    _socket.on(event, callback);
-  }
-
-  void off(String event) {
-    _socket.off(event);
-  }
-
+  /// Clear all listeners (use with caution)
   void clearListeners() {
-    _socket.clearListeners();
-    _connectListeners.clear();
-    _disconnectListeners.clear();
+    _eventListeners.forEach((event, _) {
+      _socket.off(event);
+    });
+    _eventListeners.clear();
   }
 }

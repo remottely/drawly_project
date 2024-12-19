@@ -9,15 +9,25 @@ enum MessageIconType {
 }
 
 class Message extends Equatable {
-  final MessageIconType? icon;
-  final String username;
-  final String text;
-
-  Message({
+  const Message({
     required this.icon,
     required this.username,
     required this.text,
   });
+
+  factory Message.fromJson(Map<String, dynamic> json) {
+    return Message(
+      icon: MessageIconType.values.cast<MessageIconType?>().firstWhere(
+            (e) => e!.name == (json['icon']),
+            orElse: () => null,
+          ),
+      username: json['username'] as String,
+      text: json['text'] as String,
+    );
+  }
+  final MessageIconType? icon;
+  final String username;
+  final String text;
 
   IconData? getIcon() {
     return switch (icon) {
@@ -33,17 +43,6 @@ class Message extends Equatable {
       MessageIconType.check => Colors.green,
       _ => Colors.grey,
     };
-  }
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      icon: MessageIconType.values.cast<MessageIconType?>().firstWhere(
-            (e) => e!.name == (json['icon']),
-            orElse: () => null,
-          ),
-      username: json['username'],
-      text: json['text'],
-    );
   }
 
   Map<String, dynamic> toJson() {

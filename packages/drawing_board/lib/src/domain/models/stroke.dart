@@ -28,7 +28,8 @@ abstract class Stroke {
   factory Stroke.fromJson(Map<String, dynamic> json) {
     final points = (json['points'] as List<dynamic>)
         .map(
-          (point) => Offset((point as List<dynamic>)[0] as double, point[1] as double),
+          (point) =>
+              Offset((point as List<dynamic>)[0] as double, point[1] as double),
         )
         .toList();
     final color = Color(json['color'] as int);

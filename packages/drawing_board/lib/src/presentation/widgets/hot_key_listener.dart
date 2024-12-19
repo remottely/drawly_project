@@ -60,12 +60,14 @@ class _HotkeyListenerState extends State<HotkeyListener> {
   void _handleKey(KeyEvent event) {
     if (event is KeyDownEvent) {
       // when shift is pressed, we want to change the tool
-      if (event.logicalKey == LogicalKeyboardKey.shiftLeft || event.logicalKey == LogicalKeyboardKey.shiftRight) {
+      if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
+          event.logicalKey == LogicalKeyboardKey.shiftRight) {
         widget.onShiftPressed?.call(true);
       }
     } else if (event is KeyUpEvent) {
       // when shift is released, we want to change the tool back to the previous one
-      if (event.logicalKey == LogicalKeyboardKey.shiftLeft || event.logicalKey == LogicalKeyboardKey.shiftRight) {
+      if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
+          event.logicalKey == LogicalKeyboardKey.shiftRight) {
         widget.onShiftPressed?.call(false);
       }
     }

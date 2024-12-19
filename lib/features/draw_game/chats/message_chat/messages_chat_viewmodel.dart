@@ -1,11 +1,14 @@
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
-import 'package:drawly/features/draw_game/chats/models/message.dart';
+import 'package:drawly/features/draw_game/models/message.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 abstract class MessagesChatViewModel extends State<MessagesChatView> {
+  final messageController = TextEditingController();
+  final scrollController = ScrollController();
   final rxAllMessages = ValueNotifier<List<Message>>([]);
-  final TextEditingController messageController = TextEditingController();
+
+  late final void Function(dynamic) _onNewMessageEvent;
 
   @override
   void initState() {
@@ -16,17 +19,16 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
   @override
   void dispose() {
     messageController.dispose();
-    SocketManager.instance.off('message:new');
+    SocketManager.instance.offEvent('message:new', _onNewMessageEvent);
     super.dispose();
   }
 
   void _initializeSocket() {
-    SocketManager.instance.on('message:new', (data) {
-      final message = Message.fromJson(data);
+    _onNewMessageEvent = (data) {
+      final message = Message.fromJson(data as Map<String, dynamic>);
       rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
-    });
-
-    SocketManager.instance.onDisconnect((_) {});
+    };
+    SocketManager.instance.onEvent('message:new', _onNewMessageEvent);
   }
 
   void sendMessage() {

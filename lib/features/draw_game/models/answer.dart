@@ -1,9 +1,7 @@
-import 'package:drawly/features/draw_game/chats/models/message.dart';
+import 'package:drawly/features/draw_game/models/message.dart';
 
 class Answer extends Message {
-  final bool isCorrect;
-
-  Answer({
+  const Answer({
     required super.icon,
     required super.username,
     required super.text,
@@ -17,13 +15,15 @@ class Answer extends Message {
       icon: message.icon,
       username: message.username,
       text: message.text,
-      isCorrect: json['isCorrect'],
+      isCorrect: json['isCorrect'] as bool,
     );
   }
+  final bool isCorrect;
 
   @override
   Map<String, dynamic> toJson() => super.toJson()..['isCorrect'] = isCorrect;
 
+  @override
   Answer copyWith({
     MessageIconType? icon,
     String? username,

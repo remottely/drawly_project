@@ -39,7 +39,9 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Padding(
-        padding: widget.showMinMaxText ? const EdgeInsets.only(left: 15.5, right: 15.5) : EdgeInsets.zero,
+        padding: widget.showMinMaxText
+            ? const EdgeInsets.only(left: 15.5, right: 15.5)
+            : EdgeInsets.zero,
         child: Row(
           children: [
             widget.showMinMaxText
@@ -67,7 +69,8 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
                   ),
                   thumbColor: widget.accentColor,
                   overlayColor: widget.accentColor.withAlpha(32),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
+                  overlayShape:
+                      const RoundSliderOverlayShape(overlayRadius: 28.0),
                   tickMarkShape: const RoundSliderTickMarkShape(),
                   activeTickMarkColor: widget.accentColor,
                   inactiveTickMarkColor: widget.accentColor,
@@ -157,9 +160,13 @@ class CustomSliderThumbCircle extends SliderComponentShape {
       text: getValue(value),
     );
 
-    TextPainter tp = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
+    TextPainter tp = TextPainter(
+        text: span,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr);
     tp.layout();
-    Offset textCenter = Offset(center.dx - (tp.width / 2), center.dy - (tp.height / 2));
+    Offset textCenter =
+        Offset(center.dx - (tp.width / 2), center.dy - (tp.height / 2));
 
     canvas.drawCircle(center, thumbRadius * .7, paint);
     tp.paint(canvas, textCenter);

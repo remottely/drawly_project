@@ -10,7 +10,7 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final TextEditingController usernameController = TextEditingController();
+  final usernameController = TextEditingController();
 
   @override
   void dispose() {
@@ -25,14 +25,14 @@ class _AuthPageState extends State<AuthPage> {
         title: const Text('Login - Pictionary App'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
-                labelText: 'Username',
-                hintText: 'Enter your username...',
+                labelText: 'Apelido', // Nick
+                hintText: 'Insira um apelido', // Enter your nickname
               ),
             ),
             const SizedBox(height: 16),
@@ -43,12 +43,13 @@ class _AuthPageState extends State<AuthPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DrawGameRoomSelectionPage(username: username),
+                      builder: (context) =>
+                          DrawGameRoomSelectionPage(username: username),
                     ),
                   );
                 }
               },
-              child: const Text('Join'),
+              child: const Text('Entrar'), // Join
             ),
           ],
         ),

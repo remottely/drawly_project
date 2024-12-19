@@ -46,10 +46,12 @@ void main() {
       );
     });
 
-    testWidgets('draw stroke with a different color', (WidgetTester tester) async {
+    testWidgets('draw stroke with a different color',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const _Seed(
-          drawingCanvasOptions: DrawingCanvasOptions(strokeColor: AppColors.redAccent),
+          drawingCanvasOptions:
+              DrawingCanvasOptions(strokeColor: AppColors.redAccent),
         ),
       );
       // Simulate drawing

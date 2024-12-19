@@ -6,28 +6,48 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_1.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"],
+      "noDebug": false
     },
     {
       "name": "8082",
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_2.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"],
+      "noDebug": false
     },
     {
       "name": "8083",
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_3.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"],
+      "noDebug": false
     },
     {
       "name": "8084",
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_4.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"]
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"],
+      "noDebug": false
+    },
+    {
+      "name": "8085",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8085"],
+      "noDebug": false
+    },
+    {
+      "name": "8086",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8086"],
+      "noDebug": false
     }
   ],
   "compounds": [
@@ -38,6 +58,10 @@
     {
       "name": "Run 3/4 Instances",
       "configurations": ["8083", "8084"]
+    },
+    {
+      "name": "Run 5/6 Instances",
+      "configurations": ["8085", "8086"]
     },
     {
       "name": "Run All Instances",

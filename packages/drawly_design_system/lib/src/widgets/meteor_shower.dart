@@ -18,7 +18,8 @@ class MeteorShower extends StatefulWidget {
   State<MeteorShower> createState() => _MeteorShowerState();
 }
 
-class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderStateMixin {
+class _MeteorShowerState extends State<MeteorShower>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   List<Meteor> _allMeteors = [];
   final double meteorAngle = pi / 4;
@@ -40,7 +41,8 @@ class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderSt
 
   void _initializeMeteors(Size size) {
     if (_allMeteors.isEmpty) {
-      _allMeteors = List.generate(widget.numberOfMeteors, (_) => Meteor(meteorAngle, size));
+      _allMeteors = List.generate(
+          widget.numberOfMeteors, (_) => Meteor(meteorAngle, size));
     }
   }
 
@@ -59,12 +61,16 @@ class _MeteorShowerState extends State<MeteorShower> with SingleTickerProviderSt
                 animation: _controller,
                 builder: (context, child) {
                   final meteor = _allMeteors[index];
-                  final progress = ((_controller.value - meteor.delay) % 1.0) / meteor.duration;
-                  if (progress < 0 || progress > 1) return const SizedBox.shrink();
+                  final progress = ((_controller.value - meteor.delay) % 1.0) /
+                      meteor.duration;
+                  if (progress < 0 || progress > 1)
+                    return const SizedBox.shrink();
 
                   return Positioned(
-                    left: meteor.startX + (meteor.endX - meteor.startX) * progress,
-                    top: meteor.startY + (meteor.endY - meteor.startY) * progress,
+                    left: meteor.startX +
+                        (meteor.endX - meteor.startX) * progress,
+                    top: meteor.startY +
+                        (meteor.endY - meteor.startY) * progress,
                     child: Opacity(
                       opacity: (1 - progress) * 0.8,
                       child: Transform.rotate(

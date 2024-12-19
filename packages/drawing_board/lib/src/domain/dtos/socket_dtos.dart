@@ -12,10 +12,13 @@ class RoomDrawingDTO extends RoomDTO {
   factory RoomDrawingDTO.fromJson(Map<String, dynamic> json) {
     return RoomDrawingDTO(
       roomName: json['roomName'],
-      strokes: (json['strokes'] as List<dynamic>).map((strokeJson) => Stroke.fromJson(strokeJson)).toList(),
+      strokes: (json['strokes'] as List<dynamic>)
+          .map((strokeJson) => Stroke.fromJson(strokeJson))
+          .toList(),
     );
   }
 
   @override
-  Map<String, dynamic> toJson() => super.toJson()..['strokes'] = strokes.map((stroke) => stroke.toJson()).toList();
+  Map<String, dynamic> toJson() => super.toJson()
+    ..['strokes'] = strokes.map((stroke) => stroke.toJson()).toList();
 }
