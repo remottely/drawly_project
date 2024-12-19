@@ -1,13 +1,15 @@
+import 'dart:developer' as developer;
+
 import 'package:drawly_core/drawly_core.dart';
 
 class Tests {
   static const isTesting = true;
   static void testReconnection() {
-    print("Simulando desconexão...");
+    developer.log('Simulando desconexão...');
     SocketManager.instance.disconnect();
 
-    Future.delayed(Duration(seconds: 2), () {
-      print("Reconectando...");
+    Future.delayed(const Duration(seconds: 2), () {
+      developer.log('Reconectando...');
       SocketManager.instance.connect();
     });
   }

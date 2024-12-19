@@ -19,8 +19,10 @@ class AnswersChatView extends StatefulWidget {
     required this.isGameStarted,
     required this.rxAllAnswers,
     required this.rxIsCurrentUserCorrectAnswer,
-  })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+  })  : assert(username.length >= 3,
+            'The username must be at least 3 characters long'),
+        assert(roomName.length >= 3,
+            'The roomName must be at least 3 characters long');
 
   @override
   State<AnswersChatView> createState() => _AnswersChatViewState();
@@ -45,14 +47,16 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                   builder: (context, _) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (scrollController.hasClients) {
-                        scrollController.jumpTo(scrollController.position.maxScrollExtent);
+                        scrollController
+                            .jumpTo(scrollController.position.maxScrollExtent);
                       }
                     });
                     return ListView.builder(
                       controller: scrollController,
                       itemCount: widget.rxAllAnswers.value.length,
                       itemBuilder: (context, index) {
-                        return _AnswerChatText(answer: widget.rxAllAnswers.value[index]);
+                        return _AnswerChatText(
+                            answer: widget.rxAllAnswers.value[index]);
                       },
                     );
                   },
@@ -67,12 +71,15 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                       : widget.rxIsCurrentUserCorrectAnswer.value
                           ? 'Você acertou!'
                           : 'Responda aqui...',
-                  hintColor: widget.rxIsCurrentUserCorrectAnswer.value ? Colors.green : null,
+                  hintColor: widget.rxIsCurrentUserCorrectAnswer.value
+                      ? Colors.green
+                      : null,
                   leftIcon: Icons.draw,
                   rightIcon: Icons.send,
                   onRightIconPressed: sendAnswer,
-                  disabled:
-                      widget.isCurrentDrawer || !widget.isGameStarted || widget.rxIsCurrentUserCorrectAnswer.value,
+                  disabled: widget.isCurrentDrawer ||
+                      !widget.isGameStarted ||
+                      widget.rxIsCurrentUserCorrectAnswer.value,
                 ),
               ),
             ],

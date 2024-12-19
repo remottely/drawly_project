@@ -20,7 +20,7 @@ class CanvasSideBar extends StatefulWidget {
   final ValueNotifier<Color> rxSelectedColor;
   final ValueNotifier<double> rxSelectedColorOpacity;
   final ValueNotifier<double> rxCurrentStrokeSize;
-  final ValueNotifier<double> rxEraserSize;
+  // final ValueNotifier<double> rxEraserSize;
   final ValueNotifier<DrawingTool> rxDrawingTool;
   final GlobalKey canvasGlobalKey;
   final ValueNotifier<bool> rxIsFilled;
@@ -35,7 +35,7 @@ class CanvasSideBar extends StatefulWidget {
     required this.rxSelectedColor,
     required this.rxSelectedColorOpacity,
     required this.rxCurrentStrokeSize,
-    required this.rxEraserSize,
+    // required this.rxEraserSize,
     required this.rxDrawingTool,
     required this.canvasGlobalKey,
     required this.rxIsFilled,
@@ -59,9 +59,12 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
-    SocketManager.instance.offEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
-    SocketManager.instance.offEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
+    SocketManager.instance
+        .offEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
+    SocketManager.instance
+        .offEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
+    SocketManager.instance
+        .offEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
     super.dispose();
   }
 
@@ -78,9 +81,12 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
   }
 
   void _initializeSocket() {
-    SocketManager.instance.onEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
-    SocketManager.instance.onEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
-    SocketManager.instance.onEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
+    SocketManager.instance
+        .onEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
+    SocketManager.instance
+        .onEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
+    SocketManager.instance
+        .onEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
   }
 
   void _sendClearStrokes() {
@@ -122,7 +128,7 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
           widget.rxSelectedColor,
           widget.rxSelectedColorOpacity,
           widget.rxCurrentStrokeSize,
-          widget.rxEraserSize,
+          // widget.rxEraserSize,
           widget.rxDrawingTool,
           widget.rxIsFilled,
           widget.rxPolygonSides,
@@ -149,7 +155,9 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                       Container(
                         width: 18,
                         height: 2,
-                        color: widget.rxDrawingTool.value == DrawingTool.line ? Colors.grey[900] : Colors.grey,
+                        color: widget.rxDrawingTool.value == DrawingTool.line
+                            ? Colors.grey[900]
+                            : Colors.grey,
                       ),
                     ],
                   ),
@@ -189,8 +197,10 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 8),
+                            overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 16),
                             trackShape: const RectangularSliderTrackShape(),
                           ),
                           child: Slider(
@@ -243,7 +253,9 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                     return _IconBox(
                       iconData: Icons.undo,
                       selected: false,
-                      onTap: strokesNotifier.isNotEmpty ? () => _sendUndoStroke() : null,
+                      onTap: strokesNotifier.isNotEmpty
+                          ? () => _sendUndoStroke()
+                          : null,
                       tooltip: 'Undo',
                     );
                   },
@@ -321,8 +333,10 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 2,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                          thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 8),
+                          overlayShape:
+                              const RoundSliderOverlayShape(overlayRadius: 16),
                           trackShape: const RectangularSliderTrackShape(),
                         ),
                         child: DrawlySliderFb3(
@@ -332,7 +346,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                           onChanged: (value) {
                             widget.rxSelectedColorOpacity.value = value / 100;
                           },
-                          initialValue: widget.rxSelectedColorOpacity.value * 100,
+                          initialValue:
+                              widget.rxSelectedColorOpacity.value * 100,
                           showMinMaxText: false,
                           minMaxTextStyle: const TextStyle(fontSize: 14),
                           accentColor: Colors.blue,
@@ -381,7 +396,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                 _IconBox(
                   iconData: FontAwesomeIcons.ruler,
                   selected: widget.rxIsShowGrid.value,
-                  onTap: () => widget.rxIsShowGrid.value = !widget.rxIsShowGrid.value,
+                  onTap: () =>
+                      widget.rxIsShowGrid.value = !widget.rxIsShowGrid.value,
                   tooltip: 'Guide Lines',
                 ),
                 _IconBox(
@@ -419,7 +435,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
     if (kIsWeb) {
       html.AnchorElement()
         ..href = '${Uri.dataFromBytes(bytes, mimeType: 'image/$extension')}'
-        ..download = 'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension'
+        ..download =
+            'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension'
         ..style.display = 'none'
         ..click();
     } else {
@@ -441,7 +458,9 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
       );
       if (file != null) {
         final filePath = file.files.single.path;
-        final bytes = filePath == null ? file.files.first.bytes : File(filePath).readAsBytesSync();
+        final bytes = filePath == null
+            ? file.files.first.bytes
+            : File(filePath).readAsBytesSync();
         if (bytes != null) {
           completer.complete(decodeImageFromList(bytes));
         } else {
@@ -477,7 +496,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
   }
 
   Future<Uint8List?> getBytes() async {
-    RenderRepaintBoundary boundary = widget.canvasGlobalKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
+    RenderRepaintBoundary boundary = widget.canvasGlobalKey.currentContext
+        ?.findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage();
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List? pngBytes = byteData?.buffer.asUint8List();

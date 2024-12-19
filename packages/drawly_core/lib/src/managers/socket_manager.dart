@@ -5,15 +5,15 @@ import 'package:socket_io_client/socket_io_client.dart' as socket_io_client;
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
 
-  late final socket_io_client.Socket _socket;
-
-  final Map<String, List<Function(dynamic)>> _eventListeners = {};
-
   SocketManager._internal() {
     _initializeSocket();
   }
 
   static SocketManager get instance => _instance;
+
+  late final socket_io_client.Socket _socket;
+
+  final Map<String, List<Function(dynamic)>> _eventListeners = {};
 
   _onConnect() {
     developer.log('Connected to server');

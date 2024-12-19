@@ -17,21 +17,24 @@ class DrawingBoard extends StatefulWidget {
     required this.roomName,
     required this.word,
     required this.isCurrentDrawer,
-  })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+  })  : assert(username.length >= 3,
+            'The username must be at least 3 characters long'),
+        assert(roomName.length >= 3,
+            'The roomName must be at least 3 characters long');
 
   @override
   State<DrawingBoard> createState() => _DrawingBoardState();
 }
 
-class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderStateMixin {
+class _DrawingBoardState extends State<DrawingBoard>
+    with SingleTickerProviderStateMixin {
   final canvasGlobalKey = GlobalKey();
   late UndoRedoStack undoRedoStack;
   var rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxSelectedColor = ValueNotifier<Color>(Colors.black);
   final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
   final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
-  final rxEraserSize = ValueNotifier<double>(30.0);
+  // final rxEraserSize = ValueNotifier<double>(30.0);
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
   final rxIsFilled = ValueNotifier<bool>(false);
   final rxPolygonSides = ValueNotifier<int>(3);
@@ -51,7 +54,8 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('turn:new', (data) => _onNewTurnEvent(data));
+    SocketManager.instance
+        .offEvent('turn:new', (data) => _onNewTurnEvent(data));
     super.dispose();
   }
 
@@ -64,7 +68,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
     rxSelectedColor.value = Colors.black;
     rxSelectedColorOpacity.value = 1.0;
     rxCurrentStrokeSize.value = 10.0;
-    rxEraserSize.value = 30.0;
+    // rxEraserSize.value = 30.0;
     rxDrawingTool.value = DrawingTool.pencil;
     rxIsFilled.value = false;
     rxPolygonSides.value = 3;
@@ -82,7 +86,9 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: widget.isCurrentDrawer ? AppColors.lightSecondary : AppColors.lightPrimary,
+        backgroundColor: widget.isCurrentDrawer
+            ? AppColors.lightSecondary
+            : AppColors.lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,
@@ -93,7 +99,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                 rxSelectedColor: rxSelectedColor,
                 rxSelectedColorOpacity: rxSelectedColorOpacity,
                 rxCurrentStrokeSize: rxCurrentStrokeSize,
-                rxEraserSize: rxEraserSize,
+                // rxEraserSize: rxEraserSize,
                 // rxCurrentSketch: rxCurrentStroke,
                 // allSketches: allStrokes,
                 rxIsFilled: rxIsFilled,
@@ -109,17 +115,17 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                 flex: 5,
                 child: AnimatedBuilder(
                   animation: Listenable.merge([
-                    rxCurrentStroke,
-                    rxAllStrokes,
+                    rxDrawingTool,
+                    rxCurrentStrokeSize,
                     rxSelectedColor,
                     rxSelectedColorOpacity,
-                    rxCurrentStrokeSize,
-                    rxEraserSize,
-                    rxDrawingTool,
-                    rxIsFilled,
+                    // rxEraserSize,
                     rxPolygonSides,
-                    rxBackgroundImage,
                     rxIsShowGrid,
+                    rxIsFilled,
+                    rxCurrentStroke,
+                    rxAllStrokes,
+                    rxBackgroundImage,
                   ]),
                   builder: (context, _) {
                     return Stack(

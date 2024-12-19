@@ -188,7 +188,9 @@ export class RoomManager {
   }
 
   static emitParticipantsUpdate(roomName: string): boolean {
-    return io.to(roomName).emit('room:participants:update', rooms[roomName]?.getParticipants() || []);
+    return io.to(roomName).emit('room:participants:update', {
+      participants: rooms[roomName]?.getParticipants() || []
+    });
   }
 
 

@@ -51,10 +51,13 @@ class ColorPalette extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: color,
                           border: Border.all(
-                            color: selectedColor == color ? Colors.blue : Colors.grey,
+                            color: selectedColor == color
+                                ? Colors.blue
+                                : Colors.grey,
                             width: 1.5,
                           ),
-                          borderRadius: const BorderRadius.all(Radius.circular(5)),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5)),
                         ),
                       ),
                     ),
@@ -72,7 +75,8 @@ class ColorPalette extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: selectedColor,
                         border: Border.all(color: Colors.blue, width: 1.5),
-                        borderRadius: const BorderRadius.all(Radius.circular(5)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5)),
                       ),
                     ),
                   ),

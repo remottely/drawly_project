@@ -3,7 +3,7 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomSelectionPage extends StatefulWidget {
-  const DrawGameRoomSelectionPage({super.key, required this.username});
+  const DrawGameRoomSelectionPage({required this.username, super.key});
 
   final String username;
 
@@ -24,21 +24,25 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   @override
   void dispose() {
     roomController.dispose();
-    SocketManager.instance.offEvent('room:all', (data) => _onAllRoomsEvent(data));
+    SocketManager.instance.offEvent('room:all', _onAllRoomsEvent);
     super.dispose();
   }
 
   void _onAllRoomsEvent(dynamic data) {
-    setState(() {
-      allRooms
-        ..clear()
-        ..addAll(List<String>.from(data));
-    });
+    if (data is List<dynamic>) {
+      setState(() {
+        allRooms
+          ..clear()
+          ..addAll(data.whereType<String>());
+      });
+    } else {
+      debugPrint('Unexpected data type: ${data.runtimeType}');
+    }
   }
 
   void _initializeSocket() {
     SocketManager.instance.connect();
-    SocketManager.instance.onEvent('room:all', (data) => _onAllRoomsEvent(data));
+    SocketManager.instance.onEvent('room:all', _onAllRoomsEvent);
   }
 
   void _createRoom() {
@@ -69,7 +73,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
         title: const Text('Select or Create a Room'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
@@ -85,7 +89,10 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
               child: const Text('Create Room'),
             ),
             const SizedBox(height: 16),
-            const Text('Available Rooms:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Available Rooms:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Expanded(
               child: allRooms.isEmpty

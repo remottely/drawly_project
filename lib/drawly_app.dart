@@ -9,7 +9,7 @@ class DrawlyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Drawly",
+      title: 'Drawly',
       theme: lightTheme,
       home: const AuthPage(),
     );

@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 void main() {
-  testWidgets('HotkeyListener triggers onUndo on Ctrl + Z', (WidgetTester tester) async {
+  testWidgets('HotkeyListener triggers onUndo on Ctrl + Z',
+      (WidgetTester tester) async {
     bool undoCalled = false;
 
     await tester.pumpWidget(
@@ -37,7 +38,8 @@ void main() {
     expect(undoCalled, true);
   });
 
-  testWidgets('HotkeyListener triggers onRedo on Ctrl + Y', (WidgetTester tester) async {
+  testWidgets('HotkeyListener triggers onRedo on Ctrl + Y',
+      (WidgetTester tester) async {
     bool redoCalled = false;
 
     await tester.pumpWidget(
@@ -62,7 +64,8 @@ void main() {
     expect(redoCalled, true);
   });
 
-  testWidgets('HotkeyListener triggers onShiftPressed correctly', (WidgetTester tester) async {
+  testWidgets('HotkeyListener triggers onShiftPressed correctly',
+      (WidgetTester tester) async {
     bool shiftPressed = false;
 
     await tester.pumpWidget(

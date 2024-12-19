@@ -3,28 +3,29 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 0.24.1
+version: 0.24.2
 
 environment:
   sdk: ^3.5.4
 
 dependencies:
-  flutter:
-    sdk: flutter
   drawing_board:
     path: packages/drawing_board
-  drawly_design_system:
-    path: packages/drawly_design_system
   drawly_core:
     path: packages/drawly_core
-  universal_platform: ^1.1.0
-  flutter_inset_box_shadow: ^1.0.8
+  drawly_design_system:
+    path: packages/drawly_design_system
   equatable: ^2.0.7
+  flutter:
+    sdk: flutter
+  flutter_inset_box_shadow: ^1.0.8
+  universal_platform: ^1.1.0
 
 dev_dependencies:
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  very_good_analysis: ^6.0.0
 
 flutter:
   uses-material-design: true

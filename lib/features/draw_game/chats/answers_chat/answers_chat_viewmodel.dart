@@ -16,19 +16,19 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   @override
   void dispose() {
     answerController.dispose();
-    SocketManager.instance.offEvent('answer:new', (data) => _onNewAnswerEvent(data));
+    SocketManager.instance.offEvent('answer:new', _onNewAnswerEvent);
     super.dispose();
   }
 
   void _onNewAnswerEvent(dynamic data) {
-    final answer = Answer.fromJson(data);
+    final answer = Answer.fromJson(data as Map<String, dynamic>);
     widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)..add(answer);
 
     widget.rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
   }
 
   void _initializeSocket() {
-    SocketManager.instance.onEvent('answer:new', (data) => _onNewAnswerEvent(data));
+    SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
   }
 
   void sendAnswer() {

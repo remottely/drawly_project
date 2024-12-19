@@ -25,7 +25,7 @@ class _AuthPageState extends State<AuthPage> {
         title: const Text('Login - Pictionary App'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
@@ -43,7 +43,8 @@ class _AuthPageState extends State<AuthPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DrawGameRoomSelectionPage(username: username),
+                      builder: (context) =>
+                          DrawGameRoomSelectionPage(username: username),
                     ),
                   );
                 }

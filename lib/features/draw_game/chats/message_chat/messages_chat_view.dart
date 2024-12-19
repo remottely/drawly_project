@@ -4,17 +4,18 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class MessagesChatView extends StatefulWidget {
-  final String username;
-  final String roomName;
-  final bool isCurrentDrawer;
-
   const MessagesChatView({
-    super.key,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
-  })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+    super.key,
+  })  : assert(username.length >= 3,
+            'The username must be at least 3 characters long'),
+        assert(roomName.length >= 3,
+            'The roomName must be at least 3 characters long');
+  final String username;
+  final String roomName;
+  final bool isCurrentDrawer;
 
   @override
   State<MessagesChatView> createState() => _MessagesChatViewState();
@@ -32,21 +33,23 @@ class _MessagesChatViewState extends MessagesChatViewModel {
               builder: (context, value, child) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (scrollController.hasClients) {
-                    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+                    scrollController
+                        .jumpTo(scrollController.position.maxScrollExtent);
                   }
                 });
                 return ListView.builder(
                   controller: scrollController,
                   itemCount: value.length,
                   itemBuilder: (context, index) {
-                    return _MessageChatText(message: rxAllMessages.value[index]);
+                    return _MessageChatText(
+                        message: rxAllMessages.value[index]);
                   },
                 );
               },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: DrawlyChatTextField(
               controller: messageController,
               leftIcon: Icons.question_answer,
@@ -62,11 +65,10 @@ class _MessagesChatViewState extends MessagesChatViewModel {
 }
 
 class _MessageChatText extends StatelessWidget {
-  final Message message;
-
   const _MessageChatText({
     required this.message,
   });
+  final Message message;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class _MessageChatText extends StatelessWidget {
     final color = message.getColor();
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: Row(
         children: [
           if (icon != null) ...[
@@ -82,7 +84,7 @@ class _MessageChatText extends StatelessWidget {
               icon,
               color: color,
             ),
-            SizedBox(width: 4)
+            const SizedBox(width: 4),
           ],
           RichText(
             text: TextSpan(
@@ -96,7 +98,7 @@ class _MessageChatText extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: " ${message.text}",
+                  text: ' ${message.text}',
                   style: TextStyle(
                     color: color,
                     fontSize: 16,

@@ -152,7 +152,8 @@
 - [x]  (0.?.0): Bold "username" in the chat.
 - [x] (0.23.1): enhance 
 - [x] (0.24.0): Change the architecture of the way SocketManager manipulates the events, now events are globally registrered only one time and replicate the callbacks across the app using a smart way to call the callbacks.
-- [x] (0.24.1): Bug: Reset all canvas states when the event `turn:new` is triggered.
+- [x] (0.24.1): Bug: Reset all canvas states when the event `turn:new` is triggered
+- [x] (0.24.2): add very_good_analysis to the project
 - [ ]  (0.?.0): Detect inactivity, warn the user, and kick after one minute.
 - [ ]  (0.?.0): Timeout... The answer was: "answer". Next turn for "username".
 - [ ]  (0.?.0): Block chat messages "containing any part of the answer."

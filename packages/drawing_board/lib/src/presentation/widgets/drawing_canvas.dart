@@ -29,7 +29,8 @@ class DrawingCanvas extends StatefulWidget {
           username.length >= 3,
           'The username must be at least 3 characters long',
         ),
-        assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
+        assert(roomName.length >= 3,
+            'The roomName must be at least 3 characters long');
 
   final String username;
   final String roomName;
@@ -59,7 +60,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   @override
   void dispose() {
     SocketManager.instance.offEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance.offEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
+    SocketManager.instance
+        .offEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
     super.dispose();
   }
 
@@ -85,21 +87,28 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     final canvasWidth = _canvasSize;
     final canvasHeight = _canvasSize / (16 / 9);
 
-    return point.dx >= 0 && point.dx <= canvasWidth && point.dy >= 0 && point.dy <= canvasHeight;
+    return point.dx >= 0 &&
+        point.dx <= canvasWidth &&
+        point.dy >= 0 &&
+        point.dy <= canvasHeight;
   }
 
   void onDrawDrawingEvent(dynamic data) {
     developer.log('Draw event received: $data');
 
-    List<Stroke> receivedStrokes = (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
+    List<Stroke> receivedStrokes = (data['strokes'] as List)
+        .map((strokeData) => Stroke.fromJson(strokeData))
+        .toList();
 
     rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-      ..addAll(receivedStrokes.where((stroke) => !rxAllStrokes.value.contains(stroke)));
+      ..addAll(receivedStrokes
+          .where((stroke) => !rxAllStrokes.value.contains(stroke)));
   }
 
   void _initializeSocket() {
     SocketManager.instance.onEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance.onEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
+    SocketManager.instance
+        .onEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
   }
 
   void _sendBufferedPoints() {
@@ -252,7 +261,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           final radius = stroke.size / 2;
           canvas.drawCircle(center, radius, paint..style = PaintingStyle.fill);
         } else {
-          final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+          final path = Path()
+            ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
           for (int i = 1; i < stroke.points.length; i++) {
             path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
           }
@@ -268,7 +278,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           ..strokeJoin = StrokeJoin.round
           ..style = PaintingStyle.stroke;
 
-        final path = Path()..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+        final path = Path()
+          ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
         for (int i = 1; i < stroke.points.length; i++) {
           path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
         }
@@ -288,7 +299,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           final firstPoint = stroke.points.first;
           final lastPoint = stroke.points.last;
           final rect = Rect.fromPoints(firstPoint, lastPoint);
-          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          paint.style =
+              stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
           canvas.drawOval(rect, paint);
         }
       }
@@ -298,7 +310,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           final firstPoint = stroke.points.first;
           final lastPoint = stroke.points.last;
           final rect = Rect.fromPoints(firstPoint, lastPoint);
-          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          paint.style =
+              stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
           canvas.drawRect(rect, paint);
         }
       }
@@ -329,7 +342,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           }
 
           path.close();
-          paint.style = stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
+          paint.style =
+              stroke.filled ? PaintingStyle.fill : PaintingStyle.stroke;
           canvas.drawPath(path, paint);
         }
       }
@@ -363,7 +377,9 @@ class _DrawingCanvasPainter extends CustomPainter {
     }
 
     for (double y = 0; y <= size.height; y += gridSpacing) {
-      for (double subY = y; subY < y + gridSpacing && subY <= size.height; subY += subGridSpacing) {
+      for (double subY = y;
+          subY < y + gridSpacing && subY <= size.height;
+          subY += subGridSpacing) {
         canvas.drawLine(
           Offset(0, subY),
           Offset(size.width, subY),
@@ -373,7 +389,9 @@ class _DrawingCanvasPainter extends CustomPainter {
     }
 
     for (double x = 0; x <= size.width; x += gridSpacing) {
-      for (double subX = x; subX < x + gridSpacing && subX <= size.width; subX += subGridSpacing) {
+      for (double subX = x;
+          subX < x + gridSpacing && subX <= size.width;
+          subX += subGridSpacing) {
         canvas.drawLine(
           Offset(subX, 0),
           Offset(subX, size.height),
