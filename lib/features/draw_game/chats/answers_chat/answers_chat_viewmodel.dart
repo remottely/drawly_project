@@ -7,6 +7,8 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   final answerController = TextEditingController();
   final scrollController = ScrollController();
 
+  late final void Function(dynamic) _onNewAnswerEvent;
+
   @override
   void initState() {
     super.initState();
@@ -20,14 +22,15 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
     super.dispose();
   }
 
-  void _onNewAnswerEvent(dynamic data) {
-    final answer = Answer.fromJson(data as Map<String, dynamic>);
-    widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)..add(answer);
-
-    widget.rxIsCurrentUserCorrectAnswer.value = answer.isCorrect && answer.username == widget.username;
-  }
-
   void _initializeSocket() {
+    _onNewAnswerEvent = (data) {
+      final answer = Answer.fromJson(data as Map<String, dynamic>);
+      widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)
+        ..add(answer);
+
+      widget.rxIsCurrentUserCorrectAnswer.value =
+          answer.isCorrect && answer.username == widget.username;
+    };
     SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
   }
 

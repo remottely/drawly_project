@@ -184,7 +184,9 @@ const wordsList = [
 
 export class RoomManager {
   static emitRoomList(): boolean {
-    return io.emit('room:all', Object.keys(rooms));
+    return io.emit('room:all', {
+      allRooms: Object.keys(rooms)
+    });
   }
 
   static emitParticipantsUpdate(roomName: string): boolean {
@@ -369,7 +371,9 @@ export function handleUserDisconnect(socket: Socket): void {
 // Socket.IO Configuration
 io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
-  socket.emit('room:all', Object.keys(rooms));
+  socket.emit('room:all', {
+    allRooms: Object.keys(rooms)
+  });
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
   socket.on('room:join', (data: RoomUserDTO) => RoomManager.join(socket, data));

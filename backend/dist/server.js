@@ -167,11 +167,15 @@ const wordsList = [
 ];
 class RoomManager {
     static emitRoomList() {
-        return io.emit('room:all', Object.keys(rooms));
+        return io.emit('room:all', {
+            allRooms: Object.keys(rooms)
+        });
     }
     static emitParticipantsUpdate(roomName) {
         var _a;
-        return io.to(roomName).emit('room:participants:update', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []);
+        return io.to(roomName).emit('room:participants:update', {
+            participants: ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []
+        });
     }
     static create({ roomName }) {
         if (!rooms[roomName]) {
@@ -335,7 +339,9 @@ function handleUserDisconnect(socket) {
 // Socket.IO Configuration
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.emit('room:all', Object.keys(rooms));
+    socket.emit('room:all', {
+        allRooms: Object.keys(rooms)
+    });
     socket.on('room:create', (data) => RoomManager.create(data));
     socket.on('room:join', (data) => RoomManager.join(socket, data));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));

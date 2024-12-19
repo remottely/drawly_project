@@ -17,10 +17,14 @@ class DrawingBoard extends StatefulWidget {
     required this.roomName,
     required this.word,
     required this.isCurrentDrawer,
-  })  : assert(username.length >= 3,
-            'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3,
-            'The roomName must be at least 3 characters long');
+  })  : assert(
+          username.length >= 3,
+          'The username must be at least 3 characters long',
+        ),
+        assert(
+          roomName.length >= 3,
+          'The roomName must be at least 3 characters long',
+        );
 
   @override
   State<DrawingBoard> createState() => _DrawingBoardState();
@@ -42,6 +46,8 @@ class _DrawingBoardState extends State<DrawingBoard>
   final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
   final rxIsShowGrid = ValueNotifier<bool>(false);
 
+  late final void Function(dynamic) _onNewTurnEvent;
+
   @override
   void initState() {
     super.initState();
@@ -54,31 +60,29 @@ class _DrawingBoardState extends State<DrawingBoard>
 
   @override
   void dispose() {
-    SocketManager.instance
-        .offEvent('turn:new', (data) => _onNewTurnEvent(data));
+    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
     super.dispose();
   }
 
-  void _onNewTurnEvent(dynamic data) {
-    undoRedoStack = UndoRedoStack(
-      rxCurrentStroke: rxCurrentStroke,
-      rxAllStrokes: rxAllStrokes,
-    );
-    rxCurrentStroke = CurrentStrokeValueNotifier();
-    rxSelectedColor.value = Colors.black;
-    rxSelectedColorOpacity.value = 1.0;
-    rxCurrentStrokeSize.value = 10.0;
-    // rxEraserSize.value = 30.0;
-    rxDrawingTool.value = DrawingTool.pencil;
-    rxIsFilled.value = false;
-    rxPolygonSides.value = 3;
-    rxBackgroundImage.value = null;
-    rxAllStrokes.value = [];
-    rxIsShowGrid.value = false;
-  }
-
   void _initializeSocket() {
-    SocketManager.instance.onEvent('turn:new', (data) => _onNewTurnEvent(data));
+    _onNewTurnEvent = (_) {
+      undoRedoStack = UndoRedoStack(
+        rxCurrentStroke: rxCurrentStroke,
+        rxAllStrokes: rxAllStrokes,
+      );
+      rxCurrentStroke = CurrentStrokeValueNotifier();
+      rxSelectedColor.value = Colors.black;
+      rxSelectedColorOpacity.value = 1.0;
+      rxCurrentStrokeSize.value = 10.0;
+      // rxEraserSize.value = 30.0;
+      rxDrawingTool.value = DrawingTool.pencil;
+      rxIsFilled.value = false;
+      rxPolygonSides.value = 3;
+      rxBackgroundImage.value = null;
+      rxAllStrokes.value = [];
+      rxIsShowGrid.value = false;
+    };
+    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
   }
 
   @override

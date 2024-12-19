@@ -8,6 +8,8 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
   final scrollController = ScrollController();
   final rxAllMessages = ValueNotifier<List<Message>>([]);
 
+  late final void Function(dynamic) _onNewMessageEvent;
+
   @override
   void initState() {
     super.initState();
@@ -21,12 +23,11 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
     super.dispose();
   }
 
-  void _onNewMessageEvent(dynamic data) {
-    final message = Message.fromJson(data as Map<String, dynamic>);
-    rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
-  }
-
   void _initializeSocket() {
+    _onNewMessageEvent = (data) {
+      final message = Message.fromJson(data as Map<String, dynamic>);
+      rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
+    };
     SocketManager.instance.onEvent('message:new', _onNewMessageEvent);
   }
 

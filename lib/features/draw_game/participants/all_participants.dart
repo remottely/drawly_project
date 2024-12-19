@@ -12,6 +12,8 @@ class AllParticipants extends StatefulWidget {
 class _AllParticipantsState extends State<AllParticipants> {
   final rxAllParticipants = ValueNotifier<List<String>>([]);
 
+  late final void Function(dynamic) _onUpdateRoomParticipantsEvent;
+
   @override
   void initState() {
     super.initState();
@@ -20,18 +22,26 @@ class _AllParticipantsState extends State<AllParticipants> {
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('room:participants:update', (data) => _onUpdateRoomParticipantsEvent(data));
+    SocketManager.instance
+        .offEvent('room:participants:update', _onUpdateRoomParticipantsEvent);
     rxAllParticipants.dispose();
     super.dispose();
   }
 
-  void _onUpdateRoomParticipantsEvent(dynamic data) {
-    final List<String> allParticipants = List<String>.from(data);
-    rxAllParticipants.value = allParticipants;
-  }
-
   void _initializeSocket() {
-    SocketManager.instance.onEvent('room:participants:update', (data) => _onUpdateRoomParticipantsEvent(data));
+    _onUpdateRoomParticipantsEvent = (data) {
+      final participants = (data as Map<String, dynamic>)['participants'];
+      if (participants is List<dynamic>) {
+        final allParticipants = participants.whereType<String>().toList();
+        rxAllParticipants.value = allParticipants;
+      } else {
+        debugPrint(
+          'Unexpected data type for participants: ${participants.runtimeType}',
+        );
+      }
+    };
+    SocketManager.instance
+        .onEvent('room:participants:update', _onUpdateRoomParticipantsEvent);
   }
 
   @override
@@ -44,9 +54,8 @@ class _AllParticipantsState extends State<AllParticipants> {
             itemCount: value.length,
             itemBuilder: (context, index) {
               return Wrap(
-                direction: Axis.horizontal,
-                spacing: 8.0,
-                runSpacing: 8.0,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   const Icon(Icons.person),
                   Text(value[index]),

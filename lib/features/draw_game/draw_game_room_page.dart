@@ -1,4 +1,3 @@
-import 'dart:developer' as developer;
 import 'dart:ui';
 
 import 'package:drawing_board/drawing_board.dart';
@@ -40,6 +39,9 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxAllAnswers = ValueNotifier<List<Answer>>([]);
   final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
+  late final void Function(dynamic) _onConnectEvent;
+  late final void Function(dynamic) _onNewTurnEvent;
+
   @override
   void initState() {
     super.initState();
@@ -48,11 +50,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance.offEvent(
-      'turn:new',
-      (data) => _onNewTurnEvent(data as Map<String, dynamic>),
-    );
+    SocketManager.instance.offEvent('connect', _onConnectEvent);
+    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
     _leaveRoom();
     rxCurrentDrawer.dispose();
     rxIsCurrentDrawer.dispose();
@@ -61,35 +60,26 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     super.dispose();
   }
 
-  void _onConnectEvent() {
-    {
-      Tests.createRoom(widget.roomName);
-      _joinGameRoom();
-    }
-  }
-
-  void _onNewTurnEvent(Map<String, dynamic> data) {
-    developer.log('New turn event received: $data');
-
-    rxWord.value = data['word'] as String;
-    rxCurrentDrawer.value = data['currentDrawer'] as String;
-    rxTotalDuration.value = data['totalDuration'] as int;
-    rxTimeLeft.value = data['totalDuration'] as int;
-    rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
-
-    rxAllAnswers.value = [];
-    rxIsCurrentUserCorrectAnswer.value = false;
-
-    startCountdown(rxTotalDuration.value);
-  }
-
   void _initializeSocket() {
     SocketManager.instance.connect();
-    SocketManager.instance.onEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance.onEvent(
-      'turn:new',
-      (data) => _onNewTurnEvent(data as Map<String, dynamic>),
-    );
+    _onConnectEvent = (_) {
+      Tests.createRoom(widget.roomName);
+      _joinGameRoom();
+    };
+    _onNewTurnEvent = (data) {
+      rxWord.value = (data as Map<String, dynamic>)['word'] as String;
+      rxCurrentDrawer.value = data['currentDrawer'] as String;
+      rxTotalDuration.value = data['totalDuration'] as int;
+      rxTimeLeft.value = data['totalDuration'] as int;
+      rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
+
+      rxAllAnswers.value = [];
+      rxIsCurrentUserCorrectAnswer.value = false;
+
+      startCountdown(rxTotalDuration.value);
+    };
+    SocketManager.instance.onEvent('connect', _onConnectEvent);
+    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
   }
 
   void startCountdown(int durationInMs) {
@@ -98,7 +88,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     Future.doWhile(() async {
       if (remaining <= 0) return false;
 
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
       remaining -= 100;
       rxTimeLeft.value = remaining;
 

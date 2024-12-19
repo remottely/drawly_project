@@ -51,6 +51,10 @@ class CanvasSideBar extends StatefulWidget {
 }
 
 abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
+  late final void Function(dynamic) _onClearDrawingEvent;
+  late final void Function(dynamic) _onUndoDrawingEvent;
+  late final void Function(dynamic) _onRedoDrawingEvent;
+
   @override
   void initState() {
     super.initState();
@@ -59,34 +63,25 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
 
   @override
   void dispose() {
-    SocketManager.instance
-        .offEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
-    SocketManager.instance
-        .offEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
-    SocketManager.instance
-        .offEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
+    SocketManager.instance.offEvent('drawing:clear', _onClearDrawingEvent);
+    SocketManager.instance.offEvent('drawing:undo', _onUndoDrawingEvent);
+    SocketManager.instance.offEvent('drawing:redo', _onRedoDrawingEvent);
     super.dispose();
   }
 
-  void _onClearDrawingEvent(dynamic data) {
-    widget.undoRedoStack.clear();
-  }
-
-  void _onUndoDrawingEvent(dynamic data) {
-    widget.undoRedoStack.undo();
-  }
-
-  void _onRedoDrawingEvent(dynamic data) {
-    widget.undoRedoStack.redo();
-  }
-
   void _initializeSocket() {
-    SocketManager.instance
-        .onEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
-    SocketManager.instance
-        .onEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
-    SocketManager.instance
-        .onEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
+    _onClearDrawingEvent = (_) {
+      widget.undoRedoStack.clear();
+    };
+    _onUndoDrawingEvent = (_) {
+      widget.undoRedoStack.undo();
+    };
+    _onRedoDrawingEvent = (_) {
+      widget.undoRedoStack.redo();
+    };
+    SocketManager.instance.onEvent('drawing:clear', _onClearDrawingEvent);
+    SocketManager.instance.onEvent('drawing:undo', _onUndoDrawingEvent);
+    SocketManager.instance.onEvent('drawing:redo', _onRedoDrawingEvent);
   }
 
   void _sendClearStrokes() {
@@ -198,9 +193,11 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                           data: SliderTheme.of(context).copyWith(
                             trackHeight: 2,
                             thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 8),
+                              enabledThumbRadius: 8,
+                            ),
                             overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 16),
+                              overlayRadius: 16,
+                            ),
                             trackShape: const RectangularSliderTrackShape(),
                           ),
                           child: Slider(
@@ -334,7 +331,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 2,
                           thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 8),
+                            enabledThumbRadius: 8,
+                          ),
                           overlayShape:
                               const RoundSliderOverlayShape(overlayRadius: 16),
                           trackShape: const RectangularSliderTrackShape(),

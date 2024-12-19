@@ -29,8 +29,10 @@ class DrawingCanvas extends StatefulWidget {
           username.length >= 3,
           'The username must be at least 3 characters long',
         ),
-        assert(roomName.length >= 3,
-            'The roomName must be at least 3 characters long');
+        assert(
+          roomName.length >= 3,
+          'The roomName must be at least 3 characters long',
+        );
 
   final String username;
   final String roomName;
@@ -51,6 +53,9 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   double get opacity => widget.options.opacity;
   DrawingTool get currentTool => widget.options.currentTool;
 
+  late final void Function(dynamic) _onConnectEvent;
+  late final void Function(dynamic) _onDrawDrawingEvent;
+
   @override
   void initState() {
     super.initState();
@@ -59,14 +64,30 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance
-        .offEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
+    SocketManager.instance.offEvent('connect', _onConnectEvent);
+    SocketManager.instance.offEvent('drawing:draw', _onDrawDrawingEvent);
     super.dispose();
   }
 
-  void _onConnectEvent() {
-    rxAllStrokes.value = [];
+  void _initializeSocket() {
+    _onConnectEvent = (_) {
+      rxAllStrokes.value = [];
+    };
+    _onDrawDrawingEvent = (data) {
+      developer.log('Draw event received: $data');
+
+      List<Stroke> receivedStrokes = (data['strokes'] as List)
+          .map((strokeData) => Stroke.fromJson(strokeData))
+          .toList();
+
+      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+        ..addAll(
+          receivedStrokes
+              .where((stroke) => !rxAllStrokes.value.contains(stroke)),
+        );
+    };
+    SocketManager.instance.onEvent('connect', _onConnectEvent);
+    SocketManager.instance.onEvent('drawing:draw', _onDrawDrawingEvent);
   }
 
   double _calculateScale(BoxConstraints constraints) {
@@ -91,24 +112,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         point.dx <= canvasWidth &&
         point.dy >= 0 &&
         point.dy <= canvasHeight;
-  }
-
-  void onDrawDrawingEvent(dynamic data) {
-    developer.log('Draw event received: $data');
-
-    List<Stroke> receivedStrokes = (data['strokes'] as List)
-        .map((strokeData) => Stroke.fromJson(strokeData))
-        .toList();
-
-    rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-      ..addAll(receivedStrokes
-          .where((stroke) => !rxAllStrokes.value.contains(stroke)));
-  }
-
-  void _initializeSocket() {
-    SocketManager.instance.onEvent('connect', (_) => _onConnectEvent());
-    SocketManager.instance
-        .onEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
   }
 
   void _sendBufferedPoints() {

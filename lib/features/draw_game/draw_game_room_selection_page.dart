@@ -8,12 +8,15 @@ class DrawGameRoomSelectionPage extends StatefulWidget {
   final String username;
 
   @override
-  State<DrawGameRoomSelectionPage> createState() => _DrawGameRoomSelectionPageState();
+  State<DrawGameRoomSelectionPage> createState() =>
+      _DrawGameRoomSelectionPageState();
 }
 
 class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   final roomController = TextEditingController();
   final List<String> allRooms = [];
+
+  late final void Function(dynamic) _onAllRoomsEvent;
 
   @override
   void initState() {
@@ -28,20 +31,20 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     super.dispose();
   }
 
-  void _onAllRoomsEvent(dynamic data) {
-    if (data is List<dynamic>) {
-      setState(() {
-        allRooms
-          ..clear()
-          ..addAll(data.whereType<String>());
-      });
-    } else {
-      debugPrint('Unexpected data type: ${data.runtimeType}');
-    }
-  }
-
   void _initializeSocket() {
     SocketManager.instance.connect();
+    _onAllRoomsEvent = (data) {
+      final rooms = (data as Map<String, dynamic>)['allRooms'];
+      if (rooms is List<dynamic>) {
+        setState(() {
+          allRooms
+            ..clear()
+            ..addAll(rooms.whereType<String>());
+        });
+      } else {
+        debugPrint('Unexpected data type: ${data.runtimeType}');
+      }
+    };
     SocketManager.instance.onEvent('room:all', _onAllRoomsEvent);
   }
 
@@ -61,7 +64,8 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DrawGameRoomPage(username: widget.username, roomName: roomName),
+        builder: (context) =>
+            DrawGameRoomPage(username: widget.username, roomName: roomName),
       ),
     );
   }
