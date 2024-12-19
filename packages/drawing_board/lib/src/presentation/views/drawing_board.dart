@@ -24,19 +24,19 @@ class DrawingBoard extends StatefulWidget {
 }
 
 class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderStateMixin {
-  final rxCelectedColor = ValueNotifier<Color>(Colors.black);
+  final canvasGlobalKey = GlobalKey();
+  late final UndoRedoStack undoRedoStack;
+  final rxSelectedColor = ValueNotifier<Color>(Colors.black);
   final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
   final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
   final rxEraserSize = ValueNotifier<double>(30.0);
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
-  final canvasGlobalKey = GlobalKey();
   final rxIsFilled = ValueNotifier<bool>(false);
   final rxPolygonSides = ValueNotifier<int>(3);
   final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
   final rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
   final rxIsShowGrid = ValueNotifier<bool>(false);
-  late final UndoRedoStack undoRedoStack;
 
   @override
   void initState() {
@@ -60,7 +60,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
             children: [
               CanvasSideBar(
                 rxDrawingTool: rxDrawingTool,
-                rxSelectedColor: rxCelectedColor,
+                rxSelectedColor: rxSelectedColor,
                 rxSelectedColorOpacity: rxSelectedColorOpacity,
                 rxCurrentStrokeSize: rxCurrentStrokeSize,
                 rxEraserSize: rxEraserSize,
@@ -81,7 +81,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                   animation: Listenable.merge([
                     rxCurrentStroke,
                     rxAllStrokes,
-                    rxCelectedColor,
+                    rxSelectedColor,
                     rxSelectedColorOpacity,
                     rxCurrentStrokeSize,
                     rxEraserSize,
@@ -98,7 +98,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                           options: DrawingCanvasOptions(
                             currentTool: rxDrawingTool.value,
                             size: rxCurrentStrokeSize.value,
-                            strokeColor: rxCelectedColor.value,
+                            strokeColor: rxSelectedColor.value,
                             opacity: rxSelectedColorOpacity.value,
                             backgroundColor: kCanvasColor,
                             polygonSides: rxPolygonSides.value,

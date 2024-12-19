@@ -14,7 +14,7 @@ class DrawGameRoomSelectionPage extends StatefulWidget {
 }
 
 class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
-  final TextEditingController roomController = TextEditingController();
+  final roomController = TextEditingController();
   final List<String> allRooms = [];
 
   @override
@@ -26,11 +26,11 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _initializeSocket() {
     SocketManager.instance.connect();
 
-    SocketManager.instance.onConnect((_) {
-      developer.log('Connected to the server');
-    });
+    // SocketManager.instance.onConnect((_) {
+    //   developer.log('Connected to the server');
+    // });
 
-    SocketManager.instance.on('roomList', (data) {
+    SocketManager.instance.on('room:all', (data) {
       setState(() {
         allRooms
           ..clear()
@@ -67,7 +67,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   @override
   void dispose() {
     roomController.dispose();
-    SocketManager.instance.off("roomList");
+    SocketManager.instance.off("room:all");
     super.dispose();
   }
 

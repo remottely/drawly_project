@@ -167,11 +167,11 @@ const wordsList = [
 ];
 class RoomManager {
     static emitRoomList() {
-        return io.emit('roomList', Object.keys(rooms));
+        return io.emit('room:all', Object.keys(rooms));
     }
     static emitParticipantsUpdate(roomName) {
         var _a;
-        return io.to(roomName).emit('updateParticipants', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []);
+        return io.to(roomName).emit('room:participants:update', ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []);
     }
     static create({ roomName }) {
         if (!rooms[roomName]) {
@@ -286,7 +286,6 @@ class TurnManager {
             console.error(`Failed to get the current drawer in room ${roomName}`);
             return;
         }
-        // io.to(roomName).emit('answers:clear');
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         io.to(roomName).emit('turn:new', {
@@ -336,7 +335,7 @@ function handleUserDisconnect(socket) {
 // Socket.IO Configuration
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.emit('roomList', Object.keys(rooms));
+    socket.emit('room:all', Object.keys(rooms));
     socket.on('room:create', (data) => RoomManager.create(data));
     socket.on('room:join', (data) => RoomManager.join(socket, data));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));
@@ -346,7 +345,7 @@ io.on('connection', (socket) => {
     socket.on('drawing:redo', (data) => DrawingActions.redo(data));
     socket.on('answer:send', (data) => AnswerActions.send(socket, data));
     socket.on('message:send', (data) => MessageActions.send(data));
-    socket.on('game:startTurns', (data) => GameManager.startTurns(socket, data));
+    socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });
 // Server startup

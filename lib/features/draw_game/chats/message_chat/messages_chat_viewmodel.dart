@@ -4,9 +4,9 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 abstract class MessagesChatViewModel extends State<MessagesChatView> {
-  final rxAllMessages = ValueNotifier<List<Message>>([]);
-  final TextEditingController messageController = TextEditingController();
+  final messageController = TextEditingController();
   final scrollController = ScrollController();
+  final rxAllMessages = ValueNotifier<List<Message>>([]);
 
   @override
   void initState() {

@@ -184,11 +184,11 @@ const wordsList = [
 
 export class RoomManager {
   static emitRoomList(): boolean {
-    return io.emit('roomList', Object.keys(rooms));
+    return io.emit('room:all', Object.keys(rooms));
   }
 
   static emitParticipantsUpdate(roomName: string): boolean {
-    return io.to(roomName).emit('updateParticipants', rooms[roomName]?.getParticipants() || []);
+    return io.to(roomName).emit('room:participants:update', rooms[roomName]?.getParticipants() || []);
   }
 
 
@@ -367,7 +367,7 @@ export function handleUserDisconnect(socket: Socket): void {
 // Socket.IO Configuration
 io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
-  socket.emit('roomList', Object.keys(rooms));
+  socket.emit('room:all', Object.keys(rooms));
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
   socket.on('room:join', (data: RoomUserDTO) => RoomManager.join(socket, data));
@@ -382,7 +382,7 @@ io.on('connection', (socket: Socket): void => {
 
   socket.on('message:send', (data: RoomUserMessageDTO) => MessageActions.send(data));
 
-  socket.on('game:startTurns', (data) => GameManager.startTurns(socket, data));
+  socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
 
   socket.on('disconnect', () => handleUserDisconnect(socket));
 });

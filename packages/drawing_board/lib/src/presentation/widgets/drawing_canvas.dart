@@ -58,7 +58,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
-    SocketManager.instance.off('connect');
     SocketManager.instance.off('drawing:draw');
     super.dispose();
   }
@@ -85,7 +84,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   }
 
   void _initializeSocket() {
-    SocketManager.instance.on('connect', (_) {
+    SocketManager.instance.onConnect((_) {
       rxAllStrokes.value = [];
     });
 

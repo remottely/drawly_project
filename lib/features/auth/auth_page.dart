@@ -10,7 +10,7 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final TextEditingController usernameController = TextEditingController();
+  final usernameController = TextEditingController();
 
   @override
   void dispose() {

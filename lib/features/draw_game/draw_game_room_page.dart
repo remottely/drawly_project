@@ -194,12 +194,12 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                     DrawlyTitleContainer(
                                       text: 'Current drawer: ${rxCurrentDrawer.value}',
                                     ),
-                                  // Tests.isTesting
-                                  //     ? IconButton(
-                                  //         onPressed: Tests.testReconnection,
-                                  //         icon: const Icon(Icons.wifi_off_sharp),
-                                  //       )
-                                  //     : const SizedBox.shrink(),
+                                  Tests.isTesting
+                                      ? IconButton(
+                                          onPressed: Tests.testReconnection,
+                                          icon: const Icon(Icons.wifi_off_sharp),
+                                        )
+                                      : const SizedBox.shrink(),
                                 ],
                               ),
                               Expanded(
@@ -236,7 +236,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                         ).toJson();
 
                                                         SocketManager.instance.emit(
-                                                          'game:startTurns',
+                                                          'game:turns:start',
                                                           payload,
                                                         );
                                                       },
