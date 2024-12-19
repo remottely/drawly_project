@@ -41,12 +41,12 @@ class _MessagesChatViewState extends MessagesChatViewModel {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: DrawlyIconBorderedTextField(
+            child: DrawlyChatTextField(
               controller: messageController,
               leftIcon: Icons.question_answer,
               rightIcon: Icons.send,
               onRightIconPressed: sendMessage,
-              isBlocked: widget.isCurrentDrawer,
+              disabled: widget.isCurrentDrawer,
             ),
           ),
         ],
@@ -78,11 +78,25 @@ class _MessageChatText extends StatelessWidget {
             ),
             SizedBox(width: 4)
           ],
-          Text(
-            "${message.username}: ${message.text}",
-            style: TextStyle(
-              color: color,
-              fontSize: 16,
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: message.username,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: " ${message.text}",
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

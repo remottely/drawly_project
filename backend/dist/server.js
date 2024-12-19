@@ -198,7 +198,7 @@ class RoomManager {
     static leave(socket, { username, roomName }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'user', username, text: "left" });
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "left" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)

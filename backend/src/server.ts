@@ -108,6 +108,25 @@ export class Room {
   }
 }
 
+export class Message {
+  constructor(
+    public icon: string | null,
+    public username: string,
+    public text: string
+  ) { }
+}
+
+export class Answer extends Message {
+  constructor(
+    icon: string | null,
+    username: string,
+    text: string,
+    public isCorrect: boolean
+  ) {
+    super(icon, username, text);
+  }
+}
+
 // DTOs
 export class RoomDTO {
   constructor(
@@ -153,25 +172,7 @@ export class RoomUserAnswerDTO extends RoomUserDTO {
   }
 }
 
-export class Message {
-  constructor(
-    public icon: string | null,
-    public username: string,
-    public text: string
-  ) { }
-}
-
-export class Answer extends Message {
-  constructor(
-    icon: string | null,
-    username: string,
-    text: string,
-    public isCorrect: boolean
-  ) {
-    super(icon, username, text);
-  }
-}
-
+// Global variables
 const rooms: { [roomName: string]: Room } = {};
 const roomDrawings: { [roomName: string]: Drawing } = {};
 const roomUsers: { [socketId: string]: RoomUserDTO } = {};
@@ -220,7 +221,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { username, roomName }: RoomUserDTO): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'user', username, text: "left" });
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "left" });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 

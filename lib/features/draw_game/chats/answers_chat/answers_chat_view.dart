@@ -46,12 +46,18 @@ class _AnswersChatViewState extends AnswersChatViewModel {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: DrawlyIconBorderedTextField(
+                child: DrawlyChatTextField(
                   controller: answerController,
+                  hintText: widget.isCurrentDrawer
+                      ? ''
+                      : rxIsCurrentUserCorrectAnswer.value
+                          ? 'Você acertou!'
+                          : 'Responda aqui...',
+                  hintColor: rxIsCurrentUserCorrectAnswer.value ? Colors.green : null,
                   leftIcon: Icons.draw,
                   rightIcon: Icons.send,
                   onRightIconPressed: sendAnswer,
-                  isBlocked: widget.isCurrentDrawer || !widget.isGameStarted || rxIsCurrentUserCorrectAnswer.value,
+                  disabled: widget.isCurrentDrawer || !widget.isGameStarted || rxIsCurrentUserCorrectAnswer.value,
                 ),
               ),
             ],
@@ -71,30 +77,6 @@ class _AnswerChatText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final IconData? icon = answer.icon == 'info' ? Icons.info : null;
-    // final Color? color = answer.icon == 'info' ? Colors.blue : null;
-
-    // return Padding(
-    //   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    //   child: Row(
-    //     children: [
-    //       if (icon != null) ...[
-    //         Icon(
-    //           Icons.info,
-    //           color: color,
-    //         ),
-    //         SizedBox(width: 4)
-    //       ],
-    //       Text(
-    //         "${answer.username}: ${answer.isCorrect ? '****' : answer.text}",
-    //         style: TextStyle(
-    //           color: color,
-    //           fontSize: 16,
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // );
     final icon = answer.getIcon();
     final color = answer.getColor();
 
@@ -109,11 +91,25 @@ class _AnswerChatText extends StatelessWidget {
             ),
             SizedBox(width: 4)
           ],
-          Text(
-            "${answer.username}: ${answer.isCorrect ? '****' : answer.text}",
-            style: TextStyle(
-              color: color,
-              fontSize: 16,
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: "${answer.username} ",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 16,
+                  ),
+                ),
+                TextSpan(
+                  text: "${answer.isCorrect ? 'acertou!' : answer.text}",
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

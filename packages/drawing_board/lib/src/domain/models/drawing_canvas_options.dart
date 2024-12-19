@@ -13,11 +13,11 @@ class DrawingCanvasOptions {
   final bool fillShape;
 
   const DrawingCanvasOptions({
-    this.strokeColor = blackAccent,
+    this.strokeColor = AppColors.blackAccent,
     this.size = 10,
     this.opacity = 1,
     this.currentTool = DrawingTool.pencil,
-    this.backgroundColor = lightAccent,
+    this.backgroundColor = AppColors.lightAccent,
     this.showGrid = false,
     this.polygonSides = 3,
     this.fillShape = false,

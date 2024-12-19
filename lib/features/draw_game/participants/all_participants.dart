@@ -41,8 +41,14 @@ class _AllParticipantsState extends State<AllParticipants> {
           return ListView.builder(
             itemCount: value.length,
             itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(value[index]),
+              return Wrap(
+                direction: Axis.horizontal,
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  const Icon(Icons.person),
+                  Text(value[index]),
+                ],
               );
             },
           );

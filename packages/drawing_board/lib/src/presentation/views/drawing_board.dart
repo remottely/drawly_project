@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 class DrawingBoard extends StatefulWidget {
   final String username;
   final String roomName;
+  final String word;
   final bool isCurrentDrawer;
 
   const DrawingBoard({
     super.key,
     required this.username,
     required this.roomName,
+    required this.word,
     required this.isCurrentDrawer,
   })  : assert(username.length >= 3, 'The username must be at least 3 characters long'),
         assert(roomName.length >= 3, 'The roomName must be at least 3 characters long');
@@ -50,7 +52,7 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: widget.isCurrentDrawer ? Colors.red : lightPrimary,
+        backgroundColor: widget.isCurrentDrawer ? AppColors.lightSecondary : AppColors.lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,
@@ -90,23 +92,39 @@ class _DrawingBoardState extends State<DrawingBoard> with SingleTickerProviderSt
                     rxIsShowGrid,
                   ]),
                   builder: (context, _) {
-                    return DrawingCanvas(
-                      options: DrawingCanvasOptions(
-                        currentTool: rxDrawingTool.value,
-                        size: rxCurrentStrokeSize.value,
-                        strokeColor: rxCelectedColor.value,
-                        opacity: rxSelectedColorOpacity.value,
-                        backgroundColor: kCanvasColor,
-                        polygonSides: rxPolygonSides.value,
-                        showGrid: rxIsShowGrid.value,
-                        fillShape: rxIsFilled.value,
-                      ),
-                      rxCurrentStroke: rxCurrentStroke,
-                      rxAllStrokes: rxAllStrokes,
-                      rxBackgroundImage: rxBackgroundImage,
-                      canvasGlobalKey: canvasGlobalKey,
-                      username: widget.username,
-                      roomName: widget.roomName,
+                    return Stack(
+                      children: [
+                        DrawingCanvas(
+                          options: DrawingCanvasOptions(
+                            currentTool: rxDrawingTool.value,
+                            size: rxCurrentStrokeSize.value,
+                            strokeColor: rxCelectedColor.value,
+                            opacity: rxSelectedColorOpacity.value,
+                            backgroundColor: kCanvasColor,
+                            polygonSides: rxPolygonSides.value,
+                            showGrid: rxIsShowGrid.value,
+                            fillShape: rxIsFilled.value,
+                          ),
+                          rxCurrentStroke: rxCurrentStroke,
+                          rxAllStrokes: rxAllStrokes,
+                          rxBackgroundImage: rxBackgroundImage,
+                          canvasGlobalKey: canvasGlobalKey,
+                          username: widget.username,
+                          roomName: widget.roomName,
+                        ),
+                        // Align(
+                        //   alignment: Alignment.topCenter,
+                        //   child: widget.isCurrentDrawer
+                        //       ? DrawlyTitleContainer(
+                        //   text: 'Current drawer: ${rxCurrentDrawer.value}',
+                        // )
+                        //       : const SizedBox.shrink(),
+                        //   // TODO(Kevin): Draw Tip
+                        //   // Center(
+                        //   //   child: Text(widget.word),
+                        //   // ),
+                        // ),
+                      ],
                     );
                   },
                 ),

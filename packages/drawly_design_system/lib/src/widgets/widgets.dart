@@ -1,5 +1,5 @@
 export 'drawly_bar_grid.dart';
+export 'drawly_chat_textfield.dart';
 export 'drawly_container.dart';
-export 'drawly_icon_bordered_textfield.dart';
 export 'drawly_slider_fb3.dart';
 export 'meteor_shower.dart';

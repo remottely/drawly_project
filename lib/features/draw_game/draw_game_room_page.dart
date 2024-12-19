@@ -5,7 +5,7 @@ import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
-import 'package:drawly/tests.dart';
+import 'package:drawly/testing/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +26,8 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
-  final rxWord = ValueNotifier<String>("???");
-  final rxCurrentDrawer = ValueNotifier<String>("Waiting...");
+  final rxWord = ValueNotifier<String>('');
+  final rxCurrentDrawer = ValueNotifier<String>('Waiting...');
   final rxIsCurrentDrawer = ValueNotifier<bool>(false);
   final rxTotalDuration = ValueNotifier<int>(0);
   final rxTimeLeft = ValueNotifier<int>(0);
@@ -124,25 +124,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           ]),
           builder: (context, _) {
             return Scaffold(
-              backgroundColor: rxIsCurrentDrawer.value ? Colors.red : lightPrimary,
-              appBar: AppBar(
-                title: AnimatedBuilder(
-                  animation: Listenable.merge([
-                    rxCurrentDrawer,
-                    rxWord,
-                  ]),
-                  builder: (context, _) {
-                    return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${rxCurrentDrawer.value}' +
-                        ' > Word: ${rxWord.value}');
-                  },
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: Tests.testReconnection,
-                    icon: const Icon(Icons.wifi_off_sharp),
-                  ),
-                ],
-              ),
+              backgroundColor: rxIsCurrentDrawer.value ? AppColors.lightSecondary : AppColors.lightPrimary,
               body: Column(
                 children: [
                   AnimatedBuilder(
@@ -157,7 +139,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                         minHeight: 5,
                         backgroundColor: Colors.grey[300],
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          rxIsCurrentDrawer.value ? Colors.green : Colors.blue,
+                          rxIsCurrentDrawer.value ? AppColors.redAccent : AppColors.blueAccent,
                         ),
                       );
                     },
@@ -165,95 +147,145 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                   Expanded(
                     child: Row(
                       children: [
-                        Expanded(child: AllParticipants()),
                         Expanded(
-                          flex: 6,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            flex: 1,
                             child: Column(
                               children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      DrawingBoard(
-                                        username: widget.username,
-                                        roomName: widget.roomName,
-                                        isCurrentDrawer: rxIsCurrentDrawer.value,
+                                DrawlyFakeAppBar(
+                                  children: [
+                                    Flexible(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: Text(
+                                          '${widget.roomName}',
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                      ValueListenableBuilder(
-                                        valueListenable: rxTotalDuration,
-                                        builder: (context, value, child) {
-                                          return AnimatedOpacity(
-                                            opacity: value == 0 ? 1.0 : 0.0,
-                                            duration: const Duration(milliseconds: 1000),
-                                            child: IgnorePointer(
-                                              ignoring: value != 0,
-                                              child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(10),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.5),
-                                                  ),
-                                                  child: BackdropFilter(
-                                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                                    child: Center(
-                                                      child: ElevatedButton(
-                                                        onPressed: () {
-                                                          final payload = RoomDTO(
-                                                            roomName: widget.roomName,
-                                                          ).toJson();
+                                    ),
+                                  ],
+                                ),
+                                Expanded(
+                                  child: AllParticipants(),
+                                ),
+                              ],
+                            )),
+                        Expanded(
+                          flex: 6,
+                          child: Column(
+                            children: [
+                              DrawlyFakeAppBar(
+                                children: [
+                                  AnimatedBuilder(
+                                    animation: Listenable.merge([
+                                      // rxCurrentDrawer,
+                                      // rxWord,
+                                    ]),
+                                    builder: (context, _) {
+                                      // return Text('Drawly.io > Room - ${widget.roomName} > Current drawer: ${rxCurrentDrawer.value}' +
+                                      //     ' > Word: ${rxWord.value}');
+                                      return rxIsCurrentDrawer.value
+                                          ? DrawlyTitleContainer(
+                                              text: rxWord.value,
+                                            )
+                                          : DrawlyTitleContainer(
+                                              text: 'Current drawer: ${rxCurrentDrawer.value}',
+                                            );
+                                    },
+                                  ),
+                                  // Tests.isTesting
+                                  //     ? IconButton(
+                                  //         onPressed: Tests.testReconnection,
+                                  //         icon: const Icon(Icons.wifi_off_sharp),
+                                  //       )
+                                  //     : const SizedBox.shrink(),
+                                ],
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    DrawingBoard(
+                                      username: widget.username,
+                                      roomName: widget.roomName,
+                                      word: rxWord.value,
+                                      isCurrentDrawer: rxIsCurrentDrawer.value,
+                                    ),
+                                    ValueListenableBuilder(
+                                      valueListenable: rxTotalDuration,
+                                      builder: (context, value, child) {
+                                        return Opacity(
+                                          opacity: value == 0 ? 1.0 : 0.0,
+                                          child: IgnorePointer(
+                                            ignoring: value != 0,
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black.withOpacity(0.5),
+                                                ),
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                                  child: Center(
+                                                    child: ElevatedButton(
+                                                      onPressed: () {
+                                                        final payload = RoomDTO(
+                                                          roomName: widget.roomName,
+                                                        ).toJson();
 
-                                                          SocketManager.instance.emit(
-                                                            'game:startTurns',
-                                                            payload,
-                                                          );
-                                                        },
-                                                        child: const Text("Start Game"),
-                                                      ),
+                                                        SocketManager.instance.emit(
+                                                          'game:startTurns',
+                                                          payload,
+                                                        );
+                                                      },
+                                                      child: const Text("Start Game"),
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: AnimatedBuilder(
-                                    animation: Listenable.merge([
-                                      rxTotalDuration,
-                                      rxWord,
-                                    ]),
-                                    builder: (context, _) {
-                                      return Row(
-                                        children: [
-                                          Expanded(
-                                            child: AnswersChatView(
-                                              username: widget.username,
-                                              roomName: widget.roomName,
-                                              isCurrentDrawer: rxIsCurrentDrawer.value,
-                                              isGameStarted: rxTotalDuration.value != 0 && rxWord.value.isNotEmpty,
-                                            ),
                                           ),
-                                          Expanded(
-                                            child: MessagesChatView(
-                                              username: widget.username,
-                                              roomName: widget.roomName,
-                                              isCurrentDrawer: rxIsCurrentDrawer.value,
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              Expanded(
+                                child: AnimatedBuilder(
+                                  animation: Listenable.merge([
+                                    rxTotalDuration,
+                                    rxWord,
+                                  ]),
+                                  builder: (context, _) {
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          child: AnswersChatView(
+                                            username: widget.username,
+                                            roomName: widget.roomName,
+                                            isCurrentDrawer: rxIsCurrentDrawer.value,
+                                            isGameStarted: rxTotalDuration.value != 0 && rxWord.value.isNotEmpty,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: MessagesChatView(
+                                            username: widget.username,
+                                            roomName: widget.roomName,
+                                            isCurrentDrawer: rxIsCurrentDrawer.value,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -270,6 +302,27 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           child: Center(),
         ),
       ],
+    );
+  }
+}
+
+class DrawlyFakeAppBar extends StatelessWidget {
+  final List<Widget> children;
+
+  const DrawlyFakeAppBar({
+    super.key,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: children,
+      ),
     );
   }
 }

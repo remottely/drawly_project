@@ -1,6 +1,7 @@
 import 'package:drawly_core/drawly_core.dart';
 
 class Tests {
+  static const isTesting = true;
   static void testReconnection() {
     print("Simulando desconexão...");
     SocketManager.instance.disconnect();
