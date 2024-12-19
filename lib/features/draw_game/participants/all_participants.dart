@@ -20,16 +20,18 @@ class _AllParticipantsState extends State<AllParticipants> {
 
   @override
   void dispose() {
-    SocketManager.instance.off('room:participants:update');
+    SocketManager.instance.offEvent('room:participants:update', (data) => _onUpdateRoomParticipantsEvent(data));
     rxAllParticipants.dispose();
     super.dispose();
   }
 
+  void _onUpdateRoomParticipantsEvent(dynamic data) {
+    final List<String> allParticipants = List<String>.from(data);
+    rxAllParticipants.value = allParticipants;
+  }
+
   void _initializeSocket() {
-    SocketManager.instance.on('room:participants:update', (data) {
-      final List<String> allParticipants = List<String>.from(data);
-      rxAllParticipants.value = allParticipants;
-    });
+    SocketManager.instance.onEvent('room:participants:update', (data) => _onUpdateRoomParticipantsEvent(data));
   }
 
   @override

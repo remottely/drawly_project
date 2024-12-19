@@ -17,17 +17,17 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
   @override
   void dispose() {
     messageController.dispose();
-    SocketManager.instance.off('message:new');
+    SocketManager.instance.offEvent('message:new', (data) => _onNewMessageEvent(data));
     super.dispose();
   }
 
-  void _initializeSocket() {
-    SocketManager.instance.on('message:new', (data) {
-      final message = Message.fromJson(data);
-      rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
-    });
+  void _onNewMessageEvent(dynamic data) {
+    final message = Message.fromJson(data);
+    rxAllMessages.value = List.from(rxAllMessages.value)..add(message);
+  }
 
-    SocketManager.instance.onDisconnect((_) {});
+  void _initializeSocket() {
+    SocketManager.instance.onEvent('message:new', (data) => _onNewMessageEvent(data));
   }
 
   void sendMessage() {

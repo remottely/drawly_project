@@ -1,5 +1,3 @@
-import 'dart:developer' as developer;
-
 import 'package:drawly/features/draw_game/draw_game_room_page.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
@@ -23,24 +21,24 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     _initializeSocket();
   }
 
+  @override
+  void dispose() {
+    roomController.dispose();
+    SocketManager.instance.offEvent('room:all', (data) => _onAllRoomsEvent(data));
+    super.dispose();
+  }
+
+  void _onAllRoomsEvent(dynamic data) {
+    setState(() {
+      allRooms
+        ..clear()
+        ..addAll(List<String>.from(data));
+    });
+  }
+
   void _initializeSocket() {
     SocketManager.instance.connect();
-
-    // SocketManager.instance.onConnect((_) {
-    //   developer.log('Connected to the server');
-    // });
-
-    SocketManager.instance.on('room:all', (data) {
-      setState(() {
-        allRooms
-          ..clear()
-          ..addAll(List<String>.from(data));
-      });
-    });
-
-    SocketManager.instance.onDisconnect((_) {
-      developer.log('Disconnected from the server');
-    });
+    SocketManager.instance.onEvent('room:all', (data) => _onAllRoomsEvent(data));
   }
 
   void _createRoom() {
@@ -62,13 +60,6 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
         builder: (context) => DrawGameRoomPage(username: widget.username, roomName: roomName),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    roomController.dispose();
-    SocketManager.instance.off("room:all");
-    super.dispose();
   }
 
   @override

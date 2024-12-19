@@ -59,25 +59,28 @@ abstract class CanvasSideBarViewModel extends State<CanvasSideBar> {
 
   @override
   void dispose() {
-    SocketManager.instance.off('drawing:clear');
-    SocketManager.instance.off('drawing:undo');
-    SocketManager.instance.off('drawing:redo');
-
+    SocketManager.instance.offEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
+    SocketManager.instance.offEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
+    SocketManager.instance.offEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
     super.dispose();
   }
 
+  void _onClearDrawingEvent(dynamic data) {
+    widget.undoRedoStack.clear();
+  }
+
+  void _onUndoDrawingEvent(dynamic data) {
+    widget.undoRedoStack.undo();
+  }
+
+  void _onRedoDrawingEvent(dynamic data) {
+    widget.undoRedoStack.redo();
+  }
+
   void _initializeSocket() {
-    SocketManager.instance.on('drawing:clear', (_) {
-      widget.undoRedoStack.clear();
-    });
-
-    SocketManager.instance.on('drawing:undo', (_) {
-      widget.undoRedoStack.undo();
-    });
-
-    SocketManager.instance.on('drawing:redo', (_) {
-      widget.undoRedoStack.redo();
-    });
+    SocketManager.instance.onEvent('drawing:clear', (data) => _onClearDrawingEvent(data));
+    SocketManager.instance.onEvent('drawing:undo', (data) => _onUndoDrawingEvent(data));
+    SocketManager.instance.onEvent('drawing:redo', (data) => _onRedoDrawingEvent(data));
   }
 
   void _sendClearStrokes() {

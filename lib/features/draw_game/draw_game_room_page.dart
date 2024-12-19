@@ -35,17 +35,16 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxAllAnswers = ValueNotifier<List<Answer>>([]);
   final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
-  // bool _hasJoinedRoom = false;
-
   @override
   void initState() {
     super.initState();
-    _initialize();
+    _initializeSocket();
   }
 
   @override
   void dispose() {
-    SocketManager.instance.off('turn:new');
+    SocketManager.instance.offEvent('connect', (_) => _onConnectEvent());
+    SocketManager.instance.offEvent('turn:new', (data) => _onNewTurnEvent(data));
     _leaveRoom();
     rxCurrentDrawer.dispose();
     rxIsCurrentDrawer.dispose();
@@ -54,35 +53,32 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     super.dispose();
   }
 
-  void _initialize() {
-    _initializeSocket();
+  void _onConnectEvent() {
+    {
+      Tests.createRoom(widget.roomName);
+      _joinGameRoom();
+    }
+  }
+
+  void _onNewTurnEvent(dynamic data) {
+    developer.log("New turn event received: $data");
+
+    rxWord.value = data['word'];
+    rxCurrentDrawer.value = data['currentDrawer'];
+    rxTotalDuration.value = data['totalDuration'];
+    rxTimeLeft.value = data['totalDuration'];
+    rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
+
+    rxAllAnswers.value = [];
+    rxIsCurrentUserCorrectAnswer.value = false;
+
+    startCountdown(rxTotalDuration.value);
   }
 
   void _initializeSocket() {
     SocketManager.instance.connect();
-
-    SocketManager.instance.onConnect((_) {
-      // if (!_hasJoinedRoom) {
-      Tests.createRoom(widget.roomName);
-      _joinGameRoom();
-      // _hasJoinedRoom = true;
-      // }
-    });
-
-    SocketManager.instance.on('turn:new', (data) {
-      developer.log("New turn event received: $data");
-
-      rxWord.value = data['word'];
-      rxCurrentDrawer.value = data['currentDrawer'];
-      rxTotalDuration.value = data['totalDuration'];
-      rxTimeLeft.value = data['totalDuration'];
-      rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
-
-      rxAllAnswers.value = [];
-      rxIsCurrentUserCorrectAnswer.value = false;
-
-      startCountdown(rxTotalDuration.value);
-    });
+    SocketManager.instance.onEvent('connect', (_) => _onConnectEvent());
+    SocketManager.instance.onEvent('turn:new', (data) => _onNewTurnEvent(data));
   }
 
   void startCountdown(int durationInMs) {

@@ -106,6 +106,8 @@
 ### **TODO:**
 
 - [x]  (0.7.2): Stroke transparency.
+- [ ] DETECTAR QUANDO O CLIENTE SAIR DO SITE OU DO APP, PARA QUE TODOS OS LISTENERS DO SOCKET.IO SEJAM FECHADOS DA MANEIRA CORRETA.
+- [ ] MIGRAR TODOS OS EVENTOS PARA ENUMS Q SE TRANSFORMAM EM STRINGS??
 - [ ]  (0.?.0): Sounds.
 - Share:
     - [ ]  (0.?.0): Invite.
@@ -148,7 +150,10 @@
 	- [x] Clean the answers chat each turn.
 	- [x] Message and answer chats should keep the scroll always showing the latest message and add padding to indicate that new messages will appear.
 - [x]  (0.?.0): Bold "username" in the chat.
-- [x] (0.23.1): enhance code
+- [x] (0.23.1): enhance 
+-   (0.24.0):
+	- [x] Change the architecture of the way SocketManager manipulates the events, now events are globally registrered only one time and replicate the callbacks across the app using a smart way to call the callbacks.
+	- [ ] 
 - [ ]  (0.?.0): Detect inactivity, warn the user, and kick after one minute.
 - [ ]  (0.?.0): Timeout... The answer was: "answer". Next turn for "username".
 - [ ]  (0.?.0): Block chat messages "containing any part of the answer."
@@ -198,4 +203,4 @@
     - [ ]  Store all points earned from games completed by the user. These points can be used within the Remottely ecosystem.
 - [ ]  Limit the number of messages each user can send per second or minute.
 - [ ]  Bug: When drawing near the end of the turn timer, strokes are carried over to the next turn.
-- [ ]  Bug: reset all canvas states when turn:new
+- [ ] Bug: Reset all canvas states when the event `turn:new` is triggered.

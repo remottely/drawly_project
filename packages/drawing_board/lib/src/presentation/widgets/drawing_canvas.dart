@@ -58,8 +58,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
-    SocketManager.instance.off('drawing:draw');
+    SocketManager.instance.offEvent('connect', (_) => _onConnectEvent());
+    SocketManager.instance.offEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
     super.dispose();
+  }
+
+  void _onConnectEvent() {
+    rxAllStrokes.value = [];
   }
 
   double _calculateScale(BoxConstraints constraints) {
@@ -83,20 +88,18 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     return point.dx >= 0 && point.dx <= canvasWidth && point.dy >= 0 && point.dy <= canvasHeight;
   }
 
+  void onDrawDrawingEvent(dynamic data) {
+    developer.log('Draw event received: $data');
+
+    List<Stroke> receivedStrokes = (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
+
+    rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+      ..addAll(receivedStrokes.where((stroke) => !rxAllStrokes.value.contains(stroke)));
+  }
+
   void _initializeSocket() {
-    SocketManager.instance.onConnect((_) {
-      rxAllStrokes.value = [];
-    });
-
-    SocketManager.instance.on('drawing:draw', (data) {
-      developer.log('Draw event received: $data');
-
-      List<Stroke> receivedStrokes =
-          (data['strokes'] as List).map((strokeData) => Stroke.fromJson(strokeData)).toList();
-
-      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-        ..addAll(receivedStrokes.where((stroke) => !rxAllStrokes.value.contains(stroke)));
-    });
+    SocketManager.instance.onEvent('connect', (_) => _onConnectEvent());
+    SocketManager.instance.onEvent('drawing:draw', (data) => onDrawDrawingEvent(data));
   }
 
   void _sendBufferedPoints() {
