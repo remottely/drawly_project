@@ -1,3 +1,4 @@
+import 'package:drawly/core/widgets/avatar.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -53,59 +54,53 @@ class _AllParticipantsState extends State<AllParticipants> {
           return ListView.builder(
             itemCount: value.length,
             itemBuilder: (context, index) {
-              return Container(
-                // color: Colors.red,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          const _Picture(),
-                          const SizedBox(width: 6),
-                          Container(
-                            // color: Colors.green,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  value[index],
-                                  style: const TextStyle(
-                                    color: AppColors.greyAccent700,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  '0 pts',
-                                  style: TextStyle(
-                                    color: AppColors.darkBlueAccent,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                const _Host(),
-                                const SizedBox(height: 6),
-                              ],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        const _Picture(),
+                        const SizedBox(width: 6),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              value[index],
+                              style: const TextStyle(
+                                color: AppColors.greyAccent700,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                height: 1,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              '0 pts',
+                              style: TextStyle(
+                                color: AppColors.darkBlueAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                height: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const _Host(),
+                            const SizedBox(height: 6),
+                          ],
+                        ),
+                      ],
                     ),
-                    Divider(
-                      color: AppColors.lightGrey300,
-                      height: 1,
-                    ),
-                  ],
-                ),
+                  ),
+                  Divider(
+                    color: AppColors.lightGrey300,
+                    height: 1,
+                  ),
+                ],
               );
             },
           );
@@ -122,21 +117,7 @@ class _Picture extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.darkBlueAccent,
-              width: 4,
-            ),
-          ),
-          child: const CircleAvatar(
-            backgroundImage: AssetImage('assets/avatars/5.webp'),
-            backgroundColor: Colors.transparent,
-          ),
-        ),
+        const Avatar(),
         Positioned(
           right: 0,
           bottom: 0,

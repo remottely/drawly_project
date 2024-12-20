@@ -4,15 +4,9 @@ import 'package:socket_io_client/socket_io_client.dart' as socket_io_client;
 
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
-
-  SocketManager._internal() {
-    _initializeSocket();
-  }
-
   static SocketManager get instance => _instance;
 
   late final socket_io_client.Socket _socket;
-
   final Map<String, List<Function(dynamic)>> _eventListeners = {};
 
   _onConnect() {
@@ -21,6 +15,10 @@ class SocketManager {
 
   _onDisconnect() {
     developer.log('Disconnected from server');
+  }
+
+  SocketManager._internal() {
+    _initializeSocket();
   }
 
   void _initializeSocket() {
