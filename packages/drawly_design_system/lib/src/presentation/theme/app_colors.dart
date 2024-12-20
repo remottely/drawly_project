@@ -13,9 +13,13 @@ class AppColors {
   static const Color pinkAccent = Color(0xffFF87CF);
   static const Color redAccent = Color(0xffE8464A);
   static const Color greyAccent = Color(0xffA1ACBC);
+  static const Color greyAccent700 = Color.fromARGB(255, 138, 147, 161);
+  static const Color greyAccent900 = Color.fromARGB(255, 73, 78, 85);
   static const Color blackAccent = Color(0xff303337);
   static Color borderColor = blackAccent;
   static Color lightGrey = const Color(0xffF6F6F6);
+  static Color lightGrey300 = const Color.fromARGB(255, 205, 205, 205);
+  static Color white = const Color(0xffFFFFFF);
 
   static final accentColors = [
     greenAccent,

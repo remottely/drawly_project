@@ -1,3 +1,4 @@
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,7 @@ class Message extends Equatable {
     return switch (icon) {
       MessageIconType.info => Colors.blue,
       MessageIconType.check => Colors.green,
-      _ => Colors.grey,
+      _ => AppColors.greyAccent,
     };
   }
 

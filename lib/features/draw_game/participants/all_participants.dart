@@ -53,17 +53,146 @@ class _AllParticipantsState extends State<AllParticipants> {
           return ListView.builder(
             itemCount: value.length,
             itemBuilder: (context, index) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  const Icon(Icons.person),
-                  Text(value[index]),
-                ],
+              return Container(
+                // color: Colors.red,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          const _Picture(),
+                          const SizedBox(width: 6),
+                          Container(
+                            // color: Colors.green,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  value[index],
+                                  style: const TextStyle(
+                                    color: AppColors.greyAccent700,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  '0 pts',
+                                  style: TextStyle(
+                                    color: AppColors.darkBlueAccent,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const _Host(),
+                                const SizedBox(height: 6),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      color: AppColors.lightGrey300,
+                      height: 1,
+                    ),
+                  ],
+                ),
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _Picture extends StatelessWidget {
+  const _Picture();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.darkBlueAccent,
+              width: 4,
+            ),
+          ),
+          child: const CircleAvatar(
+            backgroundImage: AssetImage('assets/avatars/5.webp'),
+            backgroundColor: Colors.transparent,
+          ),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.yellowAccent,
+              border: Border.all(
+                color: AppColors.white,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Host extends StatelessWidget {
+  const _Host();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.blueAccent,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(1),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.emoji_events,
+              color: AppColors.blueAccent,
+              size: 14,
+            ),
+          ),
+          const Text(
+            'Host',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
     );
   }

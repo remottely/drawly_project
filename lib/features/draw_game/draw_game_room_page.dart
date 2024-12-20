@@ -142,7 +142,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                       return LinearProgressIndicator(
                         value: rxTimeLeft.value / rxTotalDuration.value,
                         minHeight: 5,
-                        backgroundColor: Colors.grey[300],
+                        backgroundColor: AppColors.lightGrey300,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           rxIsCurrentDrawer.value
                               ? AppColors.redAccent
@@ -182,7 +182,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                           ),
                         ),
                         Expanded(
-                          flex: 6,
+                          flex: 4,
                           child: Column(
                             children: [
                               DrawlyFakeAppBar(

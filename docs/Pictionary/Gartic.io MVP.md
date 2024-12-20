@@ -10,47 +10,47 @@
 
 ### **V1**
 
-- [x] (0.7.2): Stroke transparency.
-- [x] (0.8.0): Reconnect to the same room after disconnection and retrieve all strokes from the server.
-- [x] (0.8.1): Improve all notifier variable names.
-- [x] (0.8.2): Organize files.
-- [x] (0.9.0): Notify disconnection in the message chat.
-- [x] (0.9.1): Organize backend `server.ts` (part 1).
-- [x] (0.9.2): Organize backend `server.ts` (part 2).
-- [x] (0.9.3): Organize backend `server.ts` (part 3).
-- [x] (0.9.4): Organize backend `server.ts` (part 4).
-- [x] (0.9.5): Organize backend `server.ts` (part 5).
-- [x] (0.9.6): Organize backend `server.ts` (part 6).
-- [x] (0.9.7): Rename `draw_board` package to `drawing_board`.
-- [x] (0.10.0): Implement currentDrawer logic + timer.
-- [x] (0.10.1): Bug: DrawingBoard undo and redo not working.
-- [x] (0.11.0): Clear the board when changing the currentDrawer.
-- [x] (0.11.1): Bug: Hot reload invoking multiple `_joinGameRoom()`.
-- [x] (0.11.2): Bug: Simulating disconnection not working as expected (issue with `definedNumberOfPlayers`).
-- [x] (0.12.0): Implement manual turn start functionality.
-- [x] (0.13.0): Implement random game theme.
-- [x] (0.14.0): Validate answers on the backend and emit the result to the frontend.
-- [x] (0.15.0): Refactor `socket.io` event names.
-- [x] (0.16.0): Display correct answers in green in the chat.
-- [x] (0.17.0): Enhance code, remove unnecessary comments.
-- [x] (0.18.0): Fix CanvasSideBar dynamic height.
-- [x] (0.18.1): Fix message chat.
-- [x] (0.18.2): Enhance code.
-- [x] (0.19.0): Add message icon.
-- [x] (0.19.1): Migrate all backend to OOP.
-- [x] (0.20.0): Add answer icon.
-- [x] (0.21.0): Add keyboard enter to send messages and answers in chat.
-- [x] (0.22.0): Add all socket DTOs.
-- [x] (0.22.1): Enhance the UI
-- [x] (0.23.0): Clean the answers chat each turn. Message and answer chats should keep the scroll always showing the latest message and add padding to indicate that new messages will appear.
-- [x] (0.?.0): Bold "username" in the chat.
-- [x] (0.23.1): enhance the code.
-- [x] (0.24.0): Change the architecture of the way SocketManager manipulates the events, now events are globally registrered only one time and replicate the callbacks across the app using a smart way to call the callbacks.
-- [x] (0.24.1): Bug: Reset all canvas states when the event `turn:new` is triggered
-- [x] (0.24.2): add very_good_analysis to the project
-- [x] (0.24.3): bug: fix all onEvents callback formats
+- [x] (0.7.2) Stroke transparency.
+- [x] (0.8.0) Reconnect to the same room after disconnection and retrieve all strokes from the server.
+- [x] (0.8.1) Improve all notifier variable names.
+- [x] (0.8.2) Organize files.
+- [x] (0.9.0) Notify disconnection in the message chat.
+- [x] (0.9.1) Organize backend `server.ts` (part 1).
+- [x] (0.9.2) Organize backend `server.ts` (part 2).
+- [x] (0.9.3) Organize backend `server.ts` (part 3).
+- [x] (0.9.4) Organize backend `server.ts` (part 4).
+- [x] (0.9.5) Organize backend `server.ts` (part 5).
+- [x] (0.9.6) Organize backend `server.ts` (part 6).
+- [x] (0.9.7) Rename `draw_board` package to `drawing_board`.
+- [x] (0.10.0) Implement currentDrawer logic + timer.
+- [x] (0.10.1) Bug: DrawingBoard undo and redo not working.
+- [x] (0.11.0) Clear the board when changing the currentDrawer.
+- [x] (0.11.1) Bug: Hot reload invoking multiple `_joinGameRoom()`.
+- [x] (0.11.2) Bug: Simulating disconnection not working as expected (issue with `definedNumberOfPlayers`).
+- [x] (0.12.0) Implement manual turn start functionality.
+- [x] (0.13.0) Implement random game theme.
+- [x] (0.14.0) Validate answers on the backend and emit the result to the frontend.
+- [x] (0.15.0) Refactor `socket.io` event names.
+- [x] (0.16.0) Display correct answers in green in the chat.
+- [x] (0.17.0) Enhance code, remove unnecessary comments.
+- [x] (0.18.0) Fix CanvasSideBar dynamic height.
+- [x] (0.18.1) Fix message chat.
+- [x] (0.18.2) Enhance code.
+- [x] (0.19.0) Add message icon.
+- [x] (0.19.1) Migrate all backend to OOP.
+- [x] (0.20.0) Add answer icon.
+- [x] (0.21.0) Add keyboard enter to send messages and answers in chat.
+- [x] (0.22.0) Add all socket DTOs.
+- [x] (0.22.1) Enhance the UI.
+- [x] (0.23.0) Clean the answers chat each turn. Message and answer chats should keep the scroll always showing the latest message and add padding to indicate that new messages will appear.
+- [x] (0.?.0) Bold "username" in the chat.
+- [x] (0.23.1) enhance the code.
+- [x] (0.24.0) Change the architecture of the way SocketManager manipulates the events, now events are globally registrered only one time and replicate the callbacks across the app using a smart way to call the callbacks.
+- [x] (0.24.1) Bug: Reset all canvas states when the event `turn:new` is triggered.
+- [x] (0.24.2) add very_good_analysis to the project.
+- [x] (0.24.3) bug: fix all onEvents callback formats.
 - [x] Manage connection, disconnection, and message events.
-- [x] Create room
+- [x] Create room.
 - [x] List rooms.
 - [x] (0.12.0) Logic to alternate turns.
 - [x] (0.13.0) Choose a word for the drawing player.
@@ -66,10 +66,14 @@
 - [x] (0.13.0) Show who is drawing.
 - [x] (0.10.0) Round timer.
 - [x] (0.?.0) Update hints and answers in real-time.
-- [x] (0.?.0): Validate the minimum number of players to 2 before starts the game.
-- [x] (0.25.0): Put all texts in Portuguese.
-- [ ] (0.?.0): Bug: when a player enter in a room with game already started, appers "start game" on the screen.
-- [ ] (0.?.0): bug with List all rooms when back and enter again in the DrawGameRoomSelectionPage.
+- [x] (0.?.0) Validate the minimum number of players to 2 before starts the game.
+- [x] (0.25.0) Put all texts in Portuguese.
+- [x] (0.26.0) Improve the design of the participants section
+- [ ] (0.?.0) unique avatars.
+- [ ] (0.?.0) Fix problems tab.
+- [ ] (0.?.0) add timer.
+- [ ] (0.?.0) Bug: when a player enter in a room with game already started, appers "start game" on the screen.
+- [ ] (0.?.0) bug with List all rooms when back and enter again in the DrawGameRoomSelectionPage.
 - [ ] (0.?.0) Limit the fixed number of players per room to 6.
 - [ ] (0.?.0) Logic between turns.
 - [ ] (0.?.0) Drawing tools (bucket fill).
@@ -83,44 +87,44 @@
 - [ ] (0.?.0) Configure basic security (e.g., flood protection in chat).
 - [ ] (0.?.0) Implement basic logs for error debugging.
 - [ ] (0.?.0) Test concurrency with multiple users.
-- [ ] (0.?.0): End game when there are no players in the answer chat.
-- [ ] (0.?.0): Bug: `cmd+z` and `cmd+y` do not work on the web. Find a workaround if expected behavior.
-- [ ] (0.?.0): Bug: `shiftLeft` and `shiftRight` do not work.
-- [ ] (0.?.0): Detect when the client leaves the website or app to ensure all **Socket.IO** listeners are properly closed.
-- [ ] (0.?.0): Sounds.
-- [ ] (0.?.0): Close(return).
-- [ ] (0.?.0): Detect inactivity, warn the user, and kick after one minute.
-- [ ] (0.?.0): Add Firebase Authentication (anonymous).
+- [ ] (0.?.0) End game when there are no players in the answer chat.
+- [ ] (0.?.0) Bug: `cmd+z` and `cmd+y` do not work on the web. Find a workaround if expected behavior.
+- [ ] (0.?.0) Bug: `shiftLeft` and `shiftRight` do not work.
+- [ ] (0.?.0) Detect when the client leaves the website or app to ensure all **Socket.IO** listeners are properly closed.
+- [ ] (0.?.0) Sounds.
+- [ ] (0.?.0) Close(return).
+- [ ] (0.?.0) Detect inactivity, warn the user, and kick after one minute.
+- [ ] (0.?.0) Add Firebase Authentication (anonymous).
 - **Answer chat dynamic hint text**:
   - "Answer here..."
   - "Timeout..."
   - "Waiting for the drawing."
-- [ ] (0.?.0): bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
+- [ ] (0.?.0) bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
 
 ---
 
 ### **V2**
 
-- [ ] (0.?.0): Change current drawer from app bar to participants list feedback
-- [ ] (0.?.0): Buffer strokes each 100ms
-- [ ] (0.?.0): Wait 15 seconds to switch rooms.
-- [ ] (0.?.0): Migrate all events to enums that automatically convert to strings.
-- (1.?.0): RedoDraw:
+- [ ] (0.?.0) Change current drawer from app bar to participants list feedback.
+- [ ] (0.?.0) Buffer strokes each 100ms.
+- [ ] (0.?.0) Wait 15 seconds to switch rooms.
+- [ ] (0.?.0) Migrate all events to enums that automatically convert to strings.
+- (1.?.0) RedoDraw:
   - [ ] Retrieve strokes from the server instead of locally.
   - [ ] Fix issues where some redos are lost when someone disconnects.
 - [ ] (1.?.0) Ability to define public or private rooms.
 - [ ] (1.?.0) Limit the number of players per room dynamically.
 - [ ] (1.?.0) Store game data in a database (e.g., historical scores, users).
 - [ ] (1.?.0) Field to create or join private rooms (with room code).
-- [ ] (1.?.0) l10n | i18n
+- [ ] (1.?.0) l10n | i18n.
 - Share:
   - [ ] (0.?.0): Invite.
-  - [ ] (0.?.0): Stream.
-- [ ] (0.?.0): Info.
-- [ ] (0.?.0): Timeout... The answer was: "answer". Next turn for "username".
-- [ ] (0.?.0): Block chat messages "containing any part of the answer."
-- [ ] (0.?.0): Add error handling on the frontend.
-- [ ] (0.?.0): Add Firebase Authentication (email/password).
+  - [ ] (0.?.0) Stream.
+- [ ] (0.?.0) Info.
+- [ ] (0.?.0) Timeout... The answer was: "answer". Next turn for "username".
+- [ ] (0.?.0) Block chat messages "containing any part of the answer."
+- [ ] (0.?.0) Add error handling on the frontend.
+- [ ] (0.?.0) Add Firebase Authentication (email/password).
 - **Answer chat suffix tab button**:
   - Show tab info "Press 'tab' to activate the text."
 - **Message chat dynamic hint text**:
@@ -144,20 +148,21 @@
 - [ ] (2.?.0) Multi-language support.
 - [ ] (2.?.0) Anti-cheat system (block copied answers in chat).
 - [ ] (0.?.0) Social media integration (login and sharing).
-- [ ] (0.?.0): Allow the user to dynamically change the background color.
-- [ ] (0.?.0): Add a rule to prevent users from typing words related to the answer (use AI client-side?).
-- [ ] (0.?.0): Create new themes.
-- [ ] (0.?.0): Favorited rooms.
-- [ ] (0.?.0): Bug: Canvas border should not be dynamic.
-- [ ] (0.?.0): Allow users to create their own games.
-- [ ] (0.?.0): Close answers based on the word.
-- [ ] (0.?.0): Add user avatars.
-- [ ] (0.?.0): Add Firebase Authentication (Google).
+- [ ] (0.?.0) Allow the user to dynamically change the background color.
+- [ ] (0.?.0) Add a rule to prevent users from typing words related to the answer (use AI client-side?).
+- [ ] (0.?.0) Create new themes.
+- [ ] (0.?.0) Favorited rooms.
+- [ ] (0.?.0) Bug: Canvas border should not be dynamic.
+- [ ] (0.?.0) Allow users to create their own games.
+- [ ] (0.?.0) Close answers based on the word.
+- [ ] (0.?.0) Add user avatars.
+- [ ] (0.?.0) Add Firebase Authentication (Google).
 - [ ] Add user profile picture.
 - [ ] Dialog to confirm leaving the room.
-- [ ] Report a drawing
-- [ ] General report functionality
+- [ ] Report a drawing.
+- [ ] General report functionality.
 - [ ] Store all points earned from games completed by the user. These points can be used within the Remottely ecosystem.
 - [ ] Bug: When drawing near the end of the turn timer, strokes are carried over to the next turn.
+- [ ] Daily challenges.
 
 ---

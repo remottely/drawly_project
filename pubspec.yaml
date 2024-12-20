@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 0.25.0
+version: 0.26.0
 
 environment:
   sdk: ^3.5.4
@@ -32,3 +32,4 @@ flutter:
 
   assets:
     - assets/svgs/
+    - assets/avatars/
