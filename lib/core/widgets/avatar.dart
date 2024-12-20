@@ -1,6 +1,5 @@
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Avatar extends StatefulWidget {
   const Avatar({
@@ -15,21 +14,6 @@ class Avatar extends StatefulWidget {
 }
 
 class _AvatarState extends State<Avatar> {
-  String? localAvatar;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSelectedAvatar();
-  }
-
-  Future<void> _loadSelectedAvatar() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      localAvatar = prefs.getString('selected_avatar');
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,8 +27,8 @@ class _AvatarState extends State<Avatar> {
         ),
       ),
       child: CircleAvatar(
-        backgroundImage: widget.backgroundImage ??
-            AssetImage(localAvatar ?? 'assets/avatars/1.webp'),
+        backgroundImage:
+            widget.backgroundImage ?? const AssetImage('assets/avatars/1.webp'),
         backgroundColor: Colors.transparent,
       ),
     );

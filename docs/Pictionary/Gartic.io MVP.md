@@ -69,8 +69,8 @@
 - [x] (0.?.0) Validate the minimum number of players to 2 before starts the game.
 - [x] (0.25.0) Put all texts in Portuguese.
 - [x] (0.26.0) Improve the design of the participants section.
-- [ ] (0.27.0) Implement functionality to select and save an avatar in local storage.
-- [ ] (0.28.0) Retrieve and display the locally stored avatar in the game room.
+- [x] (0.27.0) Implement functionality to select, save and retrieve an avatar in local storage.
+- [x] (0.28.0) Retrieve and display all the participants avatar in the game room.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) Fix problems tab.
 - [ ] (0.?.0) add timer.

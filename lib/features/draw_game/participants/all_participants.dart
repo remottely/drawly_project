@@ -1,4 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:drawly/core/widgets/avatar.dart';
+import 'package:drawly/features/draw_game/models/participants.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,7 @@ class AllParticipants extends StatefulWidget {
 }
 
 class _AllParticipantsState extends State<AllParticipants> {
-  final rxAllParticipants = ValueNotifier<List<String>>([]);
+  final rxAllParticipants = ValueNotifier<List<Participant>>([]);
 
   late final void Function(dynamic) _onUpdateRoomParticipantsEvent;
 
@@ -33,14 +35,26 @@ class _AllParticipantsState extends State<AllParticipants> {
     _onUpdateRoomParticipantsEvent = (data) {
       final participants = (data as Map<String, dynamic>)['participants'];
       if (participants is List<dynamic>) {
-        final allParticipants = participants.whereType<String>().toList();
-        rxAllParticipants.value = allParticipants;
+        try {
+          final allParticipants = participants
+              .map(
+                (participant) =>
+                    Participant.fromJson(participant as Map<String, dynamic>),
+              )
+              .toList();
+
+          rxAllParticipants.value = allParticipants;
+        } catch (e) {
+          debugPrint('Error parsing participants: $e');
+          debugPrint('Participants data: $participants');
+        }
       } else {
         debugPrint(
           'Unexpected data type for participants: ${participants.runtimeType}',
         );
       }
     };
+
     SocketManager.instance
         .onEvent('room:participants:update', _onUpdateRoomParticipantsEvent);
   }
@@ -48,7 +62,7 @@ class _AllParticipantsState extends State<AllParticipants> {
   @override
   Widget build(BuildContext context) {
     return DrawlyContainer(
-      child: ValueListenableBuilder<List<String>>(
+      child: ValueListenableBuilder<List<Participant>>(
         valueListenable: rxAllParticipants,
         builder: (context, value, _) {
           return ListView.builder(
@@ -64,13 +78,15 @@ class _AllParticipantsState extends State<AllParticipants> {
                     ),
                     child: Row(
                       children: [
-                        const _Picture(),
+                        _UserPicture(
+                          userAvatar: value[index].userAvatar,
+                        ),
                         const SizedBox(width: 6),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              value[index],
+                              value[index].username,
                               style: const TextStyle(
                                 color: AppColors.greyAccent700,
                                 fontWeight: FontWeight.bold,
@@ -110,14 +126,19 @@ class _AllParticipantsState extends State<AllParticipants> {
   }
 }
 
-class _Picture extends StatelessWidget {
-  const _Picture();
+class _UserPicture extends StatelessWidget {
+  final String? userAvatar;
+  const _UserPicture({
+    required this.userAvatar,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const Avatar(),
+        Avatar(
+          backgroundImage: userAvatar != null ? AssetImage(userAvatar!) : null,
+        ),
         Positioned(
           right: 0,
           bottom: 0,

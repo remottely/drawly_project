@@ -26,7 +26,7 @@ class _ProfilePickAvatarState extends State<ProfilePickAvatar> {
 
   Future<void> saveImagePath(String path) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('saved_image_path', path);
+    await prefs.setString('user_avatar_path', path);
     setState(() {
       imagePath = path;
     });
@@ -35,7 +35,7 @@ class _ProfilePickAvatarState extends State<ProfilePickAvatar> {
   Future<void> loadImagePath() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      imagePath = prefs.getString('saved_image_path');
+      imagePath = prefs.getString('user_avatar_path');
     });
   }
 
@@ -52,7 +52,7 @@ class _ProfilePickAvatarState extends State<ProfilePickAvatar> {
     return SizedBox(
       child: Column(
         children: [
-          LocalAvatar(imagePath: imagePath),
+          _ProfileAvatar(imagePath: imagePath),
           FloatingActionButton(
             onPressed: pickImage,
             child: const Icon(Icons.image),
@@ -63,10 +63,9 @@ class _ProfilePickAvatarState extends State<ProfilePickAvatar> {
   }
 }
 
-class LocalAvatar extends StatelessWidget {
-  const LocalAvatar({
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({
     required this.imagePath,
-    super.key,
   });
 
   final String? imagePath;

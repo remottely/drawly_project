@@ -22,14 +22,14 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
   Future<void> _loadSelectedAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedAvatar = prefs.getString('selected_avatar');
+      selectedAvatar = prefs.getString('user_avatar_path');
     });
   }
 
   // Salvar o avatar selecionado no armazenamento local
   Future<void> _saveSelectedAvatar(String avatarPath) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_avatar', avatarPath);
+    await prefs.setString('user_avatar_path', avatarPath);
   }
 
   Future<void> showAvatarSelectionDialog(BuildContext context) async {
