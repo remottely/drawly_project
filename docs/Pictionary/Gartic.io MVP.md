@@ -70,7 +70,8 @@
 - [x] (0.25.0) Put all texts in Portuguese.
 - [x] (0.26.0) Improve the design of the participants section.
 - [x] (0.27.0) Implement functionality to select, save and retrieve an avatar in local storage.
-- [x] (0.28.0) Retrieve and display all the participants avatar in the game room.
+- [x] (0.29.0) Retrieve and display all the participants avatar in the game room.
+- [x] (0.29.0) Enhance design system of all app.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) Fix problems tab.
 - [ ] (0.?.0) add timer.

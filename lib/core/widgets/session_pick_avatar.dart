@@ -10,7 +10,7 @@ class SessionPickAvatar extends StatefulWidget {
 }
 
 class _SessionPickAvatarState extends State<SessionPickAvatar> {
-  String? selectedAvatar;
+  String? selectedUserAvatar;
 
   @override
   void initState() {
@@ -18,15 +18,13 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
     _loadSelectedAvatar();
   }
 
-  // Carregar o avatar salvo no armazenamento local
   Future<void> _loadSelectedAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedAvatar = prefs.getString('user_avatar_path');
+      selectedUserAvatar = prefs.getString('user_avatar_path');
     });
   }
 
-  // Salvar o avatar selecionado no armazenamento local
   Future<void> _saveSelectedAvatar(String avatarPath) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_avatar_path', avatarPath);
@@ -55,9 +53,7 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
                   children: List.generate(20, (index) {
                     final avatarPath = 'assets/avatars/${index + 1}.webp';
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop(avatarPath);
-                      },
+                      onTap: () => Navigator.of(context).pop(avatarPath),
                       child: CircleAvatar(
                         backgroundImage: AssetImage(avatarPath),
                         radius: 32,
@@ -74,7 +70,7 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
 
     if (newAvatar != null) {
       setState(() {
-        selectedAvatar = newAvatar;
+        selectedUserAvatar = newAvatar;
       });
       await _saveSelectedAvatar(newAvatar);
     }
@@ -82,26 +78,37 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 400,
-      child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Avatar(
-                backgroundImage:
-                    selectedAvatar != null ? AssetImage(selectedAvatar!) : null,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => showAvatarSelectionDialog(context),
-                child: const Text('Trocar Avatar'),
-              ),
-            ],
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Avatar(
+            size: 128,
+            backgroundImage: selectedUserAvatar != null
+                ? AssetImage(selectedUserAvatar!)
+                : null,
           ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: FloatingActionButton(
+            onPressed: () => showAvatarSelectionDialog(context),
+            backgroundColor: Colors.blue,
+            shape: const CircleBorder(
+              side: BorderSide(
+                color: Colors.white,
+                width: 2,
+              ),
+            ),
+            child: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
