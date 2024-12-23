@@ -80,20 +80,21 @@ class Room {
     constructor(name) {
         this.name = name;
         this.participants = new Set();
+        // chatgpt: adapte esse turnQueue para manipular Participant e nao usernames
         this.turnQueue = [];
         this.currentTurnIndex = 0;
         this.currentWord = null;
     }
     addParticipant(participant) {
         this.participants.add(participant);
-        this.turnQueue.push(participant.username);
+        this.turnQueue.push(participant);
     }
     removeParticipant(username) {
         const participantToRemove = Array.from(this.participants).find((participant) => participant.username === username);
         if (participantToRemove) {
             this.participants.delete(participantToRemove);
+            this.turnQueue = this.turnQueue.filter((participant) => participant.username !== username);
         }
-        this.turnQueue = this.turnQueue.filter((user) => user !== username);
         if (this.currentTurnIndex >= this.turnQueue.length) {
             this.currentTurnIndex = 0;
         }
@@ -102,7 +103,8 @@ class Room {
         return Array.from(this.participants);
     }
     getCurrentDrawer() {
-        return this.turnQueue[this.currentTurnIndex];
+        var _a;
+        return ((_a = this.turnQueue[this.currentTurnIndex]) === null || _a === void 0 ? void 0 : _a.username) || '';
     }
     advanceTurn() {
         this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
@@ -187,7 +189,6 @@ class RoomManager {
             allRooms: Object.keys(rooms)
         });
     }
-    // chatgpt: esse codigo ele emite q objeto json?
     static emitParticipantsUpdate(roomName) {
         var _a;
         return io.to(roomName).emit('room:participants:update', {
@@ -210,8 +211,6 @@ class RoomManager {
         }
         console.log(`Join Room ${roomName} 1`);
         const currentRoom = rooms[roomName];
-        // const participant = new Participant(username, userAvatar, isLogged);
-        // currentRoom.addParticipant(participant);
         currentRoom.addParticipant(new Participant(username, userAvatar, isLogged));
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, username, userAvatar, isLogged };

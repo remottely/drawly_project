@@ -117,9 +117,8 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
                           title: Text(roomName),
                           trailing: ElevatedButton(
                             onPressed: () => _joinRoom(roomName),
-                            child:
-                                const Text('Entrar na sala'), // Join the room
-                          ),
+                            child: const Text('Entrar na sala'),
+                          ), // Join the room
                         );
                       },
                     ),

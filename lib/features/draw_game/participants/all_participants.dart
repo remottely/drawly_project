@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:drawly/core/widgets/avatar.dart';
 import 'package:drawly/features/draw_game/models/participants.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -62,75 +61,82 @@ class _AllParticipantsState extends State<AllParticipants> {
   @override
   Widget build(BuildContext context) {
     return DrawlyContainer(
-      child: ValueListenableBuilder<List<Participant>>(
-        valueListenable: rxAllParticipants,
-        builder: (context, value, _) {
-          return ListView.builder(
-            itemCount: value.length,
-            itemBuilder: (context, index) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        _UserPicture(
-                          userAvatar: value[index].userAvatar,
-                        ),
-                        const SizedBox(width: 6),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              value[index].username,
-                              style: const TextStyle(
-                                color: AppColors.greyAccent700,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                height: 1,
-                              ),
+      child: DrawlyResponsiveFading(
+        child: ValueListenableBuilder<List<Participant>>(
+          valueListenable: rxAllParticipants,
+          builder: (context, value, _) {
+            return ListView.builder(
+              itemCount: value.length,
+              itemBuilder: (context, index) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          _UserPicture(
+                            userAvatar: value[index].userAvatar,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  value[index].username,
+                                  style: const TextStyle(
+                                    color: AppColors.greyAccent700,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    height: 1,
+                                  ),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  '0 pts',
+                                  style: TextStyle(
+                                    color: AppColors.darkBlueAccent,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    height: 1,
+                                  ),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                ),
+                                const SizedBox(height: 4),
+                                const _Host(),
+                                const SizedBox(height: 6),
+                              ],
                             ),
-                            const SizedBox(height: 2),
-                            const Text(
-                              '0 pts',
-                              style: TextStyle(
-                                color: AppColors.darkBlueAccent,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                height: 1,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const _Host(),
-                            const SizedBox(height: 6),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Divider(
-                    color: AppColors.lightGrey300,
-                    height: 1,
-                  ),
-                ],
-              );
-            },
-          );
-        },
+                    Divider(
+                      color: AppColors.lightGrey300,
+                      height: 1,
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 }
 
 class _UserPicture extends StatelessWidget {
-  final String? userAvatar;
   const _UserPicture({
     required this.userAvatar,
   });
+  final String? userAvatar;
 
   @override
   Widget build(BuildContext context) {

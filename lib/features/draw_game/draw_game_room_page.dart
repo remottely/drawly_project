@@ -63,13 +63,13 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
   String? userAvatar;
 
-  Future<void> _loadSelectedAvatar() async {
+  Future<void> as() async {
     final prefs = await SharedPreferences.getInstance();
     userAvatar = prefs.getString('user_avatar_path');
   }
 
   Future<void> _initializeSocket() async {
-    await _loadSelectedAvatar();
+    await as();
     Tests.createRoom(widget.roomName);
     _joinGameRoom();
     _onConnectEvent = (_) {

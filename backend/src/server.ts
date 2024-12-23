@@ -76,7 +76,8 @@ export class Drawing {
 
 export class Room {
   private participants: Set<Participant> = new Set();
-  private turnQueue: string[] = [];
+  // chatgpt: adapte esse turnQueue para manipular Participant e nao usernames
+  private turnQueue: Participant[] = [];
   private currentTurnIndex: number = 0;
   public currentWord: string | null = null;
 
@@ -84,8 +85,9 @@ export class Room {
 
   addParticipant(participant: Participant): void {
     this.participants.add(participant);
-    this.turnQueue.push(participant.username);
+    this.turnQueue.push(participant);
   }
+
 
   removeParticipant(username: string): void {
     const participantToRemove = Array.from(this.participants).find(
@@ -93,8 +95,10 @@ export class Room {
     );
     if (participantToRemove) {
       this.participants.delete(participantToRemove);
+      this.turnQueue = this.turnQueue.filter(
+        (participant) => participant.username !== username
+      );
     }
-    this.turnQueue = this.turnQueue.filter((user) => user !== username);
     if (this.currentTurnIndex >= this.turnQueue.length) {
       this.currentTurnIndex = 0;
     }
@@ -105,7 +109,7 @@ export class Room {
   }
 
   getCurrentDrawer(): string {
-    return this.turnQueue[this.currentTurnIndex];
+    return this.turnQueue[this.currentTurnIndex]?.username || '';
   }
 
   advanceTurn(): void {
@@ -204,7 +208,7 @@ export class RoomManager {
       allRooms: Object.keys(rooms)
     });
   }
-  // chatgpt: esse codigo ele emite q objeto json?
+
   static emitParticipantsUpdate(roomName: string): boolean {
     return io.to(roomName).emit('room:participants:update', {
       participants: rooms[roomName]?.getParticipants() || []
