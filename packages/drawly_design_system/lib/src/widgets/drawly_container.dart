@@ -29,7 +29,7 @@ class DrawlyContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? Colors.white,
         border: Border.all(
-          color: borderColor ?? Colors.grey,
+          color: borderColor ?? AppColors.greyAccent,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(8),

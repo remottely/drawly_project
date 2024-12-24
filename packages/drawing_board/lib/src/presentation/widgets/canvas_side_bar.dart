@@ -151,8 +151,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                         width: 18,
                         height: 2,
                         color: widget.rxDrawingTool.value == DrawingTool.line
-                            ? Colors.grey[900]
-                            : Colors.grey,
+                            ? AppColors.greyAccent900
+                            : AppColors.greyAccent,
                       ),
                     ],
                   ),
@@ -527,7 +527,7 @@ class _IconBox extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: selected ? Colors.grey[900]! : Colors.grey,
+              color: selected ? AppColors.greyAccent900 : AppColors.greyAccent,
               width: 1.5,
             ),
             borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -538,7 +538,8 @@ class _IconBox extends StatelessWidget {
             child: child ??
                 Icon(
                   iconData,
-                  color: selected ? Colors.grey[900] : Colors.grey,
+                  color:
+                      selected ? AppColors.greyAccent900 : AppColors.greyAccent,
                   size: 20,
                 ),
           ),

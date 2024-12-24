@@ -1,3 +1,4 @@
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawlyChatTextField extends StatefulWidget {
@@ -55,15 +56,15 @@ class _DrawlyChatTextFieldState extends State<DrawlyChatTextField> {
         hintStyle: TextStyle(
             color:
                 // widget.disabled
-                //     ? Colors.grey[300]
+                //     ? AppColors.lightGrey300
                 //     :
-                widget.hintColor ?? Colors.grey),
+                widget.hintColor ?? AppColors.greyAccent),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(
-            color: Colors.grey,
+            color: AppColors.greyAccent,
             width: 1.5,
           ),
         ),
@@ -77,22 +78,23 @@ class _DrawlyChatTextFieldState extends State<DrawlyChatTextField> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(
-            color: Colors.grey,
+            color: AppColors.greyAccent,
             width: 1.5,
           ),
         ),
         prefixIcon: Icon(
           widget.leftIcon,
-          color: widget.disabled ? Colors.grey[300] : Colors.grey,
+          color:
+              widget.disabled ? AppColors.lightGrey300 : AppColors.greyAccent,
         ),
         suffixIcon: IconButton(
           icon: Icon(
             widget.rightIcon,
             color: widget.disabled
-                ? Colors.grey[300]
+                ? AppColors.lightGrey300
                 : _focusNode.hasFocus
                     ? Colors.blue
-                    : Colors.grey,
+                    : AppColors.greyAccent,
           ),
           onPressed: widget.onRightIconPressed,
         ),

@@ -24,7 +24,7 @@ class ColorPalette extends StatelessWidget {
     List<Color> allColors = [
       Colors.black,
       Colors.white,
-      Colors.grey,
+      AppColors.greyAccent,
       ...Colors.primaries,
     ];
 
@@ -53,7 +53,7 @@ class ColorPalette extends StatelessWidget {
                           border: Border.all(
                             color: selectedColor == color
                                 ? Colors.blue
-                                : Colors.grey,
+                                : AppColors.greyAccent,
                             width: 1.5,
                           ),
                           borderRadius:

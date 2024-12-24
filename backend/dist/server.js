@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Participant = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 // Dependencies and initial configuration
 const cors_1 = __importDefault(require("cors"));
@@ -80,17 +80,21 @@ class Room {
     constructor(name) {
         this.name = name;
         this.participants = new Set();
+        // chatgpt: adapte esse turnQueue para manipular Participant e nao usernames
         this.turnQueue = [];
         this.currentTurnIndex = 0;
         this.currentWord = null;
     }
-    addParticipant(username) {
-        this.participants.add(username);
-        this.turnQueue.push(username);
+    addParticipant(participant) {
+        this.participants.add(participant);
+        this.turnQueue.push(participant);
     }
     removeParticipant(username) {
-        this.participants.delete(username);
-        this.turnQueue = this.turnQueue.filter((user) => user !== username);
+        const participantToRemove = Array.from(this.participants).find((participant) => participant.username === username);
+        if (participantToRemove) {
+            this.participants.delete(participantToRemove);
+            this.turnQueue = this.turnQueue.filter((participant) => participant.username !== username);
+        }
         if (this.currentTurnIndex >= this.turnQueue.length) {
             this.currentTurnIndex = 0;
         }
@@ -99,7 +103,8 @@ class Room {
         return Array.from(this.participants);
     }
     getCurrentDrawer() {
-        return this.turnQueue[this.currentTurnIndex];
+        var _a;
+        return ((_a = this.turnQueue[this.currentTurnIndex]) === null || _a === void 0 ? void 0 : _a.username) || '';
     }
     advanceTurn() {
         this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
@@ -121,6 +126,14 @@ class Answer extends Message {
     }
 }
 exports.Answer = Answer;
+class Participant {
+    constructor(username, userAvatar, isLogged) {
+        this.username = username;
+        this.userAvatar = userAvatar;
+        this.isLogged = isLogged;
+    }
+}
+exports.Participant = Participant;
 // DTOs
 class RoomDTO {
     constructor(roomName) {
@@ -136,22 +149,26 @@ class RoomDrawingDTO extends RoomDTO {
 }
 exports.RoomDrawingDTO = RoomDrawingDTO;
 class RoomUserDTO extends RoomDTO {
-    constructor(roomName, username) {
+    constructor(roomName, username, userAvatar, isLogged) {
         super(roomName);
         this.username = username;
+        this.userAvatar = userAvatar;
+        this.isLogged = isLogged;
     }
 }
 exports.RoomUserDTO = RoomUserDTO;
-class RoomUserMessageDTO extends RoomUserDTO {
+class RoomUserMessageDTO extends RoomDTO {
     constructor(roomName, username, text) {
-        super(roomName, username);
+        super(roomName);
+        this.username = username;
         this.text = text;
     }
 }
 exports.RoomUserMessageDTO = RoomUserMessageDTO;
-class RoomUserAnswerDTO extends RoomUserDTO {
+class RoomUserAnswerDTO extends RoomDTO {
     constructor(roomName, username, text) {
-        super(roomName, username);
+        super(roomName);
+        this.username = username;
         this.text = text;
     }
 }
@@ -166,10 +183,6 @@ const wordsList = [
     "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
     "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 ];
-// const wordsList = [
-//   "cat", "dog", "house", "car", "tree", "flower", "sun", "moon", "book", "plane",
-//   "river", "mountain", "beach", "fish", "bird", "computer", "phone", "chair", "table",
-// ];
 class RoomManager {
     static emitRoomList() {
         return io.emit('room:all', {
@@ -190,7 +203,7 @@ class RoomManager {
             RoomManager.emitRoomList();
         }
     }
-    static join(socket, { roomName, username }) {
+    static join(socket, { roomName, username, userAvatar, isLogged }) {
         var _a;
         if (!rooms[roomName]) {
             console.log(`Room ${roomName} does not exist`);
@@ -198,16 +211,16 @@ class RoomManager {
         }
         console.log(`Join Room ${roomName} 1`);
         const currentRoom = rooms[roomName];
-        currentRoom.addParticipant(username);
+        currentRoom.addParticipant(new Participant(username, userAvatar, isLogged));
         socket.join(roomName);
-        roomUsers[socket.id] = { roomName, username };
+        roomUsers[socket.id] = { roomName, username, userAvatar, isLogged };
         console.log(`Join Room ${roomName} 2`);
-        io.to(roomName).emit('message:new', { icon: 'info', username, text: "entrou" }); // joined
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "entrou" });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${username} joined room ${roomName}`);
     }
-    static leave(socket, { username, roomName }) {
+    static leave(socket, { roomName, username, userAvatar, isLogged }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
         io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
@@ -287,8 +300,7 @@ class TurnManager {
             console.error(`Room ${roomName} not found.`);
             return;
         }
-        const participants = room.getParticipants();
-        if (participants.length === 0) {
+        if (room.getParticipants().length === 0) {
             console.error(`No participants available in room ${roomName}`);
             return;
         }
@@ -338,9 +350,9 @@ function handleUserDisconnect(socket) {
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }
-    const { roomName, username } = userInfo;
+    const { roomName, username, userAvatar, isLogged } = userInfo;
     console.log(`User ${username} disconnected from room ${roomName}`);
-    RoomManager.leave(socket, { roomName, username });
+    RoomManager.leave(socket, { roomName, username, userAvatar, isLogged });
 }
 ;
 // Socket.IO Configuration

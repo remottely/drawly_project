@@ -9,6 +9,7 @@ import 'package:drawly/testing/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DrawGameRoomPage extends StatefulWidget {
   const DrawGameRoomPage({
@@ -60,7 +61,15 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     super.dispose();
   }
 
-  void _initializeSocket() {
+  String? userAvatar;
+
+  Future<void> as() async {
+    final prefs = await SharedPreferences.getInstance();
+    userAvatar = prefs.getString('user_avatar_path');
+  }
+
+  Future<void> _initializeSocket() async {
+    await as();
     Tests.createRoom(widget.roomName);
     _joinGameRoom();
     _onConnectEvent = (_) {
@@ -100,6 +109,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
       username: widget.username,
+      userAvatar: userAvatar,
+      isLogged: false,
     ).toJson();
 
     SocketManager.instance.emit('room:join', payload);
@@ -109,6 +120,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
       username: widget.username,
+      userAvatar: userAvatar,
+      isLogged: false,
     ).toJson();
 
     SocketManager.instance.emit('room:leave', payload);
@@ -142,7 +155,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                       return LinearProgressIndicator(
                         value: rxTimeLeft.value / rxTotalDuration.value,
                         minHeight: 5,
-                        backgroundColor: Colors.grey[300],
+                        backgroundColor: AppColors.lightGrey300,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           rxIsCurrentDrawer.value
                               ? AppColors.redAccent
@@ -182,7 +195,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                           ),
                         ),
                         Expanded(
-                          flex: 6,
+                          flex: 4,
                           child: Column(
                             children: [
                               DrawlyFakeAppBar(
