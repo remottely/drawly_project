@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 // import 'dart:ui' as ui;
 
 import 'package:drawly/core/widgets/session_pick_avatar.dart';
@@ -326,7 +327,6 @@ class _TextRotateDemoState extends State<TextRotateDemo> {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      ignoring: true,
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -344,7 +344,9 @@ class _TextRotateDemoState extends State<TextRotateDemo> {
                           text: 'Desenhe, adivinhe e se divirta como nunca',
                           radius: 250,
                           textStyle: TextStyle(
-                              fontSize: 18, color: AppColors.darkBlueAccent),
+                            fontSize: 18,
+                            color: AppColors.darkBlueAccent,
+                          ),
                           rotationDuration: Duration(seconds: 120),
                         ),
                       ),
@@ -414,7 +416,7 @@ class NeumorphicValidationFieldState extends State<NeumorphicValidationField> {
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           labelText: widget.labelText,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             fontSize: 16,
             color: AppColors.greyAccent,
             fontWeight: FontWeight.bold,
@@ -427,7 +429,7 @@ class NeumorphicValidationFieldState extends State<NeumorphicValidationField> {
           disabledBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
           filled: false,
-          hintStyle: TextStyle(
+          hintStyle: const TextStyle(
             fontSize: 16,
             color: AppColors.greyAccent,
             fontWeight: FontWeight.bold,
@@ -456,12 +458,12 @@ class NeumorphicValidationFieldState extends State<NeumorphicValidationField> {
 
 class PrimaryContainer extends StatelessWidget {
   const PrimaryContainer({
+    required this.child,
     super.key,
     this.radius,
     this.color,
-    required this.child,
   });
-  
+
   final double? radius;
   final Color? color;
   final Widget child;
@@ -478,8 +480,6 @@ class PrimaryContainer extends StatelessWidget {
           const BoxShadow(
             offset: Offset(2, 2),
             blurRadius: 4,
-            spreadRadius: 0,
-            color: Colors.black,
             inset: true,
           ),
         ],
@@ -546,95 +546,100 @@ class _RotatingTextWidgetState extends State<RotatingTextWidget>
 }
 
 class _CircularTextPainter extends CustomPainter {
-  final String text;
-  final double radius;
-  final TextStyle textStyle;
-  final double progress;
-
   _CircularTextPainter({
     required this.text,
     required this.radius,
     required this.textStyle,
     required this.progress,
   });
+  final String text;
+  final double radius;
+  final TextStyle textStyle;
+  final double progress;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double centerX = size.width / 2;
-    final double centerY = size.height / 2;
-    const double totalAngle = 2 * math.pi;
-    double startAngle = -math.pi / 2 + (progress * totalAngle);
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    const totalAngle = 2 * math.pi;
+    var startAngle = -math.pi / 2 + (progress * totalAngle);
 
-    // Calculate the total width of the text and dot
-    double textWidth = _calculateTextWidth(text);
-    double dotWidth = textStyle.fontSize!;
-    double totalWidth = textWidth + dotWidth;
+    // Calculate text and dot dimensions
+    final textWidth = _calculateTextWidth(text);
+    final dotWidth = textStyle.fontSize!;
+    final totalWidth = textWidth + dotWidth;
 
-    // Calculate how many times the text can fit
-    int repetitions = (totalAngle * radius / totalWidth).floor();
-    repetitions = math.max(1, repetitions); // Ensure at least one repetition
+    // Determine the number of repetitions
+    var repetitions = (totalAngle * radius / totalWidth).floor();
+    repetitions = math.max(1, repetitions);
 
-    double segmentAngle = totalAngle / repetitions;
-    double textAngle = (textWidth / totalWidth) * segmentAngle;
-    double dotAngle = segmentAngle - textAngle;
+    // Compute segment, text, and dot angles
+    final segmentAngle = totalAngle / repetitions;
+    final textAngle = (textWidth / totalWidth) * segmentAngle;
+    final dotAngle = segmentAngle - textAngle;
 
-    for (int rep = 0; rep < repetitions; rep++) {
-      // Draw the dot before the text
+    for (var rep = 0; rep < repetitions; rep++) {
+      // Draw dot
       _drawDot(canvas, centerX, centerY, startAngle, radius);
 
-      // Adjust the start angle for the text to come after the dot
-      // double textStartAngle = startAngle + dotAngle;
-      double textStartAngle = startAngle + dotAngle / 2; //+ 1.5 * dotAngle;
+      // Draw text
+      _drawCircularText(
+        canvas,
+        centerX,
+        centerY,
+        startAngle + dotAngle / 2,
+        textAngle,
+        radius,
+      );
 
-      // Pre-calculate character widths and total width
-      List<double> charWidths = [];
-      double totalCharWidth = 0;
-      for (int i = 0; i < text.length; i++) {
-        final textSpan = TextSpan(text: text[i], style: textStyle);
-        final textPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        charWidths.add(textPainter.width);
-        totalCharWidth += textPainter.width;
-      }
-
-      // Draw the text
-      double currentAngle = textStartAngle;
-      for (int i = 0; i < text.length; i++) {
-        final textSpan = TextSpan(text: text[i], style: textStyle);
-        final textPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-
-        // Calculate the proportion of the total angle this character should occupy
-        double charProportion = charWidths[i] / totalCharWidth;
-        double charAngle = textAngle * charProportion;
-
-        // Center the character within its allocated angle
-        double charCenterAngle = currentAngle + (charAngle / 2);
-
-        final x = centerX + radius * math.cos(charCenterAngle);
-        final y = centerY + radius * math.sin(charCenterAngle);
-
-        canvas.save();
-        canvas.translate(x, y);
-        canvas.rotate(charCenterAngle + math.pi / 2);
-
-        textPainter.paint(
-            canvas, Offset(-charWidths[i] / 2, -textPainter.height / 2));
-
-        canvas.restore();
-
-        // Update the angle for the next character
-        currentAngle += charAngle;
-      }
-
-      // Update the start angle for the next repetition
+      // Move to the next segment
       startAngle += segmentAngle;
+    }
+  }
+
+  void _drawCircularText(
+    Canvas canvas,
+    double centerX,
+    double centerY,
+    double startAngle,
+    double textAngle,
+    double radius,
+  ) {
+    // final textWidth = _calculateTextWidth(text);
+
+    // Precompute character widths and proportions
+    final charWidths = _getCharWidths(text);
+    final totalCharWidth = charWidths.reduce((a, b) => a + b);
+
+    var currentAngle = startAngle;
+    for (var i = 0; i < text.length; i++) {
+      final charProportion = charWidths[i] / totalCharWidth;
+      final charAngle = textAngle * charProportion;
+
+      final charCenterAngle = currentAngle + charAngle / 2;
+
+      final x = centerX + radius * math.cos(charCenterAngle);
+      final y = centerY + radius * math.sin(charCenterAngle);
+
+      final textSpan = TextSpan(text: text[i], style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(charCenterAngle + math.pi / 2);
+
+      textPainter.paint(
+        canvas,
+        Offset(-textPainter.width / 2, -textPainter.height / 2),
+      );
+
+      canvas.restore();
+
+      currentAngle += charAngle;
     }
   }
 
@@ -648,11 +653,28 @@ class _CircularTextPainter extends CustomPainter {
     return textPainter.width;
   }
 
-  void _drawDot(Canvas canvas, double centerX, double centerY, double angle,
-      double radius) {
+  List<double> _getCharWidths(String text) {
+    return text.split('').map((char) {
+      final textSpan = TextSpan(text: char, style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      return textPainter.width;
+    }).toList();
+  }
+
+  void _drawDot(
+    Canvas canvas,
+    double centerX,
+    double centerY,
+    double angle,
+    double radius,
+  ) {
     final dotRadius = textStyle.fontSize! / 4;
     final dotPaint = Paint()
-      ..color = textStyle.color!
+      ..color = textStyle.color ?? Colors.black
       ..style = PaintingStyle.fill;
 
     final dotX = centerX + radius * math.cos(angle);

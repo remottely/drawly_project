@@ -80,7 +80,6 @@ class Room {
     constructor(name) {
         this.name = name;
         this.participants = new Set();
-        // chatgpt: adapte esse turnQueue para manipular Participant e nao usernames
         this.turnQueue = [];
         this.currentTurnIndex = 0;
         this.currentWord = null;
@@ -223,7 +222,7 @@ class RoomManager {
     static leave(socket, { roomName, username, userAvatar, isLogged }) {
         var _a, _b, _c;
         console.log(`${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
+        io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(username);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)

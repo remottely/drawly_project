@@ -61,7 +61,9 @@ class RoomUserMessageDTO extends RoomDTO {
   }
 
   @override
-  Map<String, dynamic> toJson() => super.toJson()..['text'] = text;
+  Map<String, dynamic> toJson() => super.toJson()
+    ..['username'] = username
+    ..['text'] = text;
 }
 
 class RoomUserAnswerDTO extends RoomDTO {
@@ -83,5 +85,7 @@ class RoomUserAnswerDTO extends RoomDTO {
   }
 
   @override
-  Map<String, dynamic> toJson() => super.toJson()..['text'] = text;
+  Map<String, dynamic> toJson() => super.toJson()
+    ..['username'] = username
+    ..['text'] = text;
 }

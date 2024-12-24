@@ -72,8 +72,11 @@
 - [x] (0.27.0) Implement functionality to select, save and retrieve an avatar in local storage.
 - [x] (0.28.0) Retrieve and display all the participants avatar in the game room.
 - [x] (0.29.0) Enhance design system of all app.
-- [x] (0.30.0) 
-- [ ] (0.31.0) Fix all problems made by Participants migration.
+- [x] (0.30.0) Improve participant handling in the Room class.
+- [x] (0.30.1) Fix all problems made by Participants migration.
+- [ ] (0.?.0) Block server to open more than one connection with same userId.
+- [ ] (0.?.0) Change backend to manipulate only userIds and not usernames.
+- [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) Fix problems tab.
 - [ ] (0.?.0) add timer.

@@ -76,7 +76,6 @@ export class Drawing {
 
 export class Room {
   private participants: Set<Participant> = new Set();
-  // chatgpt: adapte esse turnQueue para manipular Participant e nao usernames
   private turnQueue: Participant[] = [];
   private currentTurnIndex: number = 0;
   public currentWord: string | null = null;
@@ -248,7 +247,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { roomName, username, userAvatar, isLogged }: RoomUserDTO): void {
     console.log(`${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" }); // left
+    io.to(roomName).emit('message:new', { icon: 'info', username, text: "saiu" });
     rooms[roomName]?.removeParticipant(username);
     socket.leave(roomName);
 

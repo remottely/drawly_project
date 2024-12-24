@@ -1,18 +1,21 @@
 A forma mais otimizada para rastrear e sincronizar os traços de desenho em um aplicativo colaborativo envolve:
 
 1. **Envio de Dados Parcial:**
-    
-    - Enviar apenas os pontos (coordenadas) em tempo real, minimizando a quantidade de dados transmitidos.
-    - Evitar o envio redundante do histórico completo a cada atualização.
+
+   - Enviar apenas os pontos (coordenadas) em tempo real, minimizando a quantidade de dados transmitidos.
+   - Evitar o envio redundante do histórico completo a cada atualização.
+
 2. **Buffer de Ponto:**
-    
-    - Agrupar os pontos do traço antes de enviá-los, reduzindo o número de transmissões.
+
+   - Agrupar os pontos do traço antes de enviá-los, reduzindo o número de transmissões.
+
 3. **Renderização Incremental:**
-    
-    - No cliente, renderizar os traços à medida que os pontos chegam, sem precisar reconstruir todo o desenho.
+
+   - No cliente, renderizar os traços à medida que os pontos chegam, sem precisar reconstruir todo o desenho.
+
 4. **Compressão dos Dados:**
-    
-    - Compactar os pontos enviados usando métodos como diferenciação (enviar apenas as mudanças relativas) ou compressão em tempo real.
+
+   - Compactar os pontos enviados usando métodos como diferenciação (enviar apenas as mudanças relativas) ou compressão em tempo real.
 
 ---
 
@@ -27,12 +30,12 @@ Envie apenas os pontos do traço atual como uma lista de coordenadas:
   "type": "draw",
   "room": "room1",
   "points": [
-    {"dx": 100, "dy": 200},
-    {"dx": 105, "dy": 210},
-    {"dx": 110, "dy": 220}
+    { "dx": 100, "dy": 200 },
+    { "dx": 105, "dy": 210 },
+    { "dx": 110, "dy": 220 }
   ],
-  "color": "#FF0000", // Opcional: Cor do pincel
-  "width": 4 // Opcional: Largura do traço
+  "color": "#FF0000",
+  "width": 4
 }
 ```
 
@@ -98,26 +101,28 @@ socket.on('drawing:draw', (data) {
 ### Vantagens dessa Estratégia
 
 1. **Baixa Latência:**
-    
-    - Reduz o número de transmissões com o uso do buffer.
-    - Mantém a fluidez do desenho ao enviar pequenos lotes.
+
+   - Reduz o número de transmissões com o uso do buffer.
+   - Mantém a fluidez do desenho ao enviar pequenos lotes.
+
 2. **Menor Uso de Rede:**
-    
-    - Transmissão de dados compactos (apenas pontos incrementais).
-    - Evita retransmitir o histórico completo do desenho.
+
+   - Transmissão de dados compactos (apenas pontos incrementais).
+   - Evita retransmitir o histórico completo do desenho.
+
 3. **Visualmente Suave:**
-    
-    - O traço é desenhado em tempo real no cliente à medida que os pontos chegam, proporcionando uma experiência visual fluida.
+
+   - O traço é desenhado em tempo real no cliente à medida que os pontos chegam, proporcionando uma experiência visual fluida.
 
 ---
 
 ### Comparação com Alternativas
 
-|Estratégia|Consumo de Rede|Performance no Cliente|Suavidade Visual|
-|---|---|---|---|
-|Enviar Histórico Completo|Alto|Médio|Bom|
-|Enviar Cada Ponto Individualmente|Médio|Médio|Muito Bom|
-|**Buffer e Renderização Incremental**|**Baixo**|**Alto**|**Muito Bom**|
+| Estratégia                            | Consumo de Rede | Performance no Cliente | Suavidade Visual |
+| ------------------------------------- | --------------- | ---------------------- | ---------------- |
+| Enviar Histórico Completo             | Alto            | Médio                  | Bom              |
+| Enviar Cada Ponto Individualmente     | Médio           | Médio                  | Muito Bom        |
+| **Buffer e Renderização Incremental** | **Baixo**       | **Alto**               | **Muito Bom**    |
 
 ---
 
