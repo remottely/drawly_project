@@ -3,16 +3,15 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class MeteorShower extends StatefulWidget {
-  final Widget? child;
-  final int numberOfMeteors;
-  final Duration duration;
-
   const MeteorShower({
     super.key,
     this.child,
     this.numberOfMeteors = 10,
     this.duration = const Duration(seconds: 10),
   });
+  final Widget? child;
+  final int numberOfMeteors;
+  final Duration duration;
 
   @override
   State<MeteorShower> createState() => _MeteorShowerState();
@@ -42,7 +41,9 @@ class _MeteorShowerState extends State<MeteorShower>
   void _initializeMeteors(Size size) {
     if (_allMeteors.isEmpty) {
       _allMeteors = List.generate(
-          widget.numberOfMeteors, (_) => Meteor(meteorAngle, size));
+        widget.numberOfMeteors,
+        (_) => Meteor(meteorAngle, size),
+      );
     }
   }
 
@@ -96,7 +97,7 @@ class _MeteorShowerState extends State<MeteorShower>
 class MeteorPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint trailPaint = Paint()
+    final trailPaint = Paint()
       ..shader = LinearGradient(
         colors: [Colors.white, Colors.white.withOpacity(0)],
         end: Alignment.topCenter,
@@ -105,7 +106,7 @@ class MeteorPainter extends CustomPainter {
 
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), trailPaint);
 
-    final Paint circlePaint = Paint()
+    final circlePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
 
@@ -117,20 +118,19 @@ class MeteorPainter extends CustomPainter {
 }
 
 class Meteor {
+  Meteor(double angle, Size size)
+      : startX = Random().nextDouble() * size.width / 2,
+        startY = Random().nextDouble() * size.height / 4 - size.height / 4,
+        delay = Random().nextDouble(),
+        duration = 0.3 + Random().nextDouble() * 0.7 {
+    final distance = size.height / 3;
+    endX = startX + cos(angle) * distance;
+    endY = startY + sin(angle) * distance;
+  }
   final double startX;
   final double startY;
   late double endX;
   late double endY;
   final double delay;
   final double duration;
-
-  Meteor(double angle, Size size)
-      : startX = Random().nextDouble() * size.width / 2,
-        startY = Random().nextDouble() * size.height / 4 - size.height / 4,
-        delay = Random().nextDouble(),
-        duration = 0.3 + Random().nextDouble() * 0.7 {
-    var distance = size.height / 3;
-    endX = startX + cos(angle) * distance;
-    endY = startY + sin(angle) * distance;
-  }
 }

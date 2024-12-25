@@ -76,7 +76,8 @@
 - [x] (0.30.1) Fix all problems made by Participants migration.
 - [x] (0.31.0) Change backend to manipulate only userIds and not usernames.
 - [x] (0.31.1) drawly tab problems: fix all alerts
-- [x] (0.31.2) drawly packages tab problems: fix all alerts
+- [x] (0.31.2) drawly packages tab problems: fix all alerts (part 1)
+- [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [ ] (0.?.0) Add new username logic to backend and frontend
 - [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.

@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 
 abstract class Stroke {
-  final List<Offset> points;
-  final Color color;
-  final double size;
-  final double opacity;
-  final StrokeType strokeType;
-  final DateTime createdAt = DateTime.now();
-
   Stroke({
     required this.points,
     this.color = Colors.black,
@@ -15,15 +8,6 @@ abstract class Stroke {
     this.opacity = 1,
     this.strokeType = StrokeType.normal,
   });
-
-  Stroke copyWith({
-    List<Offset>? points,
-    Color? color,
-    double? size,
-    double? opacity,
-  });
-
-  Map<String, dynamic> toJson();
 
   factory Stroke.fromJson(Map<String, dynamic> json) {
     final points = (json['points'] as List<dynamic>)
@@ -86,6 +70,22 @@ abstract class Stroke {
         );
     }
   }
+
+  final List<Offset> points;
+  final Color color;
+  final double size;
+  final double opacity;
+  final StrokeType strokeType;
+  final DateTime createdAt = DateTime.now();
+
+  Stroke copyWith({
+    List<Offset>? points,
+    Color? color,
+    double? size,
+    double? opacity,
+  });
+
+  Map<String, dynamic> toJson();
 
   bool get isEraser => strokeType == StrokeType.eraser;
   bool get isLine => strokeType == StrokeType.line;
@@ -198,9 +198,6 @@ class LineStroke extends Stroke {
 }
 
 class PolygonStroke extends Stroke {
-  final int sides;
-  final bool filled;
-
   PolygonStroke({
     required super.points,
     required this.sides,
@@ -209,6 +206,8 @@ class PolygonStroke extends Stroke {
     super.size,
     super.opacity,
   }) : super(strokeType: StrokeType.polygon);
+  final int sides;
+  final bool filled;
 
   @override
   PolygonStroke copyWith({
@@ -244,8 +243,6 @@ class PolygonStroke extends Stroke {
 }
 
 class CircleStroke extends Stroke {
-  final bool filled;
-
   CircleStroke({
     required super.points,
     this.filled = false,
@@ -253,6 +250,7 @@ class CircleStroke extends Stroke {
     super.size,
     super.opacity,
   }) : super(strokeType: StrokeType.circle);
+  final bool filled;
 
   @override
   CircleStroke copyWith({
@@ -285,8 +283,6 @@ class CircleStroke extends Stroke {
 }
 
 class SquareStroke extends Stroke {
-  final bool filled;
-
   SquareStroke({
     required super.points,
     this.filled = false,
@@ -294,6 +290,7 @@ class SquareStroke extends Stroke {
     super.size,
     super.opacity,
   }) : super(strokeType: StrokeType.square);
+  final bool filled;
 
   @override
   SquareStroke copyWith({

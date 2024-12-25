@@ -43,8 +43,8 @@ class DrawlyContainer extends StatelessWidget {
 
 class DrawlyTitleContainer extends StatelessWidget {
   const DrawlyTitleContainer({
-    super.key,
     required this.text,
+    super.key,
   });
 
   final String text;

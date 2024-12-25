@@ -4,15 +4,27 @@ import 'dart:ui' as ui;
 import 'package:drawing_board/src/src.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Image;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:universal_html/html.dart' as html;
 
 class CanvasSideBar extends StatefulWidget {
+  const CanvasSideBar({
+    required this.rxSelectedColor,
+    required this.rxSelectedColorOpacity,
+    required this.rxCurrentStrokeSize, // required this.rxEraserSize,
+    required this.rxDrawingTool,
+    required this.canvasGlobalKey,
+    required this.rxIsFilled,
+    required this.rxPolygonSides,
+    required this.undoRedoStack,
+    required this.rxIsShowGrid,
+    required this.roomName,
+    required this.isCurrentDrawer,
+    super.key,
+  });
   final ValueNotifier<Color> rxSelectedColor;
   final ValueNotifier<double> rxSelectedColorOpacity;
   final ValueNotifier<double> rxCurrentStrokeSize;
@@ -25,22 +37,6 @@ class CanvasSideBar extends StatefulWidget {
   final ValueNotifier<bool> rxIsShowGrid;
   final String roomName;
   final bool isCurrentDrawer;
-
-  const CanvasSideBar({
-    super.key,
-    required this.rxSelectedColor,
-    required this.rxSelectedColorOpacity,
-    required this.rxCurrentStrokeSize,
-    // required this.rxEraserSize,
-    required this.rxDrawingTool,
-    required this.canvasGlobalKey,
-    required this.rxIsFilled,
-    required this.rxPolygonSides,
-    required this.undoRedoStack,
-    required this.rxIsShowGrid,
-    required this.roomName,
-    required this.isCurrentDrawer,
-  });
 
   @override
   State<CanvasSideBar> createState() => _CanvasSideBarState();
@@ -246,9 +242,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                     return _IconBox(
                       iconData: Icons.undo,
                       selected: false,
-                      onTap: strokesNotifier.isNotEmpty
-                          ? () => _sendUndoStroke()
-                          : null,
+                      onTap:
+                          strokesNotifier.isNotEmpty ? _sendUndoStroke : null,
                       tooltip: 'Undo',
                     );
                   },
@@ -259,7 +254,7 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                     return _IconBox(
                       iconData: Icons.redo,
                       selected: false,
-                      onTap: canRedo ? () => _sendRedoStroke() : null,
+                      onTap: canRedo ? _sendRedoStroke : null,
                       tooltip: 'Redo',
                     );
                   },
@@ -299,7 +294,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                         },
                         initialValue: widget.rxCurrentStrokeSize.value,
                         showMinMaxText: false,
-                        minMaxTextStyle: const TextStyle(fontSize: 14),
                         accentColor: Colors.blue,
                       ),
                     ),
@@ -343,7 +337,6 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                           initialValue:
                               widget.rxSelectedColorOpacity.value * 100,
                           showMinMaxText: false,
-                          minMaxTextStyle: const TextStyle(fontSize: 14),
                           accentColor: Colors.blue,
                         ),
                       ),
@@ -425,23 +418,23 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
     );
   }
 
-  void saveFile(Uint8List bytes, String extension) async {
-    if (kIsWeb) {
-      html.AnchorElement()
-        ..href = '${Uri.dataFromBytes(bytes, mimeType: 'image/$extension')}'
-        ..download =
-            'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension'
-        ..style.display = 'none'
-        ..click();
-    } else {
-      await FileSaver.instance.saveFile(
-        name: 'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension',
-        bytes: bytes,
-        ext: extension,
-        mimeType: extension == 'png' ? MimeType.png : MimeType.jpeg,
-      );
-    }
-  }
+  // Future<void> saveFile(Uint8List bytes, String extension) async {
+  //   if (kIsWeb) {
+  //     html.AnchorElement()
+  //       ..href = '${Uri.dataFromBytes(bytes, mimeType: 'image/$extension')}'
+  //       ..download =
+  //           'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension'
+  //       ..style.display = 'none'
+  //       ..click();
+  //   } else {
+  //     await FileSaver.instance.saveFile(
+  //       name: 'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension',
+  //       bytes: bytes,
+  //       ext: extension,
+  //       mimeType: extension == 'png' ? MimeType.png : MimeType.jpeg,
+  //     );
+  //   }
+  // }
 
   // Future<ui.Image> get _getImage async {
   //   final completer = Completer<ui.Image>();
@@ -490,29 +483,28 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
   // }
 
   Future<Uint8List?> getBytes() async {
-    RenderRepaintBoundary boundary = widget.canvasGlobalKey.currentContext
-        ?.findRenderObject() as RenderRepaintBoundary;
-    ui.Image image = await boundary.toImage();
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List? pngBytes = byteData?.buffer.asUint8List();
+    final boundary = widget.canvasGlobalKey.currentContext!.findRenderObject()!
+        as RenderRepaintBoundary;
+    final image = await boundary.toImage();
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData?.buffer.asUint8List();
     return pngBytes;
   }
 }
 
 class _IconBox extends StatelessWidget {
+  const _IconBox({
+    required this.selected,
+    required this.onTap,
+    this.iconData,
+    this.child,
+    this.tooltip,
+  }) : assert(child != null || iconData != null);
   final IconData? iconData;
   final Widget? child;
   final bool selected;
   final void Function()? onTap;
   final String? tooltip;
-
-  const _IconBox({
-    this.iconData,
-    this.child,
-    this.tooltip,
-    required this.selected,
-    required this.onTap,
-  }) : assert(child != null || iconData != null);
 
   @override
   Widget build(BuildContext context) {

@@ -6,12 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 /// Works just like [LocalFileComparator] but includes a [threshold] that, when
 /// exceeded, marks the test as a failure.
 class LocalFileComparatorWithThreshold extends LocalFileComparator {
+  LocalFileComparatorWithThreshold(super.testFile, this.threshold)
+      : assert(
+          threshold >= 0 && threshold <= 1,
+          'Threshold must be between 0 and 1, both inclusive',
+        );
+
   /// Threshold above which tests will be marked as failing.
   /// Ranges from 0 to 1, both inclusive.
   final double threshold;
-
-  LocalFileComparatorWithThreshold(super.testFile, this.threshold)
-      : assert(threshold >= 0 && threshold <= 1);
 
   /// Copy of [LocalFileComparator]'s [compare] method, except for the fact that
   /// it checks if the [ComparisonResult.diffPercent] is not greater than

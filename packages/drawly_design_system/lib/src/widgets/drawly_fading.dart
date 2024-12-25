@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class DrawlyResponsiveFading extends StatelessWidget {
   const DrawlyResponsiveFading({
+    required this.child,
     super.key,
     this.leftFading = false,
-    required this.child,
   });
 
   final bool leftFading;
@@ -24,8 +24,6 @@ class DrawlyResponsiveFading extends StatelessWidget {
                   width: 24,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
                       colors: [
                         Colors.white,
                         Colors.white.withOpacity(0),

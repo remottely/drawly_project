@@ -3,15 +3,6 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawingCanvasOptions {
-  final Color strokeColor;
-  final double size;
-  final double opacity;
-  final DrawingTool currentTool;
-  final Color backgroundColor;
-  final bool showGrid;
-  final int polygonSides;
-  final bool fillShape;
-
   const DrawingCanvasOptions({
     this.strokeColor = AppColors.blackAccent,
     this.size = 10,
@@ -22,6 +13,14 @@ class DrawingCanvasOptions {
     this.polygonSides = 3,
     this.fillShape = false,
   });
+  final Color strokeColor;
+  final double size;
+  final double opacity;
+  final DrawingTool currentTool;
+  final Color backgroundColor;
+  final bool showGrid;
+  final int polygonSides;
+  final bool fillShape;
 
   DrawingCanvasOptions copyWith({
     Color? strokeColor,

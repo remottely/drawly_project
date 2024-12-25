@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-typedef BoolCallback = void Function(bool);
+typedef BoolCallback = void Function({required bool value});
 
 class HotkeyListener extends StatefulWidget {
-  final Widget child;
-  final void Function()? onUndo;
-  final void Function()? onRedo;
-  final void Function()? onChangeTool;
-  final BoolCallback? onShiftPressed;
-
   const HotkeyListener({
-    super.key,
     required this.child,
+    super.key,
     this.onUndo,
     this.onRedo,
     this.onChangeTool,
     this.onShiftPressed,
   });
+  final Widget child;
+  final void Function()? onUndo;
+  final void Function()? onRedo;
+  final void Function()? onChangeTool;
+  final BoolCallback? onShiftPressed;
 
   @override
   State<HotkeyListener> createState() => _HotkeyListenerState();
@@ -62,13 +61,13 @@ class _HotkeyListenerState extends State<HotkeyListener> {
       // when shift is pressed, we want to change the tool
       if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
           event.logicalKey == LogicalKeyboardKey.shiftRight) {
-        widget.onShiftPressed?.call(true);
+        widget.onShiftPressed?.call(value: true);
       }
     } else if (event is KeyUpEvent) {
       // when shift is released, we want to change the tool back to the previous one
       if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
           event.logicalKey == LogicalKeyboardKey.shiftRight) {
-        widget.onShiftPressed?.call(false);
+        widget.onShiftPressed?.call(value: false);
       }
     }
   }

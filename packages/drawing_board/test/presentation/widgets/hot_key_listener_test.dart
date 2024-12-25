@@ -7,7 +7,7 @@ import 'package:universal_platform/universal_platform.dart';
 void main() {
   testWidgets('HotkeyListener triggers onUndo on Ctrl + Z',
       (WidgetTester tester) async {
-    bool undoCalled = false;
+    var undoCalled = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -40,7 +40,7 @@ void main() {
 
   testWidgets('HotkeyListener triggers onRedo on Ctrl + Y',
       (WidgetTester tester) async {
-    bool redoCalled = false;
+    var redoCalled = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -66,12 +66,12 @@ void main() {
 
   testWidgets('HotkeyListener triggers onShiftPressed correctly',
       (WidgetTester tester) async {
-    bool shiftPressed = false;
+    var shiftPressed = false;
 
     await tester.pumpWidget(
       MaterialApp(
         home: HotkeyListener(
-          onShiftPressed: (isPressed) => shiftPressed = isPressed,
+          onShiftPressed: ({bool value = false}) => shiftPressed = value,
           child: Container(),
         ),
       ),

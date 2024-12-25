@@ -1,7 +1,6 @@
 class RoomDTO {
-  final String roomName;
-
   RoomDTO({required this.roomName});
+  final String roomName;
 
   // factory RoomDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomDTO(
@@ -13,16 +12,16 @@ class RoomDTO {
 }
 
 class RoomUserDTO extends RoomDTO {
-  final String userId;
-  final String? userAvatar;
-  final bool isLogged;
-
   RoomUserDTO({
     required super.roomName,
     required this.userId,
     required this.userAvatar,
     required this.isLogged,
   });
+
+  final String userId;
+  final String? userAvatar;
+  final bool isLogged;
 
   // factory RoomUserDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomUserDTO(
@@ -41,14 +40,14 @@ class RoomUserDTO extends RoomDTO {
 }
 
 class RoomUserMessageDTO extends RoomDTO {
-  final String userId;
-  final String text;
-
   RoomUserMessageDTO({
     required super.roomName,
     required this.userId,
     required this.text,
   });
+
+  final String userId;
+  final String text;
 
   // factory RoomUserMessageDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomUserMessageDTO(
@@ -65,14 +64,14 @@ class RoomUserMessageDTO extends RoomDTO {
 }
 
 class RoomUserAnswerDTO extends RoomDTO {
-  final String userId;
-  final String text;
-
   RoomUserAnswerDTO({
     required super.roomName,
     required this.userId,
     required this.text,
   });
+
+  final String userId;
+  final String text;
 
   // factory RoomUserAnswerDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomUserAnswerDTO(
