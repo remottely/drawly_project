@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 enum MessageIconType {
   info,
   check,
-  clock,
+  waiting,
   draw,
+  alert,
+  error,
 }
 
 class Message extends Equatable {

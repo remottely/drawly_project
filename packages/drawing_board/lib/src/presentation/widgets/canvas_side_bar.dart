@@ -1,20 +1,16 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:drawing_board/src/src.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Image;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:url_launcher/url_launcher.dart';
 
 class CanvasSideBar extends StatefulWidget {
   final ValueNotifier<Color> rxSelectedColor;
@@ -447,51 +443,51 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
     }
   }
 
-  Future<ui.Image> get _getImage async {
-    final completer = Completer<ui.Image>();
-    if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-      final file = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
-      );
-      if (file != null) {
-        final filePath = file.files.single.path;
-        final bytes = filePath == null
-            ? file.files.first.bytes
-            : File(filePath).readAsBytesSync();
-        if (bytes != null) {
-          completer.complete(decodeImageFromList(bytes));
-        } else {
-          completer.completeError('No image selected');
-        }
-      }
-    } else {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        final bytes = await image.readAsBytes();
-        completer.complete(
-          decodeImageFromList(bytes),
-        );
-      } else {
-        completer.completeError('No image selected');
-      }
-    }
+  // Future<ui.Image> get _getImage async {
+  //   final completer = Completer<ui.Image>();
+  //   if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+  //     final file = await FilePicker.platform.pickFiles(
+  //       type: FileType.image,
+  //       allowMultiple: false,
+  //     );
+  //     if (file != null) {
+  //       final filePath = file.files.single.path;
+  //       final bytes = filePath == null
+  //           ? file.files.first.bytes
+  //           : File(filePath).readAsBytesSync();
+  //       if (bytes != null) {
+  //         completer.complete(decodeImageFromList(bytes));
+  //       } else {
+  //         completer.completeError('No image selected');
+  //       }
+  //     }
+  //   } else {
+  //     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //     if (image != null) {
+  //       final bytes = await image.readAsBytes();
+  //       completer.complete(
+  //         decodeImageFromList(bytes),
+  //       );
+  //     } else {
+  //       completer.completeError('No image selected');
+  //     }
+  //   }
 
-    return completer.future;
-  }
+  //   return completer.future;
+  // }
 
-  Future<void> _launchUrl(String url) async {
-    if (kIsWeb) {
-      html.window.open(
-        url,
-        url,
-      );
-    } else {
-      if (!await launchUrl(Uri.parse(url))) {
-        throw 'Could not launch $url';
-      }
-    }
-  }
+  // Future<void> _launchUrl(String url) async {
+  //   if (kIsWeb) {
+  //     html.window.open(
+  //       url,
+  //       url,
+  //     );
+  //   } else {
+  //     if (!await launchUrl(Uri.parse(url))) {
+  //       throw 'Could not launch $url';
+  //     }
+  //   }
+  // }
 
   Future<Uint8List?> getBytes() async {
     RenderRepaintBoundary boundary = widget.canvasGlobalKey.currentContext

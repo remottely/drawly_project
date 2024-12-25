@@ -63,8 +63,9 @@ class _MeteorShowerState extends State<MeteorShower>
                   final meteor = _allMeteors[index];
                   final progress = ((_controller.value - meteor.delay) % 1.0) /
                       meteor.duration;
-                  if (progress < 0 || progress > 1)
+                  if (progress < 0 || progress > 1) {
                     return const SizedBox.shrink();
+                  }
 
                   return Positioned(
                     left: meteor.startX +

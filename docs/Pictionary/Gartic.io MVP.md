@@ -75,10 +75,10 @@
 - [x] (0.30.0) Improve participant handling in the Room class.
 - [x] (0.30.1) Fix all problems made by Participants migration.
 - [x] (0.31.0) Change backend to manipulate only userIds and not usernames.
+- [x] (0.31.1) tab problems: fix all alerts
 - [ ] (0.?.0) Add new username logic to backend and frontend
 - [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.
-- [ ] (0.?.0) Fix problems tab.
 - [ ] (0.?.0) add timer.
 - [ ] (0.?.0) Bug: when a player enter in a room with game already started, appers "start game" on the screen.
 - [ ] (0.?.0) bug with List all rooms when back and enter again in the DrawGameRoomSelectionPage.

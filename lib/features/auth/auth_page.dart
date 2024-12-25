@@ -96,7 +96,7 @@ class _AuthBodyState extends State<_AuthBody> {
             if (username.isNotEmpty) {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                MaterialPageRoute<Widget>(
                   builder: (context) =>
                       DrawGameRoomSelectionPage(username: username),
                 ),
@@ -189,7 +189,8 @@ class _AuthBodyState extends State<_AuthBody> {
 //         Offset(size.width / 2, size.height / 2),
 //         size.width * glowSpread,
 //         [
-//           Color.lerp(firstColor, secondColor, progress)!.withOpacity(intensity),
+//           Color.lerp(firstColor, secondColor, progress)!
+// .withOpacity(intensity),
 //           Color.lerp(firstColor, secondColor, progress)!.withOpacity(0),
 //         ],
 //       )
@@ -247,7 +248,8 @@ class _AuthBodyState extends State<_AuthBody> {
 //         Offset(size.width / 2, size.height / 2),
 //         size.width * glowSpread,
 //         [
-//           Color.lerp(firstColor, secondColor, progress)!.withOpacity(intensity),
+//           Color.lerp(firstColor, secondColor, progress)!
+// .withOpacity(intensity),
 //           Color.lerp(firstColor, secondColor, progress)!.withOpacity(0),
 //         ],
 //       )
@@ -410,7 +412,7 @@ class NeumorphicValidationFieldState extends State<NeumorphicValidationField> {
       radius: 10,
       child: TextFormField(
         onChanged: _validateInput,
-        obscureText: widget.isPasswordField ? _isObscureText : false,
+        obscureText: widget.isPasswordField && _isObscureText,
         style: const TextStyle(fontSize: 16, color: Colors.white),
         controller: widget.textEditingController,
         textAlignVertical: TextAlignVertical.center,
@@ -625,12 +627,12 @@ class _CircularTextPainter extends CustomPainter {
       final textPainter = TextPainter(
         text: textSpan,
         textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
+      )..layout();
 
-      canvas.save();
-      canvas.translate(x, y);
-      canvas.rotate(charCenterAngle + math.pi / 2);
+      canvas
+        ..save()
+        ..translate(x, y)
+        ..rotate(charCenterAngle + math.pi / 2);
 
       textPainter.paint(
         canvas,
@@ -648,8 +650,7 @@ class _CircularTextPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
+    )..layout();
     return textPainter.width;
   }
 
@@ -659,8 +660,7 @@ class _CircularTextPainter extends CustomPainter {
       final textPainter = TextPainter(
         text: textSpan,
         textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
+      )..layout();
       return textPainter.width;
     }).toList();
   }

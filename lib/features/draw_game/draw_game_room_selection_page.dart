@@ -67,7 +67,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _joinRoom(String roomName) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<Widget>(
         builder: (context) =>
             DrawGameRoomPage(username: widget.username, roomName: roomName),
       ),
