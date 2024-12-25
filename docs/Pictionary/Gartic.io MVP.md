@@ -74,8 +74,8 @@
 - [x] (0.29.0) Enhance design system of all app.
 - [x] (0.30.0) Improve participant handling in the Room class.
 - [x] (0.30.1) Fix all problems made by Participants migration.
-- [ ] (0.?.0) Block server to open more than one connection with same userId.
-- [ ] (0.?.0) Change backend to manipulate only userIds and not usernames.
+- [x] (0.31.0) Change backend to manipulate only userIds and not usernames.
+- [ ] (0.?.0) Add new username logic to backend and frontend
 - [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) Fix problems tab.
@@ -108,6 +108,7 @@
   - "Timeout..."
   - "Waiting for the drawing."
 - [ ] (0.?.0) bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
+- [ ] (0.?.0) Block server to open more than one connection with same userId.
 
 ---
 

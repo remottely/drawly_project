@@ -9,10 +9,14 @@ class MessagesChatView extends StatefulWidget {
     required this.roomName,
     required this.isCurrentDrawer,
     super.key,
-  })  : assert(username.length >= 3,
-            'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3,
-            'The roomName must be at least 3 characters long');
+  })  : assert(
+          username.length >= 3,
+          'The username must be at least 3 characters long',
+        ),
+        assert(
+          roomName.length >= 3,
+          'The roomName must be at least 3 characters long',
+        );
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
@@ -42,7 +46,8 @@ class _MessagesChatViewState extends MessagesChatViewModel {
                   itemCount: value.length,
                   itemBuilder: (context, index) {
                     return _MessageChatText(
-                        message: rxAllMessages.value[index]);
+                      message: rxAllMessages.value[index],
+                    );
                   },
                 );
               },
@@ -90,7 +95,7 @@ class _MessageChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: message.username,
+                  text: message.userId,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

@@ -108,7 +108,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   void _joinGameRoom() {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
-      username: widget.username,
+      userId: widget.username,
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();
@@ -119,7 +119,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   void _leaveRoom() {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
-      username: widget.username,
+      userId: widget.username,
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();

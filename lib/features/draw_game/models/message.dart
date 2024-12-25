@@ -12,7 +12,7 @@ enum MessageIconType {
 class Message extends Equatable {
   const Message({
     required this.icon,
-    required this.username,
+    required this.userId,
     required this.text,
   });
 
@@ -22,12 +22,13 @@ class Message extends Equatable {
             (e) => e!.name == (json['icon']),
             orElse: () => null,
           ),
-      username: json['username'] as String,
+      userId: json['userId'] as String,
       text: json['text'] as String,
     );
   }
+
   final MessageIconType? icon;
-  final String username;
+  final String userId;
   final String text;
 
   IconData? getIcon() {
@@ -46,37 +47,37 @@ class Message extends Equatable {
     };
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'icon': icon?.name,
-      'username': username,
-      'text': text,
-    };
-  }
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'icon': icon?.name,
+  //     'userId': userId,
+  //     'text': text,
+  //   };
+  // }
 
-  Map<String, dynamic> toSendMessageSocketJson({
-    required String roomName,
-    required String message,
-  }) {
-    return {
-      'roomName': roomName,
-      'username': username,
-      'text': message,
-    };
-  }
+  // Map<String, dynamic> toSendMessageSocketJson({
+  //   required String roomName,
+  //   required String message,
+  // }) {
+  //   return {
+  //     'roomName': roomName,
+  //     'userId': userId,
+  //     'text': message,
+  //   };
+  // }
 
   Message copyWith({
     MessageIconType? icon,
-    String? username,
+    String? userId,
     String? text,
   }) {
     return Message(
       icon: icon ?? this.icon,
-      username: username ?? this.username,
+      userId: userId ?? this.userId,
       text: text ?? this.text,
     );
   }
 
   @override
-  List<Object?> get props => [icon, username, text];
+  List<Object?> get props => [icon, userId, text];
 }

@@ -120,7 +120,7 @@ class _AnswerChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '${answer.username} ',
+                  text: '${answer.userId} ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

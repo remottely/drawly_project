@@ -3,7 +3,7 @@ import 'package:drawly/features/draw_game/models/message.dart';
 class Answer extends Message {
   const Answer({
     required super.icon,
-    required super.username,
+    required super.userId,
     required super.text,
     required this.isCorrect,
   });
@@ -13,31 +13,32 @@ class Answer extends Message {
 
     return Answer(
       icon: message.icon,
-      username: message.username,
+      userId: message.userId,
       text: message.text,
       isCorrect: json['isCorrect'] as bool,
     );
   }
+
   final bool isCorrect;
 
-  @override
-  Map<String, dynamic> toJson() => super.toJson()..['isCorrect'] = isCorrect;
+  // @override
+  // Map<String, dynamic> toJson() => super.toJson()..['isCorrect'] = isCorrect;
 
   @override
   Answer copyWith({
     MessageIconType? icon,
-    String? username,
+    String? userId,
     String? text,
     bool? isCorrect,
   }) {
     return Answer(
       icon: icon ?? this.icon,
-      username: username ?? this.username,
+      userId: userId ?? this.userId,
       text: text ?? this.text,
       isCorrect: isCorrect ?? this.isCorrect,
     );
   }
 
   @override
-  List<Object?> get props => [icon, username, text, isCorrect];
+  List<Object?> get props => [icon, userId, text, isCorrect];
 }
