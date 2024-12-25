@@ -1,6 +1,6 @@
 name: drawly_core
 description: "A new Flutter package project."
-version: 0.31.1
+version: 0.31.2
 homepage:
 
 environment:
@@ -13,9 +13,10 @@ dependencies:
   socket_io_client: ^3.0.2
 
 dev_dependencies:
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  very_good_analysis: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -8,23 +8,15 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawingCanvas extends StatefulWidget {
-  final ValueNotifier<List<Stroke>> rxAllStrokes;
-  final ValueNotifier<ui.Image?>? rxBackgroundImage;
-  final CurrentStrokeValueNotifier rxCurrentStroke;
-  final DrawingCanvasOptions options;
-  // final Function(Stroke?)? onDrawingStrokeChanged;
-  final GlobalKey canvasGlobalKey;
-
   const DrawingCanvas({
-    super.key,
     required this.rxAllStrokes,
-    this.rxBackgroundImage,
     required this.rxCurrentStroke,
-    required this.options,
-    // this.onDrawingStrokeChanged,
+    required this.options, // this.onDrawingStrokeChanged,
     required this.canvasGlobalKey,
     required this.username,
     required this.roomName,
+    super.key,
+    this.rxBackgroundImage,
   })  : assert(
           username.length >= 3,
           'The username must be at least 3 characters long',
@@ -33,6 +25,12 @@ class DrawingCanvas extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+  final ValueNotifier<List<Stroke>> rxAllStrokes;
+  final ValueNotifier<ui.Image?>? rxBackgroundImage;
+  final CurrentStrokeValueNotifier rxCurrentStroke;
+  final DrawingCanvasOptions options;
+  // final Function(Stroke?)? onDrawingStrokeChanged;
+  final GlobalKey canvasGlobalKey;
 
   final String username;
   final String roomName;
@@ -45,7 +43,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   CurrentStrokeValueNotifier get rxCurrentStroke => widget.rxCurrentStroke;
   ValueNotifier<List<Stroke>> get rxAllStrokes => widget.rxAllStrokes;
 
-  final double _canvasSize = 500.0;
+  final double _canvasSize = 500;
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
@@ -76,8 +74,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     _onDrawDrawingEvent = (data) {
       developer.log('Draw event received: $data');
 
-      List<Stroke> receivedStrokes = (data['strokes'] as List)
-          .map((strokeData) => Stroke.fromJson(strokeData))
+      final receivedStrokes = (data['strokes'] as List<Map<String, dynamic>>)
+          .map(Stroke.fromJson)
           .toList();
 
       rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
@@ -199,12 +197,6 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
 }
 
 class _DrawingCanvasPainter extends CustomPainter {
-  final ValueNotifier<List<Stroke>>? rxAllStrokes;
-  final CurrentStrokeValueNotifier? rxCurrentStroke;
-  final Color backgroundColor;
-  final ValueNotifier<bool>? rxIsShowGrid;
-  final ValueNotifier<ui.Image?>? rxBackgroundImage;
-
   _DrawingCanvasPainter({
     this.rxAllStrokes,
     this.rxCurrentStroke,
@@ -221,6 +213,11 @@ class _DrawingCanvasPainter extends CustomPainter {
             ],
           ),
         );
+  final ValueNotifier<List<Stroke>>? rxAllStrokes;
+  final CurrentStrokeValueNotifier? rxCurrentStroke;
+  final Color backgroundColor;
+  final ValueNotifier<bool>? rxIsShowGrid;
+  final ValueNotifier<ui.Image?>? rxBackgroundImage;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -266,7 +263,7 @@ class _DrawingCanvasPainter extends CustomPainter {
         } else {
           final path = Path()
             ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
-          for (int i = 1; i < stroke.points.length; i++) {
+          for (var i = 1; i < stroke.points.length; i++) {
             path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
           }
           canvas.drawPath(path, paint);
@@ -283,7 +280,7 @@ class _DrawingCanvasPainter extends CustomPainter {
 
         final path = Path()
           ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
-        for (int i = 1; i < stroke.points.length; i++) {
+        for (var i = 1; i < stroke.points.length; i++) {
           path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
         }
         canvas.drawPath(path, eraserPaint);
@@ -337,7 +334,7 @@ class _DrawingCanvasPainter extends CustomPainter {
             center.dy + radius * sin(startAngle),
           );
 
-          for (int i = 1; i <= stroke.sides; i++) {
+          for (var i = 1; i <= stroke.sides; i++) {
             final angle = startAngle + i * angleStep;
             final x = center.dx + radius * cos(angle);
             final y = center.dy + radius * sin(angle);
@@ -371,16 +368,16 @@ class _DrawingCanvasPainter extends CustomPainter {
       ..color = Colors.red.withOpacity(0.3)
       ..strokeWidth = subGridStrokeWidth;
 
-    for (double y = 0; y <= size.height; y += gridSpacing) {
+    for (var y = 0.0; y <= size.height; y += gridSpacing) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
 
-    for (double x = 0; x <= size.width; x += gridSpacing) {
+    for (var x = 0.0; x <= size.width; x += gridSpacing) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
     }
 
-    for (double y = 0; y <= size.height; y += gridSpacing) {
-      for (double subY = y;
+    for (var y = 0.0; y <= size.height; y += gridSpacing) {
+      for (var subY = y;
           subY < y + gridSpacing && subY <= size.height;
           subY += subGridSpacing) {
         canvas.drawLine(
@@ -391,8 +388,8 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
     }
 
-    for (double x = 0; x <= size.width; x += gridSpacing) {
-      for (double subX = x;
+    for (var x = 0.0; x <= size.width; x += gridSpacing) {
+      for (var subX = x;
           subX < x + gridSpacing && subX <= size.width;
           subX += subGridSpacing) {
         canvas.drawLine(

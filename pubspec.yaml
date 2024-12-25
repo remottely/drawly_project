@@ -1,9 +1,9 @@
 name: drawly
-description: "A new Flutter project."
+description: "Desenhe, adivinhe e se divirta como nunca"
 
 publish_to: "none"
 
-version: 0.31.1
+version: 0.31.2
 
 environment:
   sdk: ^3.5.4
@@ -30,6 +30,7 @@ dev_dependencies:
   flutter_web_plugins:
     sdk: flutter
   very_good_analysis: ^6.0.0
+
 flutter:
   uses-material-design: true
 
