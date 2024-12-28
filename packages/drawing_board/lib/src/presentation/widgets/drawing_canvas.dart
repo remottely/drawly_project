@@ -11,7 +11,8 @@ class DrawingCanvas extends StatefulWidget {
   const DrawingCanvas({
     required this.rxAllStrokes,
     required this.rxCurrentStroke,
-    required this.options, // this.onDrawingStrokeChanged,
+    required this.options,
+    // this.onDrawingStrokeChanged,
     required this.canvasGlobalKey,
     required this.username,
     required this.roomName,
@@ -74,16 +75,29 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     _onDrawDrawingEvent = (data) {
       developer.log('Draw event received: $data');
 
-      final receivedStrokes = (data['strokes'] as List<Map<String, dynamic>>)
-          .map(Stroke.fromJson)
-          .toList();
+      try {
+        final receivedStrokes = (data['strokes'] as List<dynamic>)
+            .map(
+              (e) => Stroke.fromJson(
+                Map<String, dynamic>.from(e as Map<String, dynamic>),
+              ),
+            )
+            .toList();
 
-      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-        ..addAll(
-          receivedStrokes
-              .where((stroke) => !rxAllStrokes.value.contains(stroke)),
+        rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+          ..addAll(
+            receivedStrokes
+                .where((stroke) => !rxAllStrokes.value.contains(stroke)),
+          );
+      } catch (e, stackTrace) {
+        developer.log(
+          'Error processing draw event: $e',
+          error: e,
+          stackTrace: stackTrace,
         );
+      }
     };
+
     SocketManager.instance.onEvent('connect', _onConnectEvent);
     SocketManager.instance.onEvent('drawing:draw', _onDrawDrawingEvent);
   }

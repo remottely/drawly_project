@@ -110,23 +110,25 @@ class Room {
 }
 exports.Room = Room;
 class Message {
-    constructor(icon, userId, text) {
+    constructor(icon, userId, username, text) {
         this.icon = icon;
         this.userId = userId;
+        this.username = username;
         this.text = text;
     }
 }
 exports.Message = Message;
 class Answer extends Message {
-    constructor(icon, userId, text, isCorrect) {
-        super(icon, userId, text);
+    constructor(icon, userId, username, text, isCorrect) {
+        super(icon, userId, username, text);
         this.isCorrect = isCorrect;
     }
 }
 exports.Answer = Answer;
 class Participant {
-    constructor(userId, userAvatar, isLogged) {
+    constructor(userId, username, userAvatar, isLogged) {
         this.userId = userId;
+        this.username = username;
         this.userAvatar = userAvatar;
         this.isLogged = isLogged;
     }
@@ -147,26 +149,29 @@ class RoomDrawingDTO extends RoomDTO {
 }
 exports.RoomDrawingDTO = RoomDrawingDTO;
 class RoomUserDTO extends RoomDTO {
-    constructor(roomName, userId, userAvatar, isLogged) {
+    constructor(roomName, userId, username, userAvatar, isLogged) {
         super(roomName);
         this.userId = userId;
+        this.username = username;
         this.userAvatar = userAvatar;
         this.isLogged = isLogged;
     }
 }
 exports.RoomUserDTO = RoomUserDTO;
 class RoomUserMessageDTO extends RoomDTO {
-    constructor(roomName, userId, text) {
+    constructor(roomName, userId, username, text) {
         super(roomName);
         this.userId = userId;
+        this.username = username;
         this.text = text;
     }
 }
 exports.RoomUserMessageDTO = RoomUserMessageDTO;
 class RoomUserAnswerDTO extends RoomDTO {
-    constructor(roomName, userId, text) {
+    constructor(roomName, userId, username, text) {
         super(roomName);
         this.userId = userId;
+        this.username = username;
         this.text = text;
     }
 }
@@ -201,25 +206,25 @@ class RoomManager {
             RoomManager.emitRoomList();
         }
     }
-    static join(socket, { roomName, userId, userAvatar, isLogged }) {
+    static join(socket, { roomName, userId, username, userAvatar, isLogged }) {
         var _a;
         if (!rooms[roomName]) {
             console.log(`Room ${roomName} does not exist`);
             return;
         }
         const currentRoom = rooms[roomName];
-        currentRoom.addParticipant(new Participant(userId, userAvatar, isLogged));
+        currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
         socket.join(roomName);
-        roomUsers[socket.id] = { roomName, userId, userAvatar, isLogged };
-        io.to(roomName).emit('message:new', { icon: 'info', userId, text: "entrou" });
+        roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
+        io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "entrou" });
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
-        console.log(`${userId} joined room ${roomName}`);
+        console.log(`${userId} - ${username} joined room ${roomName}`);
     }
-    static leave(socket, { roomName, userId }) {
+    static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
-        console.log(`${userId} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'info', userId, text: "saiu" });
+        console.log(`${userId} - ${username} left room ${roomName}`);
+        io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "saiu" });
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(userId);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -235,7 +240,7 @@ class RoomManager {
 }
 exports.RoomManager = RoomManager;
 class AnswerActions {
-    static send(socket, { roomName, userId, text }) {
+    static send(socket, { roomName, userId, username, text }) {
         const room = rooms[roomName];
         if (!room) {
             console.error(`Room ${roomName} not found.`);
@@ -250,13 +255,13 @@ class AnswerActions {
         }
         const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
         const icon = isCorrect ? 'check' : null;
-        io.to(roomName).emit('answer:new', new Answer(icon, userId, text, isCorrect));
+        io.to(roomName).emit('answer:new', new Answer(icon, userId, username, text, isCorrect));
     }
 }
 exports.AnswerActions = AnswerActions;
 class MessageActions {
-    static send({ roomName, userId, text }) {
-        io.to(roomName).emit('message:new', new Message(null, userId, text));
+    static send({ roomName, userId, username, text }) {
+        io.to(roomName).emit('message:new', new Message(null, userId, username, text));
     }
 }
 exports.MessageActions = MessageActions;
@@ -342,9 +347,9 @@ function handleUserDisconnect(socket) {
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }
-    const { roomName, userId } = userInfo;
-    console.log(`User ${userId} disconnected from room ${roomName}`);
-    RoomManager.leave(socket, { roomName, userId, userAvatar: null, isLogged: false });
+    const { roomName, userId, username } = userInfo;
+    console.log(`User ${userId} - ${username} disconnected from room ${roomName}`);
+    RoomManager.leave(socket, { roomName, userId, username, userAvatar: null, isLogged: false });
 }
 // Socket.IO Configuration
 io.on('connection', (socket) => {

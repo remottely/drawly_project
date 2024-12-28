@@ -15,6 +15,7 @@ class Message extends Equatable {
   const Message({
     required this.icon,
     required this.userId,
+    required this.username,
     required this.text,
   });
 
@@ -25,12 +26,14 @@ class Message extends Equatable {
             orElse: () => null,
           ),
       userId: json['userId'] as String,
+      username: json['username'] as String,
       text: json['text'] as String,
     );
   }
 
   final MessageIconType? icon;
   final String userId;
+  final String username;
   final String text;
 
   IconData? getIcon() {
@@ -71,15 +74,17 @@ class Message extends Equatable {
   Message copyWith({
     MessageIconType? icon,
     String? userId,
+    String? username,
     String? text,
   }) {
     return Message(
       icon: icon ?? this.icon,
       userId: userId ?? this.userId,
+      username: username ?? this.username,
       text: text ?? this.text,
     );
   }
 
   @override
-  List<Object?> get props => [icon, userId, text];
+  List<Object?> get props => [icon, userId, username, text];
 }

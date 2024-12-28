@@ -41,6 +41,7 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
       final payload = RoomUserAnswerDTO(
         roomName: widget.roomName,
         userId: widget.username,
+        username: widget.username,
         text: answer,
       ).toJson();
 

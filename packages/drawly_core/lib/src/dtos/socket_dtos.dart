@@ -15,11 +15,13 @@ class RoomUserDTO extends RoomDTO {
   RoomUserDTO({
     required super.roomName,
     required this.userId,
+    required this.username,
     required this.userAvatar,
     required this.isLogged,
   });
 
   final String userId;
+  final String username;
   final String? userAvatar;
   final bool isLogged;
 
@@ -27,6 +29,7 @@ class RoomUserDTO extends RoomDTO {
   //   return RoomUserDTO(
   //     roomName: json['roomName'] as String,
   //     userId: json['userId'] as String,
+  //     username: json['username'] as String,
   //     userAvatar: json['userAvatar'] as String?,
   //     isLogged: json['isLogged'] as bool,
   //   );
@@ -35,6 +38,7 @@ class RoomUserDTO extends RoomDTO {
   @override
   Map<String, dynamic> toJson() => super.toJson()
     ..['userId'] = userId
+    ..['username'] = username
     ..['userAvatar'] = userAvatar
     ..['isLogged'] = isLogged;
 }
@@ -43,16 +47,19 @@ class RoomUserMessageDTO extends RoomDTO {
   RoomUserMessageDTO({
     required super.roomName,
     required this.userId,
+    required this.username,
     required this.text,
   });
 
   final String userId;
+  final String username;
   final String text;
 
   // factory RoomUserMessageDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomUserMessageDTO(
   //     roomName: json['roomName'] as String,
   //     userId: json['userId'] as String,
+  //     username: json['username'] as String,
   //     text: json['text'] as String,
   //   );
   // }
@@ -60,6 +67,7 @@ class RoomUserMessageDTO extends RoomDTO {
   @override
   Map<String, dynamic> toJson() => super.toJson()
     ..['userId'] = userId
+    ..['username'] = username
     ..['text'] = text;
 }
 
@@ -67,16 +75,19 @@ class RoomUserAnswerDTO extends RoomDTO {
   RoomUserAnswerDTO({
     required super.roomName,
     required this.userId,
+    required this.username,
     required this.text,
   });
 
   final String userId;
+  final String username;
   final String text;
 
   // factory RoomUserAnswerDTO.fromJson(Map<String, dynamic> json) {
   //   return RoomUserAnswerDTO(
   //     roomName: json['roomName'] as String,
   //     userId: json['userId'] as String,
+  //     username: json['username'] as String,
   //     text: json['text'] as String,
   //   );
   // }
@@ -84,5 +95,6 @@ class RoomUserAnswerDTO extends RoomDTO {
   @override
   Map<String, dynamic> toJson() => super.toJson()
     ..['userId'] = userId
+    ..['username'] = username
     ..['text'] = text;
 }

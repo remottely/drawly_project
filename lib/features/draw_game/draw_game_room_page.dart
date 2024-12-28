@@ -109,6 +109,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
       userId: widget.username,
+      username: widget.username,
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();
@@ -120,6 +121,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
       userId: widget.username,
+      username: widget.username,
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();

@@ -78,7 +78,8 @@
 - [x] (0.31.1) drawly tab problems: fix all alerts
 - [x] (0.31.2) drawly packages tab problems: fix all alerts (part 1)
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
-- [ ] (0.?.0) Add new username logic to backend and frontend
+- [x] (0.32.0) Add new username logic to backend and frontend
+- [ ] Refactoring: Separate each `onEvent` handler into its own file for better modularization, organization and maintainability.
 - [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) add timer.
