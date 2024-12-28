@@ -80,40 +80,73 @@
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
-- [ ] Tamanho min e max para username(validacao frontend e backend)
+
+### Validações e Regras de Negócio
+
+- [ ] (0.?.0) Minimum and maximum length validation for usernames (frontend and backend).
+- [x] (0.33.0) Limit the fixed number of players per room to 12.
+- [ ] (0.?.0) Block server to open more than one connection with same userId (backend).
+- [ ] (0.?.0) Define the number of rounds at the room's based on total points. When a player has more or equal to max points, the game ends.
+
+---
+
+### Refatoração e Organização de Código
+
 - [ ] Refactoring: Separate each `onEvent` handler into its own file for better modularization, organization and maintainability.
-- [ ] (0.?.0) Improve the way backend open and close socket.io connections.
-- [ ] (0.?.0) unique avatars.
-- [ ] (0.?.0) add timer.
-- [ ] (0.?.0) Bug: when a player enter in a room with game already started, appers "start game" on the screen.
-- [ ] (0.?.0) bug with List all rooms when back and enter again in the DrawGameRoomSelectionPage.
-- [ ] (0.?.0) Limit the fixed number of players per room to 12.
-- [ ] (0.?.0) Logic between turns.
-- [ ] (0.?.0) Drawing tools (bucket fill).
-- [ ] (0.?.0) Display players in the room with scores.
-- [ ] (0.?.0) Randomized word bank categorized themes.
-- [ ] (0.?.0) Point system based on Speed of correct guesses.
-- [ ] (0.?.0) Point system based on Drawer receives points for others' correct guesses.
-- [ ] (0.?.0) Define the number of rounds at the room's based on total points. When a player have more or equal max points, the game ends.
-- [ ] (0.?.0) Show letters or progressive hints over time.
-- [ ] (0.?.0) Ensure responsiveness for mobile and desktop.
-- [ ] (0.?.0) Configure basic security (e.g., flood protection in chat).
-- [ ] (0.?.0) Implement basic logs for error debugging.
-- [ ] (0.?.0) Test concurrency with multiple users.
-- [ ] (0.?.0) End game when there are no players in the answer chat.
+- [ ] (0.?.0) Improve the way backend open and close Socket.IO connections.
+
+---
+
+### Bugs e Correções
+
+- [ ] (0.?.0) Bug: when a player enters a room with a game already started, "start game" appears on the screen Remove it and introduce the new player.
+- [ ] (0.?.0) Bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
+- [ ] (0.?.0) Bug with "List all rooms" when going back and entering again in the `DrawGameRoomSelectionPage`.
 - [ ] (0.?.0) Bug: `cmd+z` and `cmd+y` do not work on the web. Find a workaround if expected behavior.
 - [ ] (0.?.0) Bug: `shiftLeft` and `shiftRight` do not work.
-- [ ] (0.?.0) Detect when the client leaves the website or app to ensure all **Socket.IO** listeners are properly closed.
+
+---
+
+### Funcionalidades Essenciais
+
+- [ ] (0.?.0) unique avatars.
+- [ ] (0.?.0) Add timer.
+- [ ] (0.?.0) Logic between turns.
+- [ ] (0.?.0) Randomized word bank categorized themes.
+- [ ] (0.?.0) Drawing tools (bucket fill).
+- [ ] (0.?.0) Display players in the room with scores.
+- [ ] (0.?.0) Point system based on speed of correct guesses.
+- [ ] (0.?.0) Point system where the drawer receives points for others' correct guesses.
+- [ ] (0.?.0) Show letters or progressive hints over time.
+- [ ] (0.?.0) Detect inactivity, warn the user, and kick after one minute.
+- [ ] (0.?.0) End game when there are no players in the answer chat.
+
+---
+
+### Segurança e Logs
+
+- [ ] (0.?.0) Configure basic security (e.g., flood protection in chat).
+- [ ] (0.?.0) Implement basic logs for error debugging.
+
+---
+
+### Responsividade e Experiência do Usuário
+
+- [ ] (0.?.0) Ensure responsiveness for mobile and desktop.
 - [ ] (0.?.0) Sounds.
 - [ ] (0.?.0) Close(return).
-- [ ] (0.?.0) Detect inactivity, warn the user, and kick after one minute.
 - [ ] (0.?.0) Add Firebase Authentication (anonymous).
 - **Answer chat dynamic hint text**:
   - "Answer here..."
   - "Timeout..."
   - "Waiting for the drawing."
-- [ ] (0.?.0) bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
-- [ ] (0.?.0) Block server to open more than one connection with same userId.
+
+---
+
+### Testes e Conectividade
+
+- [ ] (0.?.0) Test concurrency with multiple users.
+- [ ] (0.?.0) Detect when the client leaves the website or app to ensure all **Socket.IO** listeners are properly closed.
 
 ---
 

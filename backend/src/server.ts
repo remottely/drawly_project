@@ -198,7 +198,10 @@ export class RoomUserAnswerDTO extends RoomDTO {
 const rooms: { [roomName: string]: Room } = {};
 const roomDrawings: { [roomName: string]: Drawing } = {};
 const roomUsers: { [socketId: string]: RoomUserDTO } = {};
-const minimumNumberOfPlayers = 2;
+const minNumberOfPlayers = 2;
+// TODO(Kevin): Change back to 12
+const maxmNumberOfPlayers = 3;
+
 const wordsList = [
   "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
   "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
@@ -233,6 +236,14 @@ export class RoomManager {
     }
 
     const currentRoom = rooms[roomName];
+
+    if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
+      var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
+      console.error(message);
+      socket.emit('error', { message: message });
+      return;
+    }
+
     currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
 
     socket.join(roomName);
@@ -363,9 +374,9 @@ export class GameManager {
       return;
     }
 
-    if (room.getParticipants().length < minimumNumberOfPlayers) {
-      console.error(`Not enough players in room ${roomName}. Minimum required: ${minimumNumberOfPlayers}`);
-      socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minimumNumberOfPlayers}.` });
+    if (room.getParticipants().length < minNumberOfPlayers) {
+      console.error(`Not enough players in room ${roomName}. Minimum required: ${minNumberOfPlayers}`);
+      socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minNumberOfPlayers}.` });
       return;
     }
 
