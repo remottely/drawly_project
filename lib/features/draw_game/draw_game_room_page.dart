@@ -24,6 +24,7 @@ class DrawGameRoomPage extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+
   final String username;
   final String roomName;
 
@@ -342,6 +343,7 @@ class DrawlyFakeAppBar extends StatelessWidget {
     required this.children,
     super.key,
   });
+
   final List<Widget> children;
 
   @override

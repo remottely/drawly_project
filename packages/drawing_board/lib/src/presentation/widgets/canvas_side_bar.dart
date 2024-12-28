@@ -25,6 +25,7 @@ class CanvasSideBar extends StatefulWidget {
     required this.isCurrentDrawer,
     super.key,
   });
+
   final ValueNotifier<Color> rxSelectedColor;
   final ValueNotifier<double> rxSelectedColorOpacity;
   final ValueNotifier<double> rxCurrentStrokeSize;
@@ -271,7 +272,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
             //     }
             //   },
             //   child: Text(
-            //     widget.backgroundImage.value == null ? 'Add Background' : 'Remove Background',
+            //     widget.backgroundImage.value == null
+            //          ? 'Add Background' : 'Remove Background',
             //   ),
             // ),
             ColorPalette(
@@ -428,7 +430,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
   //       ..click();
   //   } else {
   //     await FileSaver.instance.saveFile(
-  //       name: 'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension',
+  //       name:
+  //        'FlutterLetsDraw-${DateTime.now().toIso8601String()}.$extension',
   //       bytes: bytes,
   //       ext: extension,
   //       mimeType: extension == 'png' ? MimeType.png : MimeType.jpeg,
@@ -455,7 +458,8 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
   //       }
   //     }
   //   } else {
-  //     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //     final image =
+  //       await ImagePicker().pickImage(source: ImageSource.gallery);
   //     if (image != null) {
   //       final bytes = await image.readAsBytes();
   //       completer.complete(
@@ -499,7 +503,11 @@ class _IconBox extends StatelessWidget {
     this.iconData,
     this.child,
     this.tooltip,
-  }) : assert(child != null || iconData != null);
+  }) : assert(
+          child != null || iconData != null,
+          'Either "child" or "iconData" must be provided.',
+        );
+
   final IconData? iconData;
   final Widget? child;
   final bool selected;

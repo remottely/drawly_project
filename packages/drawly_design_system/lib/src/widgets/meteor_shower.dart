@@ -9,6 +9,7 @@ class MeteorShower extends StatefulWidget {
     this.numberOfMeteors = 10,
     this.duration = const Duration(seconds: 10),
   });
+
   final Widget? child;
   final int numberOfMeteors;
   final Duration duration;

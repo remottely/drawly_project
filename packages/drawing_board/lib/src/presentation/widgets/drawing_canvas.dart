@@ -26,13 +26,13 @@ class DrawingCanvas extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+
   final ValueNotifier<List<Stroke>> rxAllStrokes;
   final ValueNotifier<ui.Image?>? rxBackgroundImage;
   final CurrentStrokeValueNotifier rxCurrentStroke;
   final DrawingCanvasOptions options;
   // final Function(Stroke?)? onDrawingStrokeChanged;
   final GlobalKey canvasGlobalKey;
-
   final String username;
   final String roomName;
 
@@ -74,9 +74,9 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     };
     _onDrawDrawingEvent = (data) {
       developer.log('Draw event received: $data');
-
+      final newStrokes = data as Map<String, dynamic>;
       try {
-        final receivedStrokes = (data['strokes'] as List<dynamic>)
+        final receivedStrokes = (newStrokes as List<dynamic>)
             .map(
               (e) => Stroke.fromJson(
                 Map<String, dynamic>.from(e as Map<String, dynamic>),
@@ -171,14 +171,16 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                         sides: widget.options.polygonSides,
                         filled: widget.options.fillShape,
                       );
-                      // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
+                      // widget.onDrawingStrokeChanged?
+                      // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerMove: (details) {
                     final localPosition = details.localPosition;
                     if (_isInsideCanvas(localPosition)) {
                       rxCurrentStroke.addPoint(localPosition);
-                      // widget.onDrawingStrokeChanged?.call(rxCurrentStroke.value);
+                      // widget.onDrawingStrokeChanged?
+                      // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerUp: (_) {

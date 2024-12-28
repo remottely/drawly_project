@@ -73,6 +73,7 @@ class _MessageChatText extends StatelessWidget {
   const _MessageChatText({
     required this.message,
   });
+
   final Message message;
 
   @override

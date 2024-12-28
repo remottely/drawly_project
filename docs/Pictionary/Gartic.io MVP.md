@@ -79,13 +79,15 @@
 - [x] (0.31.2) drawly packages tab problems: fix all alerts (part 1)
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [x] (0.32.0) Add new username logic to backend and frontend
+- [x] (0.32.1) drawly tab problems: fix all alerts
+- [ ] Tamanho min e max para username(validacao frontend e backend)
 - [ ] Refactoring: Separate each `onEvent` handler into its own file for better modularization, organization and maintainability.
 - [ ] (0.?.0) Improve the way backend open and close socket.io connections.
 - [ ] (0.?.0) unique avatars.
 - [ ] (0.?.0) add timer.
 - [ ] (0.?.0) Bug: when a player enter in a room with game already started, appers "start game" on the screen.
 - [ ] (0.?.0) bug with List all rooms when back and enter again in the DrawGameRoomSelectionPage.
-- [ ] (0.?.0) Limit the fixed number of players per room to 6.
+- [ ] (0.?.0) Limit the fixed number of players per room to 12.
 - [ ] (0.?.0) Logic between turns.
 - [ ] (0.?.0) Drawing tools (bucket fill).
 - [ ] (0.?.0) Display players in the room with scores.

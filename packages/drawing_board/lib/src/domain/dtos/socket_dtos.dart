@@ -6,6 +6,7 @@ class RoomDrawingDTO extends RoomDTO {
     required super.roomName,
     required this.strokes,
   });
+
   final List<Stroke> strokes;
 
   // factory RoomDrawingDTO.fromJson(Map<String, dynamic> json) {

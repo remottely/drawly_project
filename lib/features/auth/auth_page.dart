@@ -288,6 +288,7 @@ class GradientText extends StatelessWidget {
     required this.gradientColors,
     super.key,
   });
+
   final String text;
   final double fontSize;
   final List<Color> gradientColors;
@@ -554,6 +555,7 @@ class _CircularTextPainter extends CustomPainter {
     required this.textStyle,
     required this.progress,
   });
+
   final String text;
   final double radius;
   final TextStyle textStyle;

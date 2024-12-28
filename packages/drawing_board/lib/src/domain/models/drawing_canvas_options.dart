@@ -13,6 +13,7 @@ class DrawingCanvasOptions {
     this.polygonSides = 3,
     this.fillShape = false,
   });
+
   final Color strokeColor;
   final double size;
   final double opacity;

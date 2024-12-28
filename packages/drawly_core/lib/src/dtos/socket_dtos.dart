@@ -1,5 +1,6 @@
 class RoomDTO {
   RoomDTO({required this.roomName});
+
   final String roomName;
 
   // factory RoomDTO.fromJson(Map<String, dynamic> json) {

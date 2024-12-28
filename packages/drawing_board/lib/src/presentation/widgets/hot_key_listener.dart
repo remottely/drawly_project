@@ -13,6 +13,7 @@ class HotkeyListener extends StatefulWidget {
     this.onChangeTool,
     this.onShiftPressed,
   });
+
   final Widget child;
   final void Function()? onUndo;
   final void Function()? onRedo;
@@ -64,7 +65,8 @@ class _HotkeyListenerState extends State<HotkeyListener> {
         widget.onShiftPressed?.call(value: true);
       }
     } else if (event is KeyUpEvent) {
-      // when shift is released, we want to change the tool back to the previous one
+      // when shift is released, we want to change the tool back to the
+      // previous one
       if (event.logicalKey == LogicalKeyboardKey.shiftLeft ||
           event.logicalKey == LogicalKeyboardKey.shiftRight) {
         widget.onShiftPressed?.call(value: false);

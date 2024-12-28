@@ -136,6 +136,7 @@ class _UserPicture extends StatelessWidget {
   const _UserPicture({
     required this.userAvatar,
   });
+
   final String? userAvatar;
 
   @override

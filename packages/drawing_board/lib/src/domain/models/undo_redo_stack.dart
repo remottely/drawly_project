@@ -54,8 +54,8 @@ class UndoRedoStack {
     if (_redoStack.isNotEmpty) {
       _isRedoing = true;
 
-      final allStrokes = List<Stroke>.from(rxAllStrokes.value);
-      allStrokes.add(_redoStack.removeLast());
+      final allStrokes = List<Stroke>.from(rxAllStrokes.value)
+        ..add(_redoStack.removeLast());
       rxAllStrokes.value = allStrokes;
       _rxCanRedo.value = _redoStack.isNotEmpty;
       _strokeCount++;

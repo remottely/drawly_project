@@ -8,6 +8,7 @@ class ColorPalette extends StatelessWidget {
     required this.rxSelectedColor,
     super.key,
   });
+
   final ValueNotifier<Color> rxSelectedColor;
   final GlobalKey _key = GlobalKey();
 
@@ -104,7 +105,7 @@ class ColorPalette extends StatelessWidget {
   }
 
   void showColorWheel(BuildContext context, ValueNotifier<Color> color) {
-    showDialog(
+    showDialog<Widget>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

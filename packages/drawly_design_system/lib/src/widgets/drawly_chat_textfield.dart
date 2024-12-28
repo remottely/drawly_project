@@ -13,6 +13,7 @@ class DrawlyChatTextField extends StatefulWidget {
     this.hintColor,
     this.keyboardType = TextInputType.text,
   });
+
   final TextEditingController? controller;
   final String? hintText;
   final Color? hintColor;

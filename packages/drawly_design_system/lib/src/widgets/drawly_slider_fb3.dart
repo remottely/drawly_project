@@ -12,6 +12,7 @@ class DrawlySliderFb3 extends StatefulWidget {
     this.minMaxTextStyle = const TextStyle(fontSize: 14),
     super.key,
   });
+
   final double min;
   final double max;
   final double initialValue;
@@ -120,6 +121,7 @@ class CustomSliderThumbCircle extends SliderComponentShape {
     this.min = 0.0,
     this.max = 100.0,
   });
+
   final double thumbRadius;
   final double min;
   final double max;

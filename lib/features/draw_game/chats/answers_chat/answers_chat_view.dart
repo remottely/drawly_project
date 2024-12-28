@@ -98,6 +98,7 @@ class _AnswerChatText extends StatelessWidget {
   const _AnswerChatText({
     required this.answer,
   });
+
   final Answer answer;
 
   @override

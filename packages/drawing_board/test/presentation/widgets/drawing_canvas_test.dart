@@ -316,6 +316,7 @@ void main() {
 
 class _Seed extends StatefulWidget {
   const _Seed({required this.drawingCanvasOptions});
+
   final DrawingCanvasOptions drawingCanvasOptions;
 
   @override
