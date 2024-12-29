@@ -1,3 +1,53 @@
+enum ErrorActionType {
+  nothing,
+  retry,
+  ignore,
+  log,
+  pop,
+  dialog,
+}
+
+class ErrorDTO {
+  ErrorDTO({
+    required this.message,
+    required this.action,
+  });
+
+  // Método fromJson
+  factory ErrorDTO.fromJson(Map<String, dynamic> json) {
+    return ErrorDTO(
+      message: json['message'] as String,
+      action: ErrorActionType.values.firstWhere(
+        (e) => e.name == json['action'],
+        orElse: () =>
+            throw ArgumentError('Invalid ErrorActionType: ${json['action']}'),
+      ),
+    );
+  }
+
+  final String message;
+  final ErrorActionType action;
+
+  // Método copyWith
+  ErrorDTO copyWith({
+    String? message,
+    ErrorActionType? action,
+  }) {
+    return ErrorDTO(
+      message: message ?? this.message,
+      action: action ?? this.action,
+    );
+  }
+
+  // Método toJson
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'action': action.name, // Presume que ErrorActionType é um enum
+    };
+  }
+}
+
 class RoomDTO {
   RoomDTO({required this.roomName});
 

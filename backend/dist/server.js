@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.Participant = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -35,6 +35,15 @@ var StrokeType;
     StrokeType["square"] = "square";
     StrokeType["circle"] = "circle";
 })(StrokeType || (StrokeType = {}));
+var ErrorActionType;
+(function (ErrorActionType) {
+    ErrorActionType["nothing"] = "nothing";
+    ErrorActionType["retry"] = "retry";
+    ErrorActionType["ignore"] = "ignore";
+    ErrorActionType["log"] = "log";
+    ErrorActionType["pop"] = "pop";
+    ErrorActionType["dialog"] = "dialog";
+})(ErrorActionType || (ErrorActionType = {}));
 class Stroke {
     constructor(points, color, size, opacity, strokeType, filled) {
         this.points = points;
@@ -135,6 +144,13 @@ class Participant {
 }
 exports.Participant = Participant;
 // DTOs
+class ErrorDTO {
+    constructor(message, action) {
+        this.message = message;
+        this.action = action;
+    }
+}
+exports.ErrorDTO = ErrorDTO;
 class RoomDTO {
     constructor(roomName) {
         this.roomName = roomName;
@@ -181,7 +197,8 @@ const rooms = {};
 const roomDrawings = {};
 const roomUsers = {};
 const minNumberOfPlayers = 2;
-const maxmNumberOfPlayers = 4;
+// TODO(Kevin): Change back to 12
+const maxmNumberOfPlayers = 3;
 const wordsList = [
     "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
     "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
@@ -207,7 +224,7 @@ class RoomManager {
             RoomManager.emitRoomList();
         }
     }
-    static join(socket, { roomName, userId, username, userAvatar, isLogged }) {
+    static join(socket, { roomName, userId, username, userAvatar, isLogged }, callback) {
         var _a;
         if (!rooms[roomName]) {
             console.log(`Room ${roomName} does not exist`);
@@ -217,7 +234,8 @@ class RoomManager {
         if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
             var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
             console.error(message);
-            socket.emit('error', { message: message });
+            socket.emit('error', new ErrorDTO(message, ErrorActionType.pop));
+            callback({ success: false });
             return;
         }
         currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
@@ -227,6 +245,7 @@ class RoomManager {
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${userId} - ${username} joined room ${roomName}`);
+        callback({ success: true });
     }
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
@@ -365,7 +384,7 @@ io.on('connection', (socket) => {
         allRooms: Object.keys(rooms)
     });
     socket.on('room:create', (data) => RoomManager.create(data));
-    socket.on('room:join', (data) => RoomManager.join(socket, data));
+    socket.on('room:join', (data, callback) => RoomManager.join(socket, data, callback));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));
     socket.on('drawing:draw', (data) => DrawingActions.draw(data));
     socket.on('drawing:clear', (data) => DrawingActions.clear(data));

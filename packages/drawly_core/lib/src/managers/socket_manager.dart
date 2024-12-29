@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:socket_io_client/socket_io_client.dart' as socket_io_client;
@@ -85,6 +86,33 @@ class SocketManager {
   /// Emit an event to the server
   void emit(String event, dynamic data) {
     _socket.emit(event, data);
+  }
+
+  Future<dynamic> emitWithAck(
+    String event,
+    dynamic data, {
+    Duration timeout = const Duration(seconds: 10),
+  }) {
+    final completer = Completer<dynamic>();
+
+    _socket.emitWithAck(
+      event,
+      data,
+      ack: (response) {
+        if (!completer.isCompleted) {
+          completer.complete(response);
+        }
+      },
+    );
+
+    Future.delayed(timeout, () {
+      if (!completer.isCompleted) {
+        completer
+            .completeError('Timeout: No response received for event $event');
+      }
+    });
+
+    return completer.future;
   }
 
   /// Clear all listeners (use with caution)

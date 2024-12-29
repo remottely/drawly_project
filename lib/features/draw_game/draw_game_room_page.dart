@@ -1,6 +1,7 @@
-import 'dart:ui';
+import 'dart:developer' as developer;
 
 import 'package:drawing_board/drawing_board.dart';
+import 'package:drawly/drawly_app.dart';
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/models/answer.dart';
@@ -64,17 +65,17 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
   String? userAvatar;
 
-  Future<void> as() async {
+  Future<void> getLocalStorageUserAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     userAvatar = prefs.getString('user_avatar_path');
   }
 
   Future<void> _initializeSocket() async {
-    await as();
+    await getLocalStorageUserAvatar();
     Tests.createRoom(widget.roomName);
-    _joinGameRoom();
-    _onConnectEvent = (_) {
-      _joinGameRoom();
+    await _joinGameRoom();
+    _onConnectEvent = (_) async {
+      await _joinGameRoom();
     };
     _onNewTurnEvent = (data) {
       rxWord.value = (data as Map<String, dynamic>)['word'] as String;
@@ -106,7 +107,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     });
   }
 
-  void _joinGameRoom() {
+  Future<void> _joinGameRoom() async {
     final payload = RoomUserDTO(
       roomName: widget.roomName,
       userId: widget.username,
@@ -114,8 +115,18 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();
+    // quero q esse emit espere um retorno do tipo future por exemplo, e q apos finalizar eu vou capturar a resposta e fazer algo com ela
+    // SocketManager.instance.emit('room:join', payload);
 
-    SocketManager.instance.emit('room:join', payload);
+    try {
+      final response =
+          await SocketManager.instance.emitWithAck('room:join', payload);
+      if (response['success'] == false) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      developer.log('Error joining room: $e');
+    }
   }
 
   void _leaveRoom() {
@@ -235,7 +246,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                     ),
                                     ValueListenableBuilder<int>(
                                       valueListenable: rxTotalDuration,
-                                      builder: (context, value, child) {
+                                      builder: (_, value, __) {
                                         return Opacity(
                                           opacity: value == 0 ? 1.0 : 0.0,
                                           child: IgnorePointer(
@@ -243,33 +254,23 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                             child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(10),
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withOpacity(0.5),
-                                                ),
-                                                child: BackdropFilter(
-                                                  filter: ImageFilter.blur(
-                                                    sigmaX: 10,
-                                                    sigmaY: 10,
-                                                  ),
-                                                  child: Center(
-                                                    child: ElevatedButton(
-                                                      onPressed: () {
-                                                        final payload = RoomDTO(
-                                                          roomName:
-                                                              widget.roomName,
-                                                        ).toJson();
+                                              child: DrawlyBackFilter(
+                                                child: Center(
+                                                  child: ElevatedButton(
+                                                    onPressed: () {
+                                                      final payload = RoomDTO(
+                                                        roomName:
+                                                            widget.roomName,
+                                                      ).toJson();
 
-                                                        SocketManager.instance
-                                                            .emit(
-                                                          'game:turns:start',
-                                                          payload,
-                                                        );
-                                                      },
-                                                      child: const Text(
-                                                        'Start Game',
-                                                      ),
+                                                      SocketManager.instance
+                                                          .emit(
+                                                        'game:turns:start',
+                                                        payload,
+                                                      );
+                                                    },
+                                                    child: const Text(
+                                                      'Start Game',
                                                     ),
                                                   ),
                                                 ),

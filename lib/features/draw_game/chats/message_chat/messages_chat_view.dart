@@ -34,7 +34,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
           Expanded(
             child: ValueListenableBuilder<List<Message>>(
               valueListenable: rxAllMessages,
-              builder: (context, value, child) {
+              builder: (_, value, __) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (scrollController.hasClients) {
                     scrollController

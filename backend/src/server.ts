@@ -32,6 +32,15 @@ enum StrokeType {
   circle = "circle",
 }
 
+enum ErrorActionType {
+  nothing = "nothing",
+  retry = "retry",
+  ignore = "ignore",
+  log = "log",
+  pop = "pop",
+  dialog = "dialog",
+}
+
 export class Stroke {
   constructor(
     public points: Offset[],
@@ -145,6 +154,13 @@ export class Participant {
 }
 
 // DTOs
+export class ErrorDTO {
+  constructor(
+    public message: string,
+    public action: ErrorActionType,
+  ) { }
+}
+
 export class RoomDTO {
   constructor(
     public roomName: string
@@ -207,6 +223,7 @@ const wordsList = [
   "rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
   "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 ];
+
 export class RoomManager {
   static emitRoomList(): boolean {
     return io.emit('room:all', {
@@ -229,7 +246,7 @@ export class RoomManager {
     }
   }
 
-  static join(socket: Socket, { roomName, userId, username, userAvatar, isLogged }: RoomUserDTO): void {
+  static join(socket: Socket, { roomName, userId, username, userAvatar, isLogged }: RoomUserDTO, callback: any): void {
     if (!rooms[roomName]) {
       console.log(`Room ${roomName} does not exist`);
       return;
@@ -240,7 +257,8 @@ export class RoomManager {
     if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
       var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
       console.error(message);
-      socket.emit('error', { message: message });
+      socket.emit('error', new ErrorDTO(message, ErrorActionType.pop));
+      callback({ success: false });
       return;
     }
 
@@ -253,7 +271,9 @@ export class RoomManager {
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
+
     console.log(`${userId} - ${username} joined room ${roomName}`);
+    callback({ success: true });
   }
 
   static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
@@ -389,6 +409,7 @@ export class GameManager {
 export function handleUserDisconnect(socket: Socket): void {
   const userInfo = roomUsers[socket.id];
   if (!userInfo) {
+    // TODO(Kevin): do something here?
     console.log(`No user info found for socket ${socket.id}`);
     return;
   }
@@ -407,7 +428,7 @@ io.on('connection', (socket: Socket): void => {
   });
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
-  socket.on('room:join', (data: RoomUserDTO) => RoomManager.join(socket, data));
+  socket.on('room:join', (data: RoomUserDTO, callback: any) => RoomManager.join(socket, data, callback));
   socket.on('room:leave', (data: RoomUserDTO) => RoomManager.leave(socket, data));
 
   socket.on('drawing:draw', (data) => DrawingActions.draw(data));

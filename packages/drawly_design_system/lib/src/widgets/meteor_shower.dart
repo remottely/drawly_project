@@ -128,6 +128,7 @@ class Meteor {
     endX = startX + cos(angle) * distance;
     endY = startY + sin(angle) * distance;
   }
+
   final double startX;
   final double startY;
   late double endX;
