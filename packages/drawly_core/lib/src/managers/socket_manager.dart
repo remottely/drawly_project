@@ -88,17 +88,17 @@ class SocketManager {
     _socket.emit(event, data);
   }
 
-  Future<dynamic> emitWithAck(
+  Future<Map<String, dynamic>> emitWithAck(
     String event,
     dynamic data, {
     Duration timeout = const Duration(seconds: 10),
   }) {
-    final completer = Completer<dynamic>();
+    final completer = Completer<Map<String, dynamic>>();
 
     _socket.emitWithAck(
       event,
       data,
-      ack: (response) {
+      ack: (Map<String, dynamic> response) {
         if (!completer.isCompleted) {
           completer.complete(response);
         }

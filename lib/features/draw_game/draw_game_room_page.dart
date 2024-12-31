@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 
 import 'package:drawing_board/drawing_board.dart';
-import 'package:drawly/drawly_app.dart';
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
 import 'package:drawly/features/draw_game/models/answer.dart';
@@ -115,14 +114,17 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       userAvatar: userAvatar,
       isLogged: false,
     ).toJson();
-    // quero q esse emit espere um retorno do tipo future por exemplo, e q apos finalizar eu vou capturar a resposta e fazer algo com ela
+    // quero q esse emit espere um retorno do tipo future por exemplo, e q apos
+    // finalizar eu vou capturar a resposta e fazer algo com ela
     // SocketManager.instance.emit('room:join', payload);
 
     try {
       final response =
           await SocketManager.instance.emitWithAck('room:join', payload);
       if (response['success'] == false) {
-        Navigator.of(context).pop();
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       developer.log('Error joining room: $e');

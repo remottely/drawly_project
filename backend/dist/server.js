@@ -370,6 +370,7 @@ exports.GameManager = GameManager;
 function handleUserDisconnect(socket) {
     const userInfo = roomUsers[socket.id];
     if (!userInfo) {
+        // TODO(Kevin): do something here?
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }

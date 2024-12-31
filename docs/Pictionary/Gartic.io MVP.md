@@ -80,12 +80,13 @@
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
+- [x] (0.33.2) Bug with strokes drawing:draw not working properly
 - [ ] Add nested navigation
 
 ### Validações e Regras de Negócio
 
 - [ ] (0.?.0) Minimum and maximum length validation for usernames (frontend and backend).
-- [x] (0.33.1) Limit the fixed number of players per room to 12. Part 1 (backend).
+- [x] (0.33.0) Limit the fixed number of players per room to 12. Part 1 (backend).
 - [x] Limit the fixed number of players per room to 12. Part 2 (frontend).
   - [x] (0.33.1) Add ErrorDTO and pop action. Add room:join with future callback.
 - [ ] (0.?.0) Block server to open more than one connection with same userId (backend).

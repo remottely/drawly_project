@@ -74,7 +74,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     };
     _onDrawDrawingEvent = (data) {
       developer.log('Draw event received: $data');
-      final newStrokes = data as Map<String, dynamic>;
+      final newStrokes = (data as Map<String, dynamic>)['strokes'];
       try {
         final receivedStrokes = (newStrokes as List<dynamic>)
             .map(
