@@ -36,7 +36,7 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
       final message = messageController.text;
       final payload = RoomUserMessageDTO(
         roomName: widget.roomName,
-        userId: widget.username,
+        userId: widget.userId,
         username: widget.username,
         text: message,
       ).toJson();

@@ -6,6 +6,7 @@ void main() {
   runApp(
     const DrawlyApp(
       home: DrawGameRoomPage(
+        userId: '2',
         username: 'Danillo',
         roomName: '2323',
       ),

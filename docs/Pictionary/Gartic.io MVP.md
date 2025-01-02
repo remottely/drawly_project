@@ -81,6 +81,7 @@
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
 - [x] (0.33.2) Bug with strokes drawing:draw not working properly
+- [x] (0.33.3) Add userId logic into the frontend side
 - [ ] Add nested navigation
 
 ### Validações e Regras de Negócio

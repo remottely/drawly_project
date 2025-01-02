@@ -86,7 +86,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  value[index].userId,
+                                  value[index].username,
                                   style: const TextStyle(
                                     color: AppColors.greyAccent700,
                                     fontWeight: FontWeight.bold,

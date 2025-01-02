@@ -1,15 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawlyContainer extends StatelessWidget {
-  final Color? color;
-  final Color? borderColor;
-  final double? width;
-  final double? height;
-  final EdgeInsets? padding;
-  final Widget? child;
-
   const DrawlyContainer({
     super.key,
     this.color,
@@ -19,6 +11,13 @@ class DrawlyContainer extends StatelessWidget {
     this.padding,
     this.child,
   });
+
+  final Color? color;
+  final Color? borderColor;
+  final double? width;
+  final double? height;
+  final EdgeInsets? padding;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -44,16 +43,18 @@ class DrawlyContainer extends StatelessWidget {
 class DrawlyTitleContainer extends StatelessWidget {
   const DrawlyTitleContainer({
     required this.text,
+    this.color = AppColors.blueAccent,
     super.key,
   });
 
   final String text;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return DrawlyContainer(
-      borderColor: AppColors.darkBlueAccent,
-      color: AppColors.blueAccent,
+      borderColor: AppColors.transparent,
+      color: color,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Text(
         text,

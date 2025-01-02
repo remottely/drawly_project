@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class AnswersChatView extends StatefulWidget {
   const AnswersChatView({
+    required this.userId,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
@@ -20,6 +21,8 @@ class AnswersChatView extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+
+  final String userId;
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
@@ -59,6 +62,7 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                       itemCount: widget.rxAllAnswers.value.length,
                       itemBuilder: (context, index) {
                         return _AnswerChatText(
+                          userId: widget.userId,
                           answer: widget.rxAllAnswers.value[index],
                         );
                       },
@@ -96,9 +100,11 @@ class _AnswersChatViewState extends AnswersChatViewModel {
 
 class _AnswerChatText extends StatelessWidget {
   const _AnswerChatText({
+    required this.userId,
     required this.answer,
   });
 
+  final String userId;
   final Answer answer;
 
   @override
@@ -121,7 +127,7 @@ class _AnswerChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '${answer.userId} ',
+                  text: userId == answer.userId ? 'Você ' : '${answer.userId} ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

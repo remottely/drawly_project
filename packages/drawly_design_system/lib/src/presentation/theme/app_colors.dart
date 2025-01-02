@@ -20,6 +20,7 @@ class AppColors {
   static Color lightGrey = const Color(0xffF6F6F6);
   static Color lightGrey300 = const Color.fromARGB(255, 205, 205, 205);
   static Color white = const Color(0xffFFFFFF);
+  static Color transparent = const Color(0x00FFFFFF);
 
   static final accentColors = [
     greenAccent,

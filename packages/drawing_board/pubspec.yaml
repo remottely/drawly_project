@@ -1,6 +1,6 @@
 name: drawing_board
 description: "A new Flutter package project."
-version: 0.33.2
+version:
 homepage:
 
 publish_to: none

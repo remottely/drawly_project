@@ -97,8 +97,11 @@ class _AuthBodyState extends State<_AuthBody> {
               Navigator.push(
                 context,
                 MaterialPageRoute<Widget>(
-                  builder: (context) =>
-                      DrawGameRoomSelectionPage(username: username),
+                  builder: (context) => DrawGameRoomSelectionPage(
+                    // TODO(Kevin): recover userId from anonymous or logged in authentication
+                    userId: 'userId',
+                    username: username,
+                  ),
                 ),
               );
             }

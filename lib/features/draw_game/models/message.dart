@@ -56,6 +56,7 @@ class Message extends Equatable {
   //   return {
   //     'icon': icon?.name,
   //     'userId': userId,
+  //     'username': username,
   //     'text': text,
   //   };
   // }
@@ -86,5 +87,10 @@ class Message extends Equatable {
   }
 
   @override
-  List<Object?> get props => [icon, userId, username, text];
+  List<Object?> get props => [
+        icon,
+        userId,
+        username,
+        text,
+      ];
 }

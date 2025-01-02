@@ -60,11 +60,6 @@ class _DrawlyAppState extends State<DrawlyApp> {
             return Stack(
               children: [
                 child ?? const SizedBox.shrink(),
-                const Column(
-                  children: [
-                    Text('asdsuad dasd iuasgdausg duysagda8y asY gagds'),
-                  ],
-                ),
                 if (value?.message.isNotEmpty ?? false)
                   GestureDetector(
                     onTap: () {

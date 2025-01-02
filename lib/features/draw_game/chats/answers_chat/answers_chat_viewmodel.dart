@@ -29,7 +29,7 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
         ..add(answer);
 
       widget.rxIsCurrentUserCorrectAnswer.value =
-          answer.isCorrect && answer.userId == widget.username;
+          answer.isCorrect && answer.userId == widget.userId;
     };
     SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
   }
@@ -40,7 +40,7 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
 
       final payload = RoomUserAnswerDTO(
         roomName: widget.roomName,
-        userId: widget.username,
+        userId: widget.userId,
         username: widget.username,
         text: answer,
       ).toJson();

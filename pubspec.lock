@@ -95,21 +95,21 @@ packages:
       path: "packages/drawing_board"
       relative: true
     source: path
-    version: "0.33.2"
+    version: ""
   drawly_core:
     dependency: "direct main"
     description:
       path: "packages/drawly_core"
       relative: true
     source: path
-    version: "0.33.2"
+    version: ""
   drawly_design_system:
     dependency: "direct main"
     description:
       path: "packages/drawly_design_system"
       relative: true
     source: path
-    version: "0.33.2"
+    version: ""
   equatable:
     dependency: "direct main"
     description:

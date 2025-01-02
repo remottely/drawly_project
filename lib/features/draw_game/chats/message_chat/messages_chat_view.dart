@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class MessagesChatView extends StatefulWidget {
   const MessagesChatView({
+    required this.userId,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
@@ -17,6 +18,8 @@ class MessagesChatView extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+
+  final String userId;
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
@@ -96,7 +99,7 @@ class _MessageChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: message.userId,
+                  text: message.username,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,
