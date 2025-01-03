@@ -22,9 +22,9 @@
 - [x] (0.9.5) Organize backend `server.ts` (part 5).
 - [x] (0.9.6) Organize backend `server.ts` (part 6).
 - [x] (0.9.7) Rename `draw_board` package to `drawing_board`.
-- [x] (0.10.0) Implement currentDrawer logic + timer.
+- [x] (0.10.0) Implement currentDrawerUserId logic + timer.
 - [x] (0.10.1) Bug: DrawingBoard undo and redo not working.
-- [x] (0.11.0) Clear the board when changing the currentDrawer.
+- [x] (0.11.0) Clear the board when changing the currentDrawerUserId.
 - [x] (0.11.1) Bug: Hot reload invoking multiple `_joinGameRoom()`.
 - [x] (0.11.2) Bug: Simulating disconnection not working as expected (issue with `definedNumberOfPlayers`).
 - [x] (0.12.0) Implement manual turn start functionality.
@@ -81,7 +81,8 @@
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
 - [x] (0.33.2) Bug with strokes drawing:draw not working properly
-- [x] (0.33.3) Add userId logic into the frontend side
+- [x] (0.33.3) Add userId logic into the frontend side (part 1)
+- [x] (0.33.4) Add userId logic into the frontend side (part 2)
 - [ ] Add nested navigation
 
 ### Validações e Regras de Negócio
@@ -218,3 +219,6 @@
 - [ ] Daily challenges.
 
 ---
+
+Regrad de negocio:
+- se o player for premium ele tem ajude de ia?

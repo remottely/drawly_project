@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:drawing_board/drawing_board.dart';
 import 'package:drawly/features/draw_game/chats/answers_chat/answers_chat_view.dart';
 import 'package:drawly/features/draw_game/chats/message_chat/messages_chat_view.dart';
-import 'package:drawly/features/draw_game/models/answer.dart';
 import 'package:drawly/features/draw_game/participants/all_participants.dart';
 import 'package:drawly/testing/tests.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -35,14 +34,13 @@ class DrawGameRoomPage extends StatefulWidget {
 }
 
 abstract class GamePageViewModel extends State<DrawGameRoomPage> {
-  final rxWord = ValueNotifier<String>('');
-  final rxCurrentDrawer = ValueNotifier<String?>(null);
-  final rxIsCurrentDrawer = ValueNotifier<bool>(false);
+  final rxWord = ValueNotifier<String?>(null);
+  final rxCurrentDrawerUserId = ValueNotifier<String?>(null);
+  final rxCurrentDrawerUsername = ValueNotifier<String?>(null);
+  final rxIsCurrentDrawerUserId = ValueNotifier<bool>(false);
   final rxTotalDuration = ValueNotifier<int>(0);
   final rxIsGameStarted = ValueNotifier<bool>(false);
   final rxTimeLeft = ValueNotifier<int>(0);
-  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
-  final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
   late final void Function(dynamic) _onConnectEvent;
   late final void Function(dynamic) _onNewTurnEvent;
@@ -58,8 +56,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     SocketManager.instance.offEvent('connect', _onConnectEvent);
     SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
     _leaveRoom();
-    rxCurrentDrawer.dispose();
-    rxIsCurrentDrawer.dispose();
+    rxCurrentDrawerUserId.dispose();
+    rxIsCurrentDrawerUserId.dispose();
     rxTotalDuration.dispose();
     rxTimeLeft.dispose();
     super.dispose();
@@ -81,14 +79,13 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     };
     _onNewTurnEvent = (data) {
       rxWord.value = (data as Map<String, dynamic>)['word'] as String;
-      rxCurrentDrawer.value = data['currentDrawer'] as String;
+      rxCurrentDrawerUserId.value = data['currentDrawerUserId'] as String;
+      rxCurrentDrawerUsername.value = data['currentDrawerUsername'] as String;
       rxTotalDuration.value = data['totalDuration'] as int;
       rxTimeLeft.value = data['totalDuration'] as int;
-      rxIsCurrentDrawer.value = rxCurrentDrawer.value == widget.username;
+      rxIsCurrentDrawerUserId.value =
+          rxCurrentDrawerUserId.value == widget.userId;
       rxIsGameStarted.value = true;
-
-      rxAllAnswers.value = [];
-      rxIsCurrentUserCorrectAnswer.value = false;
 
       startCountdown(rxTotalDuration.value);
     };
@@ -152,11 +149,11 @@ class _DrawGameRoomPageState extends GamePageViewModel {
       children: [
         AnimatedBuilder(
           animation: Listenable.merge([
-            rxIsCurrentDrawer,
+            rxIsCurrentDrawerUserId,
           ]),
           builder: (context, _) {
             return Scaffold(
-              backgroundColor: rxIsCurrentDrawer.value
+              backgroundColor: rxIsCurrentDrawerUserId.value
                   ? AppColors.lightSecondary
                   : AppColors.lightPrimary,
               body: Column(
@@ -172,10 +169,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                         value: rxTimeLeft.value / rxTotalDuration.value,
                         minHeight: 5,
                         backgroundColor: AppColors.lightGrey300,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          rxIsCurrentDrawer.value
-                              ? AppColors.redAccent
-                              : AppColors.blueAccent,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.redAccent,
                         ),
                       );
                     },
@@ -221,18 +216,19 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                 children: [
                                   DrawlyFakeAppBar(
                                     children: [
-                                      if (rxIsCurrentDrawer.value)
+                                      if (rxIsCurrentDrawerUserId.value)
                                         DrawlyTitleContainer(
-                                          text: rxWord.value,
+                                          text: rxWord.value ?? '',
                                         )
                                       else
                                         DrawlyTitleContainer(
-                                          color: rxIsCurrentDrawer.value
+                                          color: rxIsCurrentDrawerUserId.value
                                               ? AppColors.blueAccent
                                               : AppColors.darkBlueAccent,
-                                          text: rxCurrentDrawer.value == null
+                                          text: rxCurrentDrawerUserId.value ==
+                                                  null
                                               ? 'Intervalo...'
-                                              : '''Vez de ${rxCurrentDrawer.value}''',
+                                              : '''Vez de ${rxCurrentDrawerUsername.value}''',
                                         ),
                                       if (Tests.isTesting)
                                         const IconButton(
@@ -251,9 +247,9 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         DrawingBoard(
                                           username: widget.username,
                                           roomName: widget.roomName,
-                                          word: rxWord.value,
+                                          word: rxWord.value ?? '',
                                           isCurrentDrawer:
-                                              rxIsCurrentDrawer.value,
+                                              rxIsCurrentDrawerUserId.value,
                                         ),
                                         ValueListenableBuilder<int>(
                                           valueListenable: rxTotalDuration,
@@ -309,12 +305,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                 username: widget.username,
                                                 roomName: widget.roomName,
                                                 isCurrentDrawer:
-                                                    rxIsCurrentDrawer.value,
+                                                    rxIsCurrentDrawerUserId
+                                                        .value,
                                                 isGameStarted:
                                                     rxIsGameStarted.value,
-                                                rxAllAnswers: rxAllAnswers,
-                                                rxIsCurrentUserCorrectAnswer:
-                                                    rxIsCurrentUserCorrectAnswer,
                                               ),
                                             ),
                                             Expanded(
@@ -323,7 +317,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                 username: widget.username,
                                                 roomName: widget.roomName,
                                                 isCurrentDrawer:
-                                                    rxIsCurrentDrawer.value,
+                                                    rxIsCurrentDrawerUserId
+                                                        .value,
                                               ),
                                             ),
                                           ],

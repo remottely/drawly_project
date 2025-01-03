@@ -114,8 +114,8 @@ export class Room {
     return Array.from(this.participants);
   }
 
-  getCurrentDrawer(): string {
-    return this.turnQueue[this.currentTurnIndex]?.userId || '';
+  getCurrentDrawer(): Participant | null {
+    return this.turnQueue[this.currentTurnIndex] || null;
   }
 
   advanceTurn(): void {
@@ -371,12 +371,13 @@ export class TurnManager {
     room.currentWord = wordToDraw;
 
     io.to(roomName).emit('turn:new', {
-      currentDrawer,
+      currentDrawerUserId: currentDrawer.userId,
+      currentDrawerUsername: currentDrawer.username,
       word: wordToDraw,
       totalDuration: totalDuration * 1000,
     });
 
-    console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
+    console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
 
     setTimeout(() => {
       room.advanceTurn();

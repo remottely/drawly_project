@@ -156,7 +156,8 @@ class _DrawingBoardState extends State<DrawingBoard>
                         //   alignment: Alignment.topCenter,
                         //   child: widget.isCurrentDrawer
                         //       ? DrawlyTitleContainer(
-                        //   text: 'Current drawer: ${rxCurrentDrawer.value}',
+                        //   text:
+                        // 'Current drawer: ${rxCurrentDrawerUsername.value}',
                         // )
                         //       : const SizedBox.shrink(),
                         //   // TODO(Kevin): Draw Tip

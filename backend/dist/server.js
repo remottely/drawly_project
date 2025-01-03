@@ -110,8 +110,7 @@ class Room {
         return Array.from(this.participants);
     }
     getCurrentDrawer() {
-        var _a;
-        return ((_a = this.turnQueue[this.currentTurnIndex]) === null || _a === void 0 ? void 0 : _a.userId) || '';
+        return this.turnQueue[this.currentTurnIndex] || null;
     }
     advanceTurn() {
         this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
@@ -335,11 +334,12 @@ class TurnManager {
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         io.to(roomName).emit('turn:new', {
-            currentDrawer,
+            currentDrawerUserId: currentDrawer.userId,
+            currentDrawerUsername: currentDrawer.username,
             word: wordToDraw,
             totalDuration: totalDuration * 1000,
         });
-        console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer}, Word: ${wordToDraw}`);
+        console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
             room.advanceTurn();
             TurnManager.startTurnTimer(roomName, totalDuration);

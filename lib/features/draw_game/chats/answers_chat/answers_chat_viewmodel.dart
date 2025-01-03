@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 abstract class AnswersChatViewModel extends State<AnswersChatView> {
   final answerController = TextEditingController();
   final scrollController = ScrollController();
+  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
+  final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
+  late final void Function(dynamic) _onNewTurnEvent;
   late final void Function(dynamic) _onNewAnswerEvent;
 
   @override
@@ -23,14 +26,17 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   }
 
   void _initializeSocket() {
+    _onNewTurnEvent = (data) {
+      rxAllAnswers.value = [];
+      rxIsCurrentUserCorrectAnswer.value = false;
+    };
     _onNewAnswerEvent = (data) {
       final answer = Answer.fromJson(data as Map<String, dynamic>);
-      widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)
-        ..add(answer);
-
-      widget.rxIsCurrentUserCorrectAnswer.value =
+      rxAllAnswers.value = List.from(rxAllAnswers.value)..add(answer);
+      rxIsCurrentUserCorrectAnswer.value =
           answer.isCorrect && answer.userId == widget.userId;
     };
+    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
     SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
   }
 
