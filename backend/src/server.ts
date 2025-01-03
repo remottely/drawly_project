@@ -85,8 +85,9 @@ export class Drawing {
 export class Room {
   private participants: Set<Participant> = new Set();
   private turnQueue: Participant[] = [];
-  private currentTurnIndex: number = 0;
+  private currentDrawerTurnIndex: number = 0;
   public currentWord: string | null = null;
+  public turnCount: number = 0;
 
   constructor(public name: string) { }
 
@@ -105,8 +106,8 @@ export class Room {
         (participant) => participant.userId !== userId
       );
     }
-    if (this.currentTurnIndex >= this.turnQueue.length) {
-      this.currentTurnIndex = 0;
+    if (this.currentDrawerTurnIndex >= this.turnQueue.length) {
+      this.currentDrawerTurnIndex = 0;
     }
   }
 
@@ -115,11 +116,12 @@ export class Room {
   }
 
   getCurrentDrawer(): Participant | null {
-    return this.turnQueue[this.currentTurnIndex] || null;
+    return this.turnQueue[this.currentDrawerTurnIndex] || null;
   }
 
   advanceTurn(): void {
-    this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
+    this.turnCount++;
+    this.currentDrawerTurnIndex = (this.turnCount) % this.turnQueue.length;
   }
 }
 
@@ -273,7 +275,7 @@ export class RoomManager {
 
 
     console.log(`${userId} - ${username} joined room ${roomName}`);
-    callback({ success: true });
+    callback({ success: true, turn: currentRoom.turnCount });
   }
 
   static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
@@ -349,6 +351,7 @@ export class DrawingActions {
 export class TurnManager {
   static startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
+    room.advanceTurn();
     DrawingActions.clear({ roomName });
 
     if (!room) {
@@ -371,6 +374,7 @@ export class TurnManager {
     room.currentWord = wordToDraw;
 
     io.to(roomName).emit('turn:new', {
+      turn: room.turnCount,
       currentDrawerUserId: currentDrawer.userId,
       currentDrawerUsername: currentDrawer.username,
       word: wordToDraw,
@@ -380,7 +384,7 @@ export class TurnManager {
     console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
 
     setTimeout(() => {
-      room.advanceTurn();
+      // room.advanceTurn();
       TurnManager.startTurnTimer(roomName, totalDuration);
     }, totalDuration * 1000);
   }

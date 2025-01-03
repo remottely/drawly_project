@@ -105,7 +105,7 @@
 
 ### Bugs e Correções
 
-- [ ] (0.?.0) Bug: when a player enters a room with a game already started, "start game" appears on the screen Remove it and introduce the new player.
+- [x] (0.34.0) Bug: when a player enters a room with a game already started, "start game" appears on the screen Remove it and introduce the new player.
 - [ ] (0.?.0) Bug: When entering room1, then leaving and entering room2, disconnecting, and performing some undos, the user is redirected back to room1.
 - [ ] (0.?.0) Bug with "List all rooms" when going back and entering again in the `DrawGameRoomSelectionPage`.
 - [ ] (0.?.0) Bug: `cmd+z` and `cmd+y` do not work on the web. Find a workaround if expected behavior.
@@ -221,4 +221,5 @@
 ---
 
 Regrad de negocio:
+
 - se o player for premium ele tem ajude de ia?

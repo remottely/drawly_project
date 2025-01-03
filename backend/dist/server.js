@@ -89,8 +89,9 @@ class Room {
         this.name = name;
         this.participants = new Set();
         this.turnQueue = [];
-        this.currentTurnIndex = 0;
+        this.currentDrawerTurnIndex = 0;
         this.currentWord = null;
+        this.turnCount = 0;
     }
     addParticipant(participant) {
         this.participants.add(participant);
@@ -102,18 +103,19 @@ class Room {
             this.participants.delete(participantToRemove);
             this.turnQueue = this.turnQueue.filter((participant) => participant.userId !== userId);
         }
-        if (this.currentTurnIndex >= this.turnQueue.length) {
-            this.currentTurnIndex = 0;
+        if (this.currentDrawerTurnIndex >= this.turnQueue.length) {
+            this.currentDrawerTurnIndex = 0;
         }
     }
     getParticipants() {
         return Array.from(this.participants);
     }
     getCurrentDrawer() {
-        return this.turnQueue[this.currentTurnIndex] || null;
+        return this.turnQueue[this.currentDrawerTurnIndex] || null;
     }
     advanceTurn() {
-        this.currentTurnIndex = (this.currentTurnIndex + 1) % this.turnQueue.length;
+        this.turnCount++;
+        this.currentDrawerTurnIndex = (this.turnCount) % this.turnQueue.length;
     }
 }
 exports.Room = Room;
@@ -244,7 +246,7 @@ class RoomManager {
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${userId} - ${username} joined room ${roomName}`);
-        callback({ success: true });
+        callback({ success: true, turn: currentRoom.turnCount });
     }
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
@@ -317,6 +319,7 @@ exports.DrawingActions = DrawingActions;
 class TurnManager {
     static startTurnTimer(roomName, totalDuration = 60) {
         const room = rooms[roomName];
+        room.advanceTurn();
         DrawingActions.clear({ roomName });
         if (!room) {
             console.error(`Room ${roomName} not found.`);
@@ -334,6 +337,7 @@ class TurnManager {
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         io.to(roomName).emit('turn:new', {
+            turn: room.turnCount,
             currentDrawerUserId: currentDrawer.userId,
             currentDrawerUsername: currentDrawer.username,
             word: wordToDraw,
@@ -341,7 +345,7 @@ class TurnManager {
         });
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
-            room.advanceTurn();
+            // room.advanceTurn();
             TurnManager.startTurnTimer(roomName, totalDuration);
         }, totalDuration * 1000);
     }

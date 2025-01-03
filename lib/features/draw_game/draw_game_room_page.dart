@@ -41,6 +41,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxTotalDuration = ValueNotifier<int>(0);
   final rxIsGameStarted = ValueNotifier<bool>(false);
   final rxTimeLeft = ValueNotifier<int>(0);
+  final rxTurn = ValueNotifier<int>(0);
 
   late final void Function(dynamic) _onConnectEvent;
   late final void Function(dynamic) _onNewTurnEvent;
@@ -83,10 +84,11 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       rxCurrentDrawerUsername.value = data['currentDrawerUsername'] as String;
       rxTotalDuration.value = data['totalDuration'] as int;
       rxTimeLeft.value = data['totalDuration'] as int;
+      rxTurn.value = data['turn'] as int;
+
       rxIsCurrentDrawerUserId.value =
           rxCurrentDrawerUserId.value == widget.userId;
       rxIsGameStarted.value = true;
-
       startCountdown(rxTotalDuration.value);
     };
     SocketManager.instance.onEvent('connect', _onConnectEvent);
@@ -99,8 +101,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     Future.doWhile(() async {
       if (remaining <= 0) return false;
 
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      remaining -= 100;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      remaining -= 10;
       rxTimeLeft.value = remaining;
 
       return true;
@@ -123,6 +125,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
         if (mounted) {
           Navigator.of(context).pop();
         }
+      } else {
+        rxTurn.value = response['turn'] as int;
       }
     } catch (e) {
       developer.log('Error joining room: $e');
@@ -150,6 +154,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
         AnimatedBuilder(
           animation: Listenable.merge([
             rxIsCurrentDrawerUserId,
+            // rxTurn,
           ]),
           builder: (context, _) {
             return Scaffold(
@@ -187,7 +192,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                     child: Padding(
                                       padding: const EdgeInsets.all(4),
                                       child: Text(
-                                        widget.roomName,
+                                        '${widget.roomName} | ${rxTurn.value}',
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -252,7 +257,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                               rxIsCurrentDrawerUserId.value,
                                         ),
                                         ValueListenableBuilder<int>(
-                                          valueListenable: rxTotalDuration,
+                                          valueListenable: rxTurn,
                                           builder: (_, value, __) {
                                             return Opacity(
                                               opacity: value == 0 ? 1.0 : 0.0,
