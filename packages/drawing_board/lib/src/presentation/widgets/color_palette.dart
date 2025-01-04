@@ -4,24 +4,24 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_svg/svg.dart';
 
 class ColorPalette extends StatelessWidget {
+  ColorPalette({
+    required this.rxSelectedColor,
+    super.key,
+  });
+
   final ValueNotifier<Color> rxSelectedColor;
   final GlobalKey _key = GlobalKey();
-
-  ColorPalette({
-    super.key,
-    required this.rxSelectedColor,
-  });
 
   double getHeight() {
     final context = _key.currentContext;
     if (context == null) return 0;
-    final RenderBox box = context.findRenderObject() as RenderBox;
+    final box = context.findRenderObject()! as RenderBox;
     return box.size.height;
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Color> allColors = [
+    final allColors = <Color>[
       Colors.black,
       Colors.white,
       AppColors.greyAccent,
@@ -34,13 +34,11 @@ class ColorPalette extends StatelessWidget {
         return Column(
           key: _key,
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             DrawlyBarGrid(
               crossAxisCount: 3,
               children: [
-                for (Color color in allColors)
+                for (final Color color in allColors)
                   MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
@@ -107,7 +105,7 @@ class ColorPalette extends StatelessWidget {
   }
 
   void showColorWheel(BuildContext context, ValueNotifier<Color> color) {
-    showDialog(
+    showDialog<Widget>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

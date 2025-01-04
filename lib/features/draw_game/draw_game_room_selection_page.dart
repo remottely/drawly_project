@@ -3,8 +3,13 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:flutter/material.dart';
 
 class DrawGameRoomSelectionPage extends StatefulWidget {
-  const DrawGameRoomSelectionPage({required this.username, super.key});
+  const DrawGameRoomSelectionPage({
+    required this.userId,
+    required this.username,
+    super.key,
+  });
 
+  final String userId;
   final String username;
 
   @override
@@ -67,9 +72,12 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _joinRoom(String roomName) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) =>
-            DrawGameRoomPage(username: widget.username, roomName: roomName),
+      MaterialPageRoute<Widget>(
+        builder: (context) => DrawGameRoomPage(
+          userId: widget.userId,
+          username: widget.username,
+          roomName: roomName,
+        ),
       ),
     );
   }

@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 
 class AnswersChatView extends StatefulWidget {
   const AnswersChatView({
+    required this.userId,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
     required this.isGameStarted,
-    required this.rxAllAnswers,
-    required this.rxIsCurrentUserCorrectAnswer,
     super.key,
   })  : assert(
           username.length >= 3,
@@ -20,12 +19,12 @@ class AnswersChatView extends StatefulWidget {
           roomName.length >= 3,
           'The roomName must be at least 3 characters long',
         );
+
+  final String userId;
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
   final bool isGameStarted;
-  final ValueNotifier<List<Answer>> rxAllAnswers;
-  final ValueNotifier<bool> rxIsCurrentUserCorrectAnswer;
 
   @override
   State<AnswersChatView> createState() => _AnswersChatViewState();
@@ -37,7 +36,7 @@ class _AnswersChatViewState extends AnswersChatViewModel {
     return DrawlyContainer(
       child: AnimatedBuilder(
         animation: Listenable.merge([
-          widget.rxIsCurrentUserCorrectAnswer,
+          rxIsCurrentUserCorrectAnswer,
         ]),
         builder: (context, _) {
           return Column(
@@ -45,7 +44,7 @@ class _AnswersChatViewState extends AnswersChatViewModel {
               Expanded(
                 child: AnimatedBuilder(
                   animation: Listenable.merge([
-                    widget.rxAllAnswers,
+                    rxAllAnswers,
                   ]),
                   builder: (context, _) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,10 +55,11 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                     });
                     return ListView.builder(
                       controller: scrollController,
-                      itemCount: widget.rxAllAnswers.value.length,
+                      itemCount: rxAllAnswers.value.length,
                       itemBuilder: (context, index) {
                         return _AnswerChatText(
-                          answer: widget.rxAllAnswers.value[index],
+                          userId: widget.userId,
+                          answer: rxAllAnswers.value[index],
                         );
                       },
                     );
@@ -72,18 +72,17 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                   controller: answerController,
                   hintText: widget.isCurrentDrawer || !widget.isGameStarted
                       ? ''
-                      : widget.rxIsCurrentUserCorrectAnswer.value
+                      : rxIsCurrentUserCorrectAnswer.value
                           ? 'Você acertou!'
                           : 'Responda aqui...',
-                  hintColor: widget.rxIsCurrentUserCorrectAnswer.value
-                      ? Colors.green
-                      : null,
+                  hintColor:
+                      rxIsCurrentUserCorrectAnswer.value ? Colors.green : null,
                   leftIcon: Icons.draw,
                   rightIcon: Icons.send,
                   onRightIconPressed: sendAnswer,
                   disabled: widget.isCurrentDrawer ||
                       !widget.isGameStarted ||
-                      widget.rxIsCurrentUserCorrectAnswer.value,
+                      rxIsCurrentUserCorrectAnswer.value,
                 ),
               ),
             ],
@@ -96,8 +95,11 @@ class _AnswersChatViewState extends AnswersChatViewModel {
 
 class _AnswerChatText extends StatelessWidget {
   const _AnswerChatText({
+    required this.userId,
     required this.answer,
   });
+
+  final String userId;
   final Answer answer;
 
   @override
@@ -120,7 +122,8 @@ class _AnswerChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '${answer.username} ',
+                  text:
+                      userId == answer.userId ? 'Você ' : '${answer.username} ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

@@ -6,17 +6,12 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawingBoard extends StatefulWidget {
-  final String username;
-  final String roomName;
-  final String word;
-  final bool isCurrentDrawer;
-
   const DrawingBoard({
-    super.key,
     required this.username,
     required this.roomName,
     required this.word,
     required this.isCurrentDrawer,
+    super.key,
   })  : assert(
           username.length >= 3,
           'The username must be at least 3 characters long',
@@ -26,6 +21,11 @@ class DrawingBoard extends StatefulWidget {
           'The roomName must be at least 3 characters long',
         );
 
+  final String username;
+  final String roomName;
+  final String word;
+  final bool isCurrentDrawer;
+
   @override
   State<DrawingBoard> createState() => _DrawingBoardState();
 }
@@ -34,10 +34,10 @@ class _DrawingBoardState extends State<DrawingBoard>
     with SingleTickerProviderStateMixin {
   final canvasGlobalKey = GlobalKey();
   late UndoRedoStack undoRedoStack;
-  var rxCurrentStroke = CurrentStrokeValueNotifier();
+  CurrentStrokeValueNotifier rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxSelectedColor = ValueNotifier<Color>(Colors.black);
-  final rxSelectedColorOpacity = ValueNotifier<double>(1.0);
-  final rxCurrentStrokeSize = ValueNotifier<double>(10.0);
+  final rxSelectedColorOpacity = ValueNotifier<double>(1);
+  final rxCurrentStrokeSize = ValueNotifier<double>(10);
   // final rxEraserSize = ValueNotifier<double>(30.0);
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
   final rxIsFilled = ValueNotifier<bool>(false);
@@ -60,7 +60,7 @@ class _DrawingBoardState extends State<DrawingBoard>
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.offEvent('game:turn:new', _onNewTurnEvent);
     super.dispose();
   }
 
@@ -73,7 +73,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxCurrentStroke = CurrentStrokeValueNotifier();
       rxSelectedColor.value = Colors.black;
       rxSelectedColorOpacity.value = 1.0;
-      rxCurrentStrokeSize.value = 10.0;
+      rxCurrentStrokeSize.value = 5.0;
       // rxEraserSize.value = 30.0;
       rxDrawingTool.value = DrawingTool.pencil;
       rxIsFilled.value = false;
@@ -82,7 +82,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxAllStrokes.value = [];
       rxIsShowGrid.value = false;
     };
-    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.onEvent('game:turn:new', _onNewTurnEvent);
   }
 
   @override
@@ -156,7 +156,8 @@ class _DrawingBoardState extends State<DrawingBoard>
                         //   alignment: Alignment.topCenter,
                         //   child: widget.isCurrentDrawer
                         //       ? DrawlyTitleContainer(
-                        //   text: 'Current drawer: ${rxCurrentDrawer.value}',
+                        //   text:
+                        // 'Current drawer: ${rxCurrentDrawerUsername.value}',
                         // )
                         //       : const SizedBox.shrink(),
                         //   // TODO(Kevin): Draw Tip

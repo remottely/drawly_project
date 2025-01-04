@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
 
 class DrawlySliderFb3 extends StatefulWidget {
-  final double min;
-  final double max;
-  final double initialValue;
-  final bool showMinMaxText;
-  final int divisions;
-  final Color accentColor;
-  final void Function(double) onChanged;
-  final TextStyle minMaxTextStyle;
-
   const DrawlySliderFb3({
     required this.min,
     required this.max,
@@ -21,6 +12,15 @@ class DrawlySliderFb3 extends StatefulWidget {
     this.minMaxTextStyle = const TextStyle(fontSize: 14),
     super.key,
   });
+
+  final double min;
+  final double max;
+  final double initialValue;
+  final bool showMinMaxText;
+  final int divisions;
+  final Color accentColor;
+  final void Function(double) onChanged;
+  final TextStyle minMaxTextStyle;
 
   @override
   State<DrawlySliderFb3> createState() => _DrawlySliderFb3State();
@@ -44,24 +44,25 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
             : EdgeInsets.zero,
         child: Row(
           children: [
-            widget.showMinMaxText
-                ? Text(
-                    '${widget.min.toInt()}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  )
-                : const SizedBox.shrink(),
+            if (widget.showMinMaxText)
+              Text(
+                '${widget.min.toInt()}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              )
+            else
+              const SizedBox.shrink(),
             Expanded(
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: widget.accentColor,
                   inactiveTrackColor: widget.accentColor.withAlpha(35),
                   trackShape: const RoundedRectSliderTrackShape(),
-                  trackHeight: 4.0,
+                  trackHeight: 4,
                   thumbShape: CustomSliderThumbCircle(
                     thumbRadius: 20,
                     min: widget.min,
@@ -70,7 +71,7 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
                   thumbColor: widget.accentColor,
                   overlayColor: widget.accentColor.withAlpha(32),
                   overlayShape:
-                      const RoundSliderOverlayShape(overlayRadius: 28.0),
+                      const RoundSliderOverlayShape(overlayRadius: 28),
                   tickMarkShape: const RoundSliderTickMarkShape(),
                   activeTickMarkColor: widget.accentColor,
                   inactiveTickMarkColor: widget.accentColor,
@@ -94,17 +95,18 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
                 ),
               ),
             ),
-            widget.showMinMaxText
-                ? Text(
-                    '${widget.max.toInt()}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  )
-                : const SizedBox.shrink(),
+            if (widget.showMinMaxText)
+              Text(
+                '${widget.max.toInt()}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              )
+            else
+              const SizedBox.shrink(),
           ],
         ),
       ),
@@ -114,15 +116,15 @@ class _DrawlySliderFb3State extends State<DrawlySliderFb3> {
 
 // Credits to @Ankit Chowdhury
 class CustomSliderThumbCircle extends SliderComponentShape {
-  final double thumbRadius;
-  final double min;
-  final double max;
-
   const CustomSliderThumbCircle({
     required this.thumbRadius,
     this.min = 0.0,
     this.max = 100.0,
   });
+
+  final double thumbRadius;
+  final double min;
+  final double max;
 
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
@@ -144,13 +146,13 @@ class CustomSliderThumbCircle extends SliderComponentShape {
     required double textScaleFactor,
     required Size sizeWithOverflow,
   }) {
-    final Canvas canvas = context.canvas;
+    final canvas = context.canvas;
 
     final paint = Paint()
       ..color = Colors.blue
       ..style = PaintingStyle.fill;
 
-    TextSpan span = TextSpan(
+    final span = TextSpan(
       style: TextStyle(
         fontSize: thumbRadius * .6,
         fontWeight: FontWeight.w700,
@@ -160,12 +162,12 @@ class CustomSliderThumbCircle extends SliderComponentShape {
       text: getValue(value),
     );
 
-    TextPainter tp = TextPainter(
-        text: span,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr);
-    tp.layout();
-    Offset textCenter =
+    final tp = TextPainter(
+      text: span,
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final textCenter =
         Offset(center.dx - (tp.width / 2), center.dy - (tp.height / 2));
 
     canvas.drawCircle(center, thumbRadius * .7, paint);

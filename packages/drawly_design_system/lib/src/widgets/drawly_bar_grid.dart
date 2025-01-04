@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class DrawlyBarGrid extends StatelessWidget {
   const DrawlyBarGrid({
-    super.key,
     required this.children,
+    super.key,
     this.crossAxisCount = 2,
   });
 

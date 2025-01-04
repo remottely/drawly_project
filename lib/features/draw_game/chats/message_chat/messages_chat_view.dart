@@ -5,14 +5,21 @@ import 'package:flutter/material.dart';
 
 class MessagesChatView extends StatefulWidget {
   const MessagesChatView({
+    required this.userId,
     required this.username,
     required this.roomName,
     required this.isCurrentDrawer,
     super.key,
-  })  : assert(username.length >= 3,
-            'The username must be at least 3 characters long'),
-        assert(roomName.length >= 3,
-            'The roomName must be at least 3 characters long');
+  })  : assert(
+          username.length >= 3,
+          'The username must be at least 3 characters long',
+        ),
+        assert(
+          roomName.length >= 3,
+          'The roomName must be at least 3 characters long',
+        );
+
+  final String userId;
   final String username;
   final String roomName;
   final bool isCurrentDrawer;
@@ -30,7 +37,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
           Expanded(
             child: ValueListenableBuilder<List<Message>>(
               valueListenable: rxAllMessages,
-              builder: (context, value, child) {
+              builder: (_, value, __) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (scrollController.hasClients) {
                     scrollController
@@ -42,7 +49,8 @@ class _MessagesChatViewState extends MessagesChatViewModel {
                   itemCount: value.length,
                   itemBuilder: (context, index) {
                     return _MessageChatText(
-                        message: rxAllMessages.value[index]);
+                      message: rxAllMessages.value[index],
+                    );
                   },
                 );
               },
@@ -68,6 +76,7 @@ class _MessageChatText extends StatelessWidget {
   const _MessageChatText({
     required this.message,
   });
+
   final Message message;
 
   @override

@@ -1,6 +1,6 @@
 name: drawly_design_system
 description: "A new Flutter package project."
-version: 0.30.0
+version: 0.34.1
 homepage:
 
 environment:
@@ -12,9 +12,10 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  very_good_analysis: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

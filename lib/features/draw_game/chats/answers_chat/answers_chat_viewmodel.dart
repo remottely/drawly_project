@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 abstract class AnswersChatViewModel extends State<AnswersChatView> {
   final answerController = TextEditingController();
   final scrollController = ScrollController();
+  final rxAllAnswers = ValueNotifier<List<Answer>>([]);
+  final rxIsCurrentUserCorrectAnswer = ValueNotifier<bool>(false);
 
+  late final void Function(dynamic) _onNewTurnEvent;
   late final void Function(dynamic) _onNewAnswerEvent;
 
   @override
@@ -18,20 +21,23 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   @override
   void dispose() {
     answerController.dispose();
-    SocketManager.instance.offEvent('answer:new', _onNewAnswerEvent);
+    SocketManager.instance.offEvent('chat:answer:result', _onNewAnswerEvent);
     super.dispose();
   }
 
   void _initializeSocket() {
+    _onNewTurnEvent = (data) {
+      rxAllAnswers.value = [];
+      rxIsCurrentUserCorrectAnswer.value = false;
+    };
     _onNewAnswerEvent = (data) {
       final answer = Answer.fromJson(data as Map<String, dynamic>);
-      widget.rxAllAnswers.value = List.from(widget.rxAllAnswers.value)
-        ..add(answer);
-
-      widget.rxIsCurrentUserCorrectAnswer.value =
-          answer.isCorrect && answer.username == widget.username;
+      rxAllAnswers.value = List.from(rxAllAnswers.value)..add(answer);
+      rxIsCurrentUserCorrectAnswer.value =
+          answer.isCorrect && answer.userId == widget.userId;
     };
-    SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
+    SocketManager.instance.onEvent('game:turn:new', _onNewTurnEvent);
+    SocketManager.instance.onEvent('chat:answer:result', _onNewAnswerEvent);
   }
 
   void sendAnswer() {
@@ -40,11 +46,12 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
 
       final payload = RoomUserAnswerDTO(
         roomName: widget.roomName,
+        userId: widget.userId,
         username: widget.username,
         text: answer,
       ).toJson();
 
-      SocketManager.instance.emit('answer:send', payload);
+      SocketManager.instance.emit('chat:answer:guess', payload);
 
       answerController.clear();
     }

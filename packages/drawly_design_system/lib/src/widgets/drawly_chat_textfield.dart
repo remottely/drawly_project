@@ -2,6 +2,18 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawlyChatTextField extends StatefulWidget {
+  const DrawlyChatTextField({
+    required this.leftIcon,
+    required this.rightIcon,
+    required this.onRightIconPressed,
+    required this.disabled,
+    super.key,
+    this.controller,
+    this.hintText,
+    this.hintColor,
+    this.keyboardType = TextInputType.text,
+  });
+
   final TextEditingController? controller;
   final String? hintText;
   final Color? hintColor;
@@ -10,18 +22,6 @@ class DrawlyChatTextField extends StatefulWidget {
   final IconData rightIcon;
   final void Function() onRightIconPressed;
   final bool disabled;
-
-  const DrawlyChatTextField({
-    super.key,
-    this.controller,
-    this.hintText,
-    this.hintColor,
-    this.keyboardType = TextInputType.text,
-    required this.leftIcon,
-    required this.rightIcon,
-    required this.onRightIconPressed,
-    required this.disabled,
-  });
 
   @override
   State<DrawlyChatTextField> createState() => _DrawlyChatTextFieldState();
@@ -54,11 +54,12 @@ class _DrawlyChatTextFieldState extends State<DrawlyChatTextField> {
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: TextStyle(
-            color:
-                // widget.disabled
-                //     ? AppColors.lightGrey300
-                //     :
-                widget.hintColor ?? AppColors.greyAccent),
+          color:
+              // widget.disabled
+              //     ? AppColors.lightGrey300
+              //     :
+              widget.hintColor ?? AppColors.greyAccent,
+        ),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         border: OutlineInputBorder(

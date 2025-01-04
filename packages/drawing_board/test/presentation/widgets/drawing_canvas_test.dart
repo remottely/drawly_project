@@ -35,8 +35,8 @@ void main() {
         const _Seed(drawingCanvasOptions: DrawingCanvasOptions()),
       );
       // Simulate drawing
-      const Offset startPoint = Offset(100, 100);
-      const Offset endPoint = Offset(200, 200);
+      const startPoint = Offset(100, 100);
+      const endPoint = Offset(200, 200);
       await tester.dragFrom(startPoint, endPoint);
       await tester.pumpAndSettle();
 
@@ -55,8 +55,8 @@ void main() {
         ),
       );
       // Simulate drawing
-      const Offset startPoint = Offset(100, 100);
-      const Offset endPoint = Offset(200, 200);
+      const startPoint = Offset(100, 100);
+      const endPoint = Offset(200, 200);
       await tester.dragFrom(startPoint, endPoint);
       await tester.pumpAndSettle();
 
@@ -119,7 +119,6 @@ void main() {
         const _Seed(
           drawingCanvasOptions: DrawingCanvasOptions(
             currentTool: DrawingTool.polygon,
-            polygonSides: 3,
           ),
         ),
       );
@@ -316,9 +315,9 @@ void main() {
 }
 
 class _Seed extends StatefulWidget {
-  final DrawingCanvasOptions drawingCanvasOptions;
-
   const _Seed({required this.drawingCanvasOptions});
+
+  final DrawingCanvasOptions drawingCanvasOptions;
 
   @override
   State<_Seed> createState() => _SeedState();

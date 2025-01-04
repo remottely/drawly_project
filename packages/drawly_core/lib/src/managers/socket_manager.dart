@@ -1,24 +1,24 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:socket_io_client/socket_io_client.dart' as socket_io_client;
 
 class SocketManager {
+  SocketManager._internal() {
+    _initializeSocket();
+  }
   static final SocketManager _instance = SocketManager._internal();
   static SocketManager get instance => _instance;
 
   late final socket_io_client.Socket _socket;
-  final Map<String, List<Function(dynamic)>> _eventListeners = {};
+  final Map<String, List<void Function(dynamic)>> _eventListeners = {};
 
-  _onConnect() {
+  void _onConnect() {
     developer.log('Connected to server');
   }
 
-  _onDisconnect() {
+  void _onDisconnect() {
     developer.log('Disconnected from server');
-  }
-
-  SocketManager._internal() {
-    _initializeSocket();
   }
 
   void _initializeSocket() {
@@ -54,7 +54,7 @@ class SocketManager {
   }
 
   /// Register a callback for a specific event
-  void onEvent(String event, Function(dynamic) callback) {
+  void onEvent(String event, void Function(dynamic) callback) {
     _eventListeners.putIfAbsent(event, () => []);
 
     // Add the callback to the list
@@ -63,7 +63,7 @@ class SocketManager {
     // Register the event with the socket only once
     if (_eventListeners[event]!.length == 1) {
       _socket.on(event, (data) {
-        for (var listener in _eventListeners[event]!) {
+        for (final listener in _eventListeners[event]!) {
           listener(data);
         }
       });
@@ -71,7 +71,7 @@ class SocketManager {
   }
 
   /// Remove a specific callback from an event
-  void offEvent(String event, Function(dynamic) callback) {
+  void offEvent(String event, void Function(dynamic) callback) {
     if (_eventListeners[event] != null) {
       _eventListeners[event]!.remove(callback);
 
@@ -88,11 +88,39 @@ class SocketManager {
     _socket.emit(event, data);
   }
 
+  Future<Map<String, dynamic>> emitWithAck(
+    String event,
+    dynamic data, {
+    Duration timeout = const Duration(seconds: 10),
+  }) {
+    final completer = Completer<Map<String, dynamic>>();
+
+    _socket.emitWithAck(
+      event,
+      data,
+      ack: (Map<String, dynamic> response) {
+        if (!completer.isCompleted) {
+          completer.complete(response);
+        }
+      },
+    );
+
+    Future.delayed(timeout, () {
+      if (!completer.isCompleted) {
+        completer
+            .completeError('Timeout: No response received for event $event');
+      }
+    });
+
+    return completer.future;
+  }
+
   /// Clear all listeners (use with caution)
   void clearListeners() {
-    _eventListeners.forEach((event, _) {
-      _socket.off(event);
-    });
-    _eventListeners.clear();
+    _eventListeners
+      ..forEach((event, _) {
+        _socket.off(event);
+      })
+      ..clear();
   }
 }

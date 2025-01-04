@@ -64,7 +64,7 @@ class _AllParticipantsState extends State<AllParticipants> {
       child: DrawlyResponsiveFading(
         child: ValueListenableBuilder<List<Participant>>(
           valueListenable: rxAllParticipants,
-          builder: (context, value, _) {
+          builder: (_, value, __) {
             return ListView.builder(
               itemCount: value.length,
               itemBuilder: (context, index) {
@@ -136,6 +136,7 @@ class _UserPicture extends StatelessWidget {
   const _UserPicture({
     required this.userAvatar,
   });
+
   final String? userAvatar;
 
   @override
