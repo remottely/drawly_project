@@ -83,6 +83,7 @@
 - [x] (0.33.2) Bug with strokes drawing:draw not working properly
 - [x] (0.33.3) Add userId logic into the frontend side (part 1)
 - [x] (0.33.4) Add userId logic into the frontend side (part 2)
+- [x] (0.34.1) Organizing code
 - [ ] Add nested navigation
 
 ### Validações e Regras de Negócio

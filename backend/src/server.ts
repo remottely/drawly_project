@@ -146,6 +146,16 @@ export class Answer extends Message {
   }
 }
 
+export class Turn {
+  constructor(
+    public word: string,
+    public turn: number,
+    public totalDuration: number,
+    public currentDrawerUserId: string,
+    public currentDrawerUsername: string,
+  ) { }
+}
+
 export class Participant {
   constructor(
     public userId: string,
@@ -269,7 +279,7 @@ export class RoomManager {
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
 
-    io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "entrou" });
+    io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "entrou"));
     socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
@@ -280,7 +290,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
     console.log(`${userId} - ${username} left room ${roomName}`);
-    io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "saiu" });
+    io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "saiu"));
     rooms[roomName]?.removeParticipant(userId);
 
     socket.leave(roomName);
@@ -296,33 +306,36 @@ export class RoomManager {
     }
   }
 }
-export class AnswerActions {
-  static send(socket: Socket, { roomName, userId, username, text }: RoomUserAnswerDTO): void {
+
+export class AnswerChatActions {
+  static guess(socket: Socket, { roomName, userId, username, text }: RoomUserAnswerDTO): void {
     const room = rooms[roomName];
     if (!room) {
-      console.error(`Room ${roomName} not found.`);
-      socket.emit('error', { message: `Room ${roomName} does not exist.` });
+      const message = `Room ${roomName} does not exist.`;
+      console.error(message);
+      socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
       return;
     }
 
     const correctWord = room.currentWord;
 
     if (!correctWord) {
-      console.error(`No word is being drawn in room ${roomName}.`);
-      socket.emit('error', { message: `No word is currently being drawn.` });
+      const message = `No word is currently being drawn.`;
+      console.error(`${message} in room ${roomName}.`);
+      socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
       return;
     }
 
     const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
     const icon = isCorrect ? 'check' : null;
 
-    io.to(roomName).emit('answer:new', new Answer(icon, userId, username, text, isCorrect));
+    io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
   }
 }
 
-export class MessageActions {
+export class MessageChatActions {
   static send({ roomName, userId, username, text }: RoomUserMessageDTO): void {
-    io.to(roomName).emit('message:new', new Message(null, userId, username, text));
+    io.to(roomName).emit('chat:message:new', new Message(null, userId, username, text));
   }
 }
 
@@ -373,13 +386,13 @@ export class TurnManager {
     const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
     room.currentWord = wordToDraw;
 
-    io.to(roomName).emit('turn:new', {
-      turn: room.turnCount,
-      currentDrawerUserId: currentDrawer.userId,
-      currentDrawerUsername: currentDrawer.username,
-      word: wordToDraw,
-      totalDuration: totalDuration * 1000,
-    });
+    io.to(roomName).emit('game:turn:new', new Turn(
+      wordToDraw,
+      room.turnCount,
+      totalDuration * 1000,
+      currentDrawer.userId,
+      currentDrawer.username,
+    ));
 
     console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
 
@@ -394,14 +407,16 @@ export class GameManager {
   static startTurns(socket: Socket, { roomName }: RoomDTO): void {
     const room = rooms[roomName];
     if (!room) {
-      console.error(`Room ${roomName} not found.`);
-      socket.emit('error', { message: `Room ${roomName} does not exist.` });
+      const message = `Room ${roomName} does not exist.`;
+      console.error(message);
+      socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
       return;
     }
 
     if (room.getParticipants().length < minNumberOfPlayers) {
-      console.error(`Not enough players in room ${roomName}. Minimum required: ${minNumberOfPlayers}`);
-      socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minNumberOfPlayers}.` });
+      const message = `Not enough players in the room ${roomName}. Minimum required: ${minNumberOfPlayers}.`;
+      console.error(message);
+      socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
       return;
     }
 
@@ -436,16 +451,16 @@ io.on('connection', (socket: Socket): void => {
   socket.on('room:join', (data: RoomUserDTO, callback: any) => RoomManager.join(socket, data, callback));
   socket.on('room:leave', (data: RoomUserDTO) => RoomManager.leave(socket, data));
 
-  socket.on('drawing:draw', (data) => DrawingActions.draw(data));
-  socket.on('drawing:clear', (data) => DrawingActions.clear(data));
-  socket.on('drawing:undo', (data) => DrawingActions.undo(data));
-  socket.on('drawing:redo', (data) => DrawingActions.redo(data));
+  socket.on('drawing:draw', (data: RoomDrawingDTO) => DrawingActions.draw(data));
+  socket.on('drawing:clear', (data: RoomDTO) => DrawingActions.clear(data));
+  socket.on('drawing:undo', (data: RoomDTO) => DrawingActions.undo(data));
+  socket.on('drawing:redo', (data: RoomDTO) => DrawingActions.redo(data));
 
-  socket.on('answer:send', (data: RoomUserAnswerDTO) => AnswerActions.send(socket, data));
+  socket.on('chat:answer:guess', (data: RoomUserAnswerDTO) => AnswerChatActions.guess(socket, data));
 
-  socket.on('message:send', (data: RoomUserMessageDTO) => MessageActions.send(data));
+  socket.on('chat:message:send', (data: RoomUserMessageDTO) => MessageChatActions.send(data));
 
-  socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
+  socket.on('game:turns:start', (data: RoomDTO) => GameManager.startTurns(socket, data));
 
   socket.on('disconnect', () => handleUserDisconnect(socket));
 });

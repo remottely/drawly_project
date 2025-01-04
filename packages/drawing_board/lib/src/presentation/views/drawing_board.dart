@@ -60,7 +60,7 @@ class _DrawingBoardState extends State<DrawingBoard>
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.offEvent('game:turn:new', _onNewTurnEvent);
     super.dispose();
   }
 
@@ -73,7 +73,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxCurrentStroke = CurrentStrokeValueNotifier();
       rxSelectedColor.value = Colors.black;
       rxSelectedColorOpacity.value = 1.0;
-      rxCurrentStrokeSize.value = 10.0;
+      rxCurrentStrokeSize.value = 5.0;
       // rxEraserSize.value = 30.0;
       rxDrawingTool.value = DrawingTool.pencil;
       rxIsFilled.value = false;
@@ -82,7 +82,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxAllStrokes.value = [];
       rxIsShowGrid.value = false;
     };
-    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.onEvent('game:turn:new', _onNewTurnEvent);
   }
 
   @override

@@ -21,7 +21,7 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
   @override
   void dispose() {
     answerController.dispose();
-    SocketManager.instance.offEvent('answer:new', _onNewAnswerEvent);
+    SocketManager.instance.offEvent('chat:answer:result', _onNewAnswerEvent);
     super.dispose();
   }
 
@@ -36,8 +36,8 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
       rxIsCurrentUserCorrectAnswer.value =
           answer.isCorrect && answer.userId == widget.userId;
     };
-    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
-    SocketManager.instance.onEvent('answer:new', _onNewAnswerEvent);
+    SocketManager.instance.onEvent('game:turn:new', _onNewTurnEvent);
+    SocketManager.instance.onEvent('chat:answer:result', _onNewAnswerEvent);
   }
 
   void sendAnswer() {
@@ -51,7 +51,7 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
         text: answer,
       ).toJson();
 
-      SocketManager.instance.emit('answer:send', payload);
+      SocketManager.instance.emit('chat:answer:guess', payload);
 
       answerController.clear();
     }

@@ -103,21 +103,21 @@ packages:
       path: "packages/drawing_board"
       relative: true
     source: path
-    version: "0.34.0"
+    version: "0.34.1"
   drawly_core:
     dependency: "direct main"
     description:
       path: "packages/drawly_core"
       relative: true
     source: path
-    version: "0.34.0"
+    version: "0.34.1"
   drawly_design_system:
     dependency: "direct main"
     description:
       path: "packages/drawly_design_system"
       relative: true
     source: path
-    version: "0.34.0"
+    version: "0.34.1"
   equatable:
     dependency: "direct main"
     description:

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageActions = exports.AnswerActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -135,6 +135,16 @@ class Answer extends Message {
     }
 }
 exports.Answer = Answer;
+class Turn {
+    constructor(word, turn, totalDuration, currentDrawerUserId, currentDrawerUsername) {
+        this.word = word;
+        this.turn = turn;
+        this.totalDuration = totalDuration;
+        this.currentDrawerUserId = currentDrawerUserId;
+        this.currentDrawerUsername = currentDrawerUsername;
+    }
+}
+exports.Turn = Turn;
 class Participant {
     constructor(userId, username, userAvatar, isLogged) {
         this.userId = userId;
@@ -242,7 +252,7 @@ class RoomManager {
         currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
-        io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "entrou" });
+        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "entrou"));
         socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${userId} - ${username} joined room ${roomName}`);
@@ -251,7 +261,7 @@ class RoomManager {
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
         console.log(`${userId} - ${username} left room ${roomName}`);
-        io.to(roomName).emit('message:new', { icon: 'info', userId, username, text: "saiu" });
+        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "saiu"));
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(userId);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -266,32 +276,34 @@ class RoomManager {
     }
 }
 exports.RoomManager = RoomManager;
-class AnswerActions {
-    static send(socket, { roomName, userId, username, text }) {
+class AnswerChatActions {
+    static guess(socket, { roomName, userId, username, text }) {
         const room = rooms[roomName];
         if (!room) {
-            console.error(`Room ${roomName} not found.`);
-            socket.emit('error', { message: `Room ${roomName} does not exist.` });
+            const message = `Room ${roomName} does not exist.`;
+            console.error(message);
+            socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
             return;
         }
         const correctWord = room.currentWord;
         if (!correctWord) {
-            console.error(`No word is being drawn in room ${roomName}.`);
-            socket.emit('error', { message: `No word is currently being drawn.` });
+            const message = `No word is currently being drawn.`;
+            console.error(`${message} in room ${roomName}.`);
+            socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
             return;
         }
         const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
         const icon = isCorrect ? 'check' : null;
-        io.to(roomName).emit('answer:new', new Answer(icon, userId, username, text, isCorrect));
+        io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
     }
 }
-exports.AnswerActions = AnswerActions;
-class MessageActions {
+exports.AnswerChatActions = AnswerChatActions;
+class MessageChatActions {
     static send({ roomName, userId, username, text }) {
-        io.to(roomName).emit('message:new', new Message(null, userId, username, text));
+        io.to(roomName).emit('chat:message:new', new Message(null, userId, username, text));
     }
 }
-exports.MessageActions = MessageActions;
+exports.MessageChatActions = MessageChatActions;
 class DrawingActions {
     static draw({ roomName, strokes }) {
         var _a;
@@ -336,13 +348,7 @@ class TurnManager {
         }
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
-        io.to(roomName).emit('turn:new', {
-            turn: room.turnCount,
-            currentDrawerUserId: currentDrawer.userId,
-            currentDrawerUsername: currentDrawer.username,
-            word: wordToDraw,
-            totalDuration: totalDuration * 1000,
-        });
+        io.to(roomName).emit('game:turn:new', new Turn(wordToDraw, room.turnCount, totalDuration * 1000, currentDrawer.userId, currentDrawer.username));
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
             // room.advanceTurn();
@@ -355,13 +361,15 @@ class GameManager {
     static startTurns(socket, { roomName }) {
         const room = rooms[roomName];
         if (!room) {
-            console.error(`Room ${roomName} not found.`);
-            socket.emit('error', { message: `Room ${roomName} does not exist.` });
+            const message = `Room ${roomName} does not exist.`;
+            console.error(message);
+            socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
             return;
         }
         if (room.getParticipants().length < minNumberOfPlayers) {
-            console.error(`Not enough players in room ${roomName}. Minimum required: ${minNumberOfPlayers}`);
-            socket.emit('error', { message: `Not enough players in the room. Minimum required: ${minNumberOfPlayers}.` });
+            const message = `Not enough players in the room ${roomName}. Minimum required: ${minNumberOfPlayers}.`;
+            console.error(message);
+            socket.emit('error', new ErrorDTO(message, ErrorActionType.nothing));
             return;
         }
         console.log(`Turns manually started for room ${roomName}`);
@@ -395,8 +403,8 @@ io.on('connection', (socket) => {
     socket.on('drawing:clear', (data) => DrawingActions.clear(data));
     socket.on('drawing:undo', (data) => DrawingActions.undo(data));
     socket.on('drawing:redo', (data) => DrawingActions.redo(data));
-    socket.on('answer:send', (data) => AnswerActions.send(socket, data));
-    socket.on('message:send', (data) => MessageActions.send(data));
+    socket.on('chat:answer:guess', (data) => AnswerChatActions.guess(socket, data));
+    socket.on('chat:message:send', (data) => MessageChatActions.send(data));
     socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });

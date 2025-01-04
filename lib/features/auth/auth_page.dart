@@ -98,7 +98,8 @@ class _AuthBodyState extends State<_AuthBody> {
                 context,
                 MaterialPageRoute<Widget>(
                   builder: (context) => DrawGameRoomSelectionPage(
-                    // TODO(Kevin): recover userId from anonymous or logged in authentication
+                    // TODO(Kevin): recover userId from anonymous or logged in
+                    // authentication
                     userId: 'userId',
                     username: username,
                   ),

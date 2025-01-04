@@ -55,7 +55,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   @override
   void dispose() {
     SocketManager.instance.offEvent('connect', _onConnectEvent);
-    SocketManager.instance.offEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.offEvent('game:turn:new', _onNewTurnEvent);
     _leaveRoom();
     rxCurrentDrawerUserId.dispose();
     rxIsCurrentDrawerUserId.dispose();
@@ -83,16 +83,17 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       rxCurrentDrawerUserId.value = data['currentDrawerUserId'] as String;
       rxCurrentDrawerUsername.value = data['currentDrawerUsername'] as String;
       rxTotalDuration.value = data['totalDuration'] as int;
-      rxTimeLeft.value = data['totalDuration'] as int;
       rxTurn.value = data['turn'] as int;
+      rxTimeLeft.value = rxTotalDuration.value - 300;
 
       rxIsCurrentDrawerUserId.value =
           rxCurrentDrawerUserId.value == widget.userId;
       rxIsGameStarted.value = true;
+
       startCountdown(rxTotalDuration.value);
     };
     SocketManager.instance.onEvent('connect', _onConnectEvent);
-    SocketManager.instance.onEvent('turn:new', _onNewTurnEvent);
+    SocketManager.instance.onEvent('game:turn:new', _onNewTurnEvent);
   }
 
   void startCountdown(int durationInMs) {
@@ -101,8 +102,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     Future.doWhile(() async {
       if (remaining <= 0) return false;
 
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      remaining -= 10;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      remaining -= 100;
       rxTimeLeft.value = remaining;
 
       return true;
