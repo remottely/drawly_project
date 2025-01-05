@@ -80,10 +80,11 @@
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
-- [x] (0.33.2) Bug with strokes drawing:draw not working properly
+- [x] (0.33.2) Bug with strokes drawing:stroke not working properly
 - [x] (0.33.3) Add userId logic into the frontend side (part 1)
 - [x] (0.33.4) Add userId logic into the frontend side (part 2)
 - [x] (0.34.1) Organizing code
+- [x] (0.35.0) Buffer strokes each 50ms.
 - [ ] Add nested navigation
 
 ### Validações e Regras de Negócio
@@ -160,7 +161,6 @@
 ### **V2**
 
 - [ ] (0.?.0) Change current drawer from app bar to participants list feedback.
-- [ ] (0.?.0) Buffer strokes each 100ms.
 - [ ] (0.?.0) Wait 15 seconds to switch rooms.
 - [ ] (0.?.0) Migrate all events to enums that automatically convert to strings.
 - (1.?.0) RedoDraw:

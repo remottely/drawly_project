@@ -56,8 +56,17 @@ export class Drawing {
   private strokes: Stroke[] = [];
   private backupStrokes: Stroke[] = [];
 
-  addStrokes(newStrokes: Stroke[]): void {
-    this.strokes.push(...newStrokes);
+  addStroke(newStroke: Stroke): void {
+    this.strokes.push(newStroke);
+  }
+
+  addStrokeLastPoints(points: Offset[]): void {
+    if (this.strokes.length > 0) {
+      const lastStroke = this.strokes[this.strokes.length - 1];
+      lastStroke.points.push(...points);
+    } else {
+      console.error('No strokes available to add points to.');
+    }
   }
 
   clear(): void {
@@ -179,10 +188,19 @@ export class RoomDTO {
   ) { }
 }
 
-export class RoomDrawingDTO extends RoomDTO {
+export class RoomDrawingStartStrokeDTO extends RoomDTO {
   constructor(
     roomName: string,
-    public strokes: Stroke[]
+    public stroke: Stroke
+  ) {
+    super(roomName);
+  }
+}
+
+export class RoomDrawingStrokeLastPointsDTO extends RoomDTO {
+  constructor(
+    roomName: string,
+    public strokeLastPoints: Offset[]
   ) {
     super(roomName);
   }
@@ -279,8 +297,8 @@ export class RoomManager {
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
 
-    io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "entrou"));
-    socket.emit('drawing:draw', { strokes: roomDrawings[roomName]?.getStrokes() });
+    io.to(roomName).emit('chat:message', new Message('info', userId, username, "entrou"));
+    socket.emit('drawing:stroke:all', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
 
@@ -290,7 +308,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
     console.log(`${userId} - ${username} left room ${roomName}`);
-    io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "saiu"));
+    io.to(roomName).emit('chat:message', new Message('info', userId, username, "saiu"));
     rooms[roomName]?.removeParticipant(userId);
 
     socket.leave(roomName);
@@ -335,14 +353,19 @@ export class AnswerChatActions {
 
 export class MessageChatActions {
   static send({ roomName, userId, username, text }: RoomUserMessageDTO): void {
-    io.to(roomName).emit('chat:message:new', new Message(null, userId, username, text));
+    io.to(roomName).emit('chat:message', new Message(null, userId, username, text));
   }
 }
 
 export class DrawingActions {
-  static draw({ roomName, strokes }: RoomDrawingDTO): void {
-    roomDrawings[roomName]?.addStrokes(strokes);
-    io.to(roomName).emit('drawing:draw', { strokes });
+  static strokeStart({ roomName, stroke }: RoomDrawingStartStrokeDTO): void {
+    roomDrawings[roomName]?.addStroke(stroke);
+    io.to(roomName).emit('drawing:stroke:start', { stroke });
+  }
+
+  static strokeLastPoints({ roomName, strokeLastPoints }: RoomDrawingStrokeLastPointsDTO): void {
+    roomDrawings[roomName]?.addStrokeLastPoints(strokeLastPoints);
+    io.to(roomName).emit('drawing:stroke:lastPoints', { strokeLastPoints });
   }
 
   static clear({ roomName }: RoomDTO): void {
@@ -451,14 +474,15 @@ io.on('connection', (socket: Socket): void => {
   socket.on('room:join', (data: RoomUserDTO, callback: any) => RoomManager.join(socket, data, callback));
   socket.on('room:leave', (data: RoomUserDTO) => RoomManager.leave(socket, data));
 
-  socket.on('drawing:draw', (data: RoomDrawingDTO) => DrawingActions.draw(data));
+  socket.on('drawing:stroke:start', (data: RoomDrawingStartStrokeDTO) => DrawingActions.strokeStart(data));
+  socket.on('drawing:stroke:lastPoints', (data: RoomDrawingStrokeLastPointsDTO) => DrawingActions.strokeLastPoints(data));
   socket.on('drawing:clear', (data: RoomDTO) => DrawingActions.clear(data));
   socket.on('drawing:undo', (data: RoomDTO) => DrawingActions.undo(data));
   socket.on('drawing:redo', (data: RoomDTO) => DrawingActions.redo(data));
 
   socket.on('chat:answer:guess', (data: RoomUserAnswerDTO) => AnswerChatActions.guess(socket, data));
 
-  socket.on('chat:message:send', (data: RoomUserMessageDTO) => MessageChatActions.send(data));
+  socket.on('chat:message', (data: RoomUserMessageDTO) => MessageChatActions.send(data));
 
   socket.on('game:turns:start', (data: RoomDTO) => GameManager.startTurns(socket, data));
 

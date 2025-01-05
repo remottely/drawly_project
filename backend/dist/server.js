@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingStrokeLastPointsDTO = exports.RoomDrawingStartStrokeDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -60,8 +60,17 @@ class Drawing {
         this.strokes = [];
         this.backupStrokes = [];
     }
-    addStrokes(newStrokes) {
-        this.strokes.push(...newStrokes);
+    addStroke(newStroke) {
+        this.strokes.push(newStroke);
+    }
+    addStrokeLastPoints(points) {
+        if (this.strokes.length > 0) {
+            const lastStroke = this.strokes[this.strokes.length - 1];
+            lastStroke.points.push(...points);
+        }
+        else {
+            console.error('No strokes available to add points to.');
+        }
     }
     clear() {
         this.strokes = [];
@@ -168,13 +177,20 @@ class RoomDTO {
     }
 }
 exports.RoomDTO = RoomDTO;
-class RoomDrawingDTO extends RoomDTO {
-    constructor(roomName, strokes) {
+class RoomDrawingStartStrokeDTO extends RoomDTO {
+    constructor(roomName, stroke) {
         super(roomName);
-        this.strokes = strokes;
+        this.stroke = stroke;
     }
 }
-exports.RoomDrawingDTO = RoomDrawingDTO;
+exports.RoomDrawingStartStrokeDTO = RoomDrawingStartStrokeDTO;
+class RoomDrawingStrokeLastPointsDTO extends RoomDTO {
+    constructor(roomName, strokeLastPoints) {
+        super(roomName);
+        this.strokeLastPoints = strokeLastPoints;
+    }
+}
+exports.RoomDrawingStrokeLastPointsDTO = RoomDrawingStrokeLastPointsDTO;
 class RoomUserDTO extends RoomDTO {
     constructor(roomName, userId, username, userAvatar, isLogged) {
         super(roomName);
@@ -252,8 +268,8 @@ class RoomManager {
         currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
-        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "entrou"));
-        socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
+        io.to(roomName).emit('chat:message', new Message('info', userId, username, "entrou"));
+        socket.emit('drawing:stroke:all', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
         console.log(`${userId} - ${username} joined room ${roomName}`);
         callback({ success: true, turn: currentRoom.turnCount });
@@ -261,7 +277,7 @@ class RoomManager {
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
         console.log(`${userId} - ${username} left room ${roomName}`);
-        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "saiu"));
+        io.to(roomName).emit('chat:message', new Message('info', userId, username, "saiu"));
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(userId);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -300,15 +316,20 @@ class AnswerChatActions {
 exports.AnswerChatActions = AnswerChatActions;
 class MessageChatActions {
     static send({ roomName, userId, username, text }) {
-        io.to(roomName).emit('chat:message:new', new Message(null, userId, username, text));
+        io.to(roomName).emit('chat:message', new Message(null, userId, username, text));
     }
 }
 exports.MessageChatActions = MessageChatActions;
 class DrawingActions {
-    static draw({ roomName, strokes }) {
+    static strokeStart({ roomName, stroke }) {
         var _a;
-        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokes(strokes);
-        io.to(roomName).emit('drawing:draw', { strokes });
+        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStroke(stroke);
+        io.to(roomName).emit('drawing:stroke:start', { stroke });
+    }
+    static strokeLastPoints({ roomName, strokeLastPoints }) {
+        var _a;
+        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokeLastPoints(strokeLastPoints);
+        io.to(roomName).emit('drawing:stroke:lastPoints', { strokeLastPoints });
     }
     static clear({ roomName }) {
         var _a;
@@ -399,12 +420,13 @@ io.on('connection', (socket) => {
     socket.on('room:create', (data) => RoomManager.create(data));
     socket.on('room:join', (data, callback) => RoomManager.join(socket, data, callback));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));
-    socket.on('drawing:draw', (data) => DrawingActions.draw(data));
+    socket.on('drawing:stroke:start', (data) => DrawingActions.strokeStart(data));
+    socket.on('drawing:stroke:lastPoints', (data) => DrawingActions.strokeLastPoints(data));
     socket.on('drawing:clear', (data) => DrawingActions.clear(data));
     socket.on('drawing:undo', (data) => DrawingActions.undo(data));
     socket.on('drawing:redo', (data) => DrawingActions.redo(data));
     socket.on('chat:answer:guess', (data) => AnswerChatActions.guess(socket, data));
-    socket.on('chat:message:send', (data) => MessageChatActions.send(data));
+    socket.on('chat:message', (data) => MessageChatActions.send(data));
     socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });
