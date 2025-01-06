@@ -91,7 +91,8 @@
 - [x] (0.36.0) **Participant Counter**: Detect the number of participants in the room and emit turn completion when:
 	- Someone leaves the room **and** the increment of players who guessed correctly matches the expected count.
 	- Every time someone guesses the answer, increment the counter **and** detect if the correct guesses for the turn reach the expected count.
-- [ ] (0.36.1) bug: Quando a pessoa desconectar, a logica deve continuar funcionando
+- [x] (0.36.1) bug: Quando a pessoa desconectar, a logica deve continuar funcionando
+- [x] (0.37.0) add score based on guess time
 
 ### Validações e Regras de Negócio
 

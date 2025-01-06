@@ -345,10 +345,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
             );
           },
         ),
-        const MeteorShower(
-          numberOfMeteors: 20,
-          child: Center(),
-        ),
+        // const MeteorShower(
+        //   numberOfMeteors: 20,
+        //   child: Center(),
+        // ),
       ],
     );
   }

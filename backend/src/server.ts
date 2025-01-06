@@ -193,7 +193,8 @@ export class Participant {
     public username: string,
     public userAvatar: string | null,
     public isLogged: boolean,
-    public isConnected: boolean = true
+    public isConnected: boolean = true,
+    public score: number = 0
   ) { }
 }
 
@@ -376,12 +377,29 @@ export class AnswerChatActions {
     const icon = isCorrect ? 'check' : null;
 
     if (isCorrect) {
-      room.participantCorrectAnswer(userId);
-      if (room.hasEveryoneAnsweredCorrectly()) {
-        console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
-        room.resetCorrectAnswers();
-        TurnManager.startTurnTimer(roomName, 60); // Advance the turn
-        return;
+      const participant = room.getParticipants().find((p) => p.userId === userId);
+      const drawer = room.getCurrentDrawer();
+
+      if (participant) {
+        const timeLeft = room.turnCount; // Exemplo: use o tempo restante no turno para calcular pontos
+        const points = Math.max(100 - (timeLeft * 10), 10); // Mais pontos para respostas rápidas
+        participant.score += points;
+
+        if (drawer) {
+          const drawerPoints = 20; // Pontos fixos por jogador que acerta
+          drawer.score += drawerPoints;
+        }
+
+        console.log(`${username} acertou! Ganhou ${points} pontos.`);
+        room.participantCorrectAnswer(userId);
+
+        // Verificar se todos acertaram
+        if (room.hasEveryoneAnsweredCorrectly()) {
+          console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
+          room.resetCorrectAnswers();
+          TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+          return;
+        }
       }
     }
 
@@ -431,7 +449,7 @@ export class TurnManager {
     }
 
     room.advanceTurn();
-    room.resetCorrectAnswers(); // Reset correct answers
+    room.resetCorrectAnswers();
     DrawingActions.clear({ roomName });
 
     const currentDrawer = room.getCurrentDrawer();
@@ -450,6 +468,8 @@ export class TurnManager {
       currentDrawer.userId,
       currentDrawer.username,
     ));
+
+    RoomManager.emitParticipantsUpdate(roomName); // Atualiza a pontuação ao iniciar o turno
 
     console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
 
@@ -479,6 +499,25 @@ export class GameManager {
     console.log(`Turns manually started for room ${roomName}`);
     // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
     TurnManager.startTurnTimer(roomName, 60);
+  }
+
+  static showRanking(roomName: string): void {
+    const room = rooms[roomName];
+    if (!room) {
+      console.error(`Room ${roomName} does not exist.`);
+      return;
+    }
+
+    const ranking = room.getParticipants()
+      .sort((a, b) => b.score - a.score) // Ordena por pontuação decrescente
+      .map((p, index) => ({
+        rank: index + 1,
+        username: p.username,
+        score: p.score,
+      }));
+
+    io.to(roomName).emit('game:ranking', { ranking });
+    console.log(`Ranking for room ${roomName}:`, ranking);
   }
 };
 

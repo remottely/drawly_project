@@ -97,9 +97,9 @@ class _AllParticipantsState extends State<AllParticipants> {
                                   softWrap: false,
                                 ),
                                 const SizedBox(height: 2),
-                                const Text(
-                                  '0 pts',
-                                  style: TextStyle(
+                                Text(
+                                  value[index].score.toString(),
+                                  style: const TextStyle(
                                     color: AppColors.darkBlueAccent,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,

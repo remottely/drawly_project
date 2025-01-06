@@ -167,12 +167,13 @@ class Turn {
 }
 exports.Turn = Turn;
 class Participant {
-    constructor(userId, username, userAvatar, isLogged, isConnected = true) {
+    constructor(userId, username, userAvatar, isLogged, isConnected = true, score = 0) {
         this.userId = userId;
         this.username = username;
         this.userAvatar = userAvatar;
         this.isLogged = isLogged;
         this.isConnected = isConnected;
+        this.score = score;
     }
 }
 exports.Participant = Participant;
@@ -253,7 +254,13 @@ class RoomManager {
     static emitParticipantsUpdate(roomName) {
         var _a;
         return io.to(roomName).emit('room:participants:update', {
-            participants: ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []
+            participants: ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants())
+                // .map((p) => ({
+                //   userId: p.userId,
+                //   username: p.username,
+                //   score: p.score, // Inclui a pontuação no update
+                // })) 
+                || []
         });
     }
     static create({ roomName }) {
@@ -333,12 +340,25 @@ class AnswerChatActions {
         const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
         const icon = isCorrect ? 'check' : null;
         if (isCorrect) {
-            room.participantCorrectAnswer(userId);
-            if (room.hasEveryoneAnsweredCorrectly()) {
-                console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
-                room.resetCorrectAnswers();
-                TurnManager.startTurnTimer(roomName, 60); // Advance the turn
-                return;
+            const participant = room.getParticipants().find((p) => p.userId === userId);
+            const drawer = room.getCurrentDrawer();
+            if (participant) {
+                const timeLeft = room.turnCount; // Exemplo: use o tempo restante no turno para calcular pontos
+                const points = Math.max(100 - (timeLeft * 10), 10); // Mais pontos para respostas rápidas
+                participant.score += points;
+                if (drawer) {
+                    const drawerPoints = 20; // Pontos fixos por jogador que acerta
+                    drawer.score += drawerPoints;
+                }
+                console.log(`${username} acertou! Ganhou ${points} pontos.`);
+                room.participantCorrectAnswer(userId);
+                // Verificar se todos acertaram
+                if (room.hasEveryoneAnsweredCorrectly()) {
+                    console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
+                    room.resetCorrectAnswers();
+                    TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+                    return;
+                }
             }
         }
         io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
@@ -388,7 +408,7 @@ class TurnManager {
             return;
         }
         room.advanceTurn();
-        room.resetCorrectAnswers(); // Reset correct answers
+        room.resetCorrectAnswers();
         DrawingActions.clear({ roomName });
         const currentDrawer = room.getCurrentDrawer();
         if (!currentDrawer) {
@@ -398,6 +418,7 @@ class TurnManager {
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         io.to(roomName).emit('game:turn:new', new Turn(wordToDraw, room.turnCount, totalDuration * 1000, currentDrawer.userId, currentDrawer.username));
+        RoomManager.emitParticipantsUpdate(roomName); // Atualiza a pontuação ao iniciar o turno
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
             TurnManager.startTurnTimer(roomName, totalDuration);
@@ -423,6 +444,22 @@ class GameManager {
         console.log(`Turns manually started for room ${roomName}`);
         // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
         TurnManager.startTurnTimer(roomName, 60);
+    }
+    static showRanking(roomName) {
+        const room = rooms[roomName];
+        if (!room) {
+            console.error(`Room ${roomName} does not exist.`);
+            return;
+        }
+        const ranking = room.getParticipants()
+            .sort((a, b) => b.score - a.score) // Ordena por pontuação decrescente
+            .map((p, index) => ({
+            rank: index + 1,
+            username: p.username,
+            score: p.score,
+        }));
+        io.to(roomName).emit('game:ranking', { ranking });
+        console.log(`Ranking for room ${roomName}:`, ranking);
     }
 }
 exports.GameManager = GameManager;
