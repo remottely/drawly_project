@@ -101,6 +101,8 @@ class Room {
         this.currentDrawerTurnIndex = 0;
         this.currentWord = null;
         this.turnCount = 0;
+        ///
+        this.participantsWhoAnsweredCorrectly = new Set();
     }
     addParticipant(participant) {
         this.participants.add(participant);
@@ -125,6 +127,16 @@ class Room {
     advanceTurn() {
         this.turnCount++;
         this.currentDrawerTurnIndex = (this.turnCount) % this.turnQueue.length;
+    }
+    participantCorrectAnswer(userId) {
+        this.participantsWhoAnsweredCorrectly.add(userId);
+    }
+    hasEveryoneAnsweredCorrectly() {
+        const nonDrawerConnectedParticipants = this.getParticipants().filter((participant) => { var _a; return participant.userId !== ((_a = this.getCurrentDrawer()) === null || _a === void 0 ? void 0 : _a.userId) && participant.isConnected; });
+        return nonDrawerConnectedParticipants.every((participant) => this.participantsWhoAnsweredCorrectly.has(participant.userId));
+    }
+    resetCorrectAnswers() {
+        this.participantsWhoAnsweredCorrectly.clear();
     }
 }
 exports.Room = Room;
@@ -155,11 +167,12 @@ class Turn {
 }
 exports.Turn = Turn;
 class Participant {
-    constructor(userId, username, userAvatar, isLogged) {
+    constructor(userId, username, userAvatar, isLogged, isConnected = true) {
         this.userId = userId;
         this.username = username;
         this.userAvatar = userAvatar;
         this.isLogged = isLogged;
+        this.isConnected = isConnected;
     }
 }
 exports.Participant = Participant;
@@ -258,20 +271,29 @@ class RoomManager {
             return;
         }
         const currentRoom = rooms[roomName];
-        if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
-            var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
+        const existingParticipant = currentRoom.getParticipants().find((p) => p.userId === userId);
+        if (existingParticipant) {
+            // Restaura o estado do participante
+            existingParticipant.isConnected = true; // Marca como reconectado
+            console.log(`${userId} - ${username} reconnected to room ${roomName}`);
+        }
+        else if (currentRoom.getParticipants().length < maxmNumberOfPlayers) {
+            // Novo participante entra
+            currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged, true));
+            console.log(`${userId} - ${username} joined room ${roomName}`);
+        }
+        else {
+            const message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
             console.error(message);
             socket.emit('error', new ErrorDTO(message, ErrorActionType.pop));
             callback({ success: false });
             return;
         }
-        currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
-        io.to(roomName).emit('chat:message', new Message('info', userId, username, "entrou"));
+        // Sincroniza o estado do jogo com o participante reconectado
         socket.emit('drawing:stroke:all', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
-        console.log(`${userId} - ${username} joined room ${roomName}`);
         callback({ success: true, turn: currentRoom.turnCount });
     }
     static leave(socket, { roomName, userId, username }) {
@@ -310,6 +332,15 @@ class AnswerChatActions {
         }
         const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
         const icon = isCorrect ? 'check' : null;
+        if (isCorrect) {
+            room.participantCorrectAnswer(userId);
+            if (room.hasEveryoneAnsweredCorrectly()) {
+                console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
+                room.resetCorrectAnswers();
+                TurnManager.startTurnTimer(roomName, 60); // Advance the turn
+                return;
+            }
+        }
         io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
     }
 }
@@ -352,16 +383,13 @@ exports.DrawingActions = DrawingActions;
 class TurnManager {
     static startTurnTimer(roomName, totalDuration = 60) {
         const room = rooms[roomName];
-        room.advanceTurn();
-        DrawingActions.clear({ roomName });
         if (!room) {
             console.error(`Room ${roomName} not found.`);
             return;
         }
-        if (room.getParticipants().length === 0) {
-            console.error(`No participants available in room ${roomName}`);
-            return;
-        }
+        room.advanceTurn();
+        room.resetCorrectAnswers(); // Reset correct answers
+        DrawingActions.clear({ roomName });
         const currentDrawer = room.getCurrentDrawer();
         if (!currentDrawer) {
             console.error(`Failed to get the current drawer in room ${roomName}`);
@@ -372,7 +400,6 @@ class TurnManager {
         io.to(roomName).emit('game:turn:new', new Turn(wordToDraw, room.turnCount, totalDuration * 1000, currentDrawer.userId, currentDrawer.username));
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
-            // room.advanceTurn();
             TurnManager.startTurnTimer(roomName, totalDuration);
         }, totalDuration * 1000);
     }
@@ -395,7 +422,7 @@ class GameManager {
         }
         console.log(`Turns manually started for room ${roomName}`);
         // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
-        TurnManager.startTurnTimer(roomName, 20);
+        TurnManager.startTurnTimer(roomName, 60);
     }
 }
 exports.GameManager = GameManager;
@@ -403,20 +430,40 @@ exports.GameManager = GameManager;
 function handleUserDisconnect(socket) {
     const userInfo = roomUsers[socket.id];
     if (!userInfo) {
-        // TODO(Kevin): do something here?
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }
     const { roomName, userId, username } = userInfo;
     console.log(`User ${userId} - ${username} disconnected from room ${roomName}`);
-    RoomManager.leave(socket, { roomName, userId, username, userAvatar: null, isLogged: false });
+    const room = rooms[roomName];
+    if (room) {
+        const participant = room.getParticipants().find((p) => p.userId === userId);
+        if (participant) {
+            participant.isConnected = false; // Marca como desconectado
+        }
+        delete roomUsers[socket.id];
+        // Verifica se todos os participantes conectados acertaram
+        const connectedParticipants = room.getParticipants().filter((p) => p.isConnected);
+        if (connectedParticipants.length > 0 && room.hasEveryoneAnsweredCorrectly()) {
+            console.log(`All connected participants in room ${roomName} have answered correctly after ${username} disconnected.`);
+            room.resetCorrectAnswers();
+            TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+        }
+        if (connectedParticipants.length === 0) {
+            console.log(`Room ${roomName} is empty after disconnection. Deleting room.`);
+            delete rooms[roomName];
+            delete roomDrawings[roomName];
+            RoomManager.emitRoomList();
+        }
+        else {
+            RoomManager.emitParticipantsUpdate(roomName);
+        }
+    }
 }
 // Socket.IO Configuration
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.emit('room:all', {
-        allRooms: Object.keys(rooms)
-    });
+    socket.emit('room:all', { allRooms: Object.keys(rooms) });
     socket.on('room:create', (data) => RoomManager.create(data));
     socket.on('room:join', (data, callback) => RoomManager.join(socket, data, callback));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));

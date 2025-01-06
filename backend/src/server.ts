@@ -132,6 +132,28 @@ export class Room {
     this.turnCount++;
     this.currentDrawerTurnIndex = (this.turnCount) % this.turnQueue.length;
   }
+
+  ///
+  private participantsWhoAnsweredCorrectly: Set<string> = new Set();
+
+  participantCorrectAnswer(userId: string): void {
+    this.participantsWhoAnsweredCorrectly.add(userId);
+  }
+
+  hasEveryoneAnsweredCorrectly(): boolean {
+    const nonDrawerConnectedParticipants = this.getParticipants().filter(
+      (participant) =>
+        participant.userId !== this.getCurrentDrawer()?.userId && participant.isConnected
+    );
+    return nonDrawerConnectedParticipants.every((participant) =>
+      this.participantsWhoAnsweredCorrectly.has(participant.userId)
+    );
+  }
+
+
+  resetCorrectAnswers(): void {
+    this.participantsWhoAnsweredCorrectly.clear();
+  }
 }
 
 export class Message {
@@ -170,7 +192,8 @@ export class Participant {
     public userId: string,
     public username: string,
     public userAvatar: string | null,
-    public isLogged: boolean
+    public isLogged: boolean,
+    public isConnected: boolean = true
   ) { }
 }
 
@@ -284,25 +307,30 @@ export class RoomManager {
 
     const currentRoom = rooms[roomName];
 
-    if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
-      var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
+    const existingParticipant = currentRoom.getParticipants().find((p) => p.userId === userId);
+    if (existingParticipant) {
+      // Restaura o estado do participante
+      existingParticipant.isConnected = true; // Marca como reconectado
+      console.log(`${userId} - ${username} reconnected to room ${roomName}`);
+    } else if (currentRoom.getParticipants().length < maxmNumberOfPlayers) {
+      // Novo participante entra
+      currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged, true));
+      console.log(`${userId} - ${username} joined room ${roomName}`);
+    } else {
+      const message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
       console.error(message);
       socket.emit('error', new ErrorDTO(message, ErrorActionType.pop));
       callback({ success: false });
       return;
     }
 
-    currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
-
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
 
-    io.to(roomName).emit('chat:message', new Message('info', userId, username, "entrou"));
+    // Sincroniza o estado do jogo com o participante reconectado
     socket.emit('drawing:stroke:all', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
 
-
-    console.log(`${userId} - ${username} joined room ${roomName}`);
     callback({ success: true, turn: currentRoom.turnCount });
   }
 
@@ -347,6 +375,16 @@ export class AnswerChatActions {
     const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
     const icon = isCorrect ? 'check' : null;
 
+    if (isCorrect) {
+      room.participantCorrectAnswer(userId);
+      if (room.hasEveryoneAnsweredCorrectly()) {
+        console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
+        room.resetCorrectAnswers();
+        TurnManager.startTurnTimer(roomName, 60); // Advance the turn
+        return;
+      }
+    }
+
     io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
   }
 }
@@ -387,18 +425,14 @@ export class DrawingActions {
 export class TurnManager {
   static startTurnTimer(roomName: string, totalDuration: number = 60): void {
     const room = rooms[roomName];
-    room.advanceTurn();
-    DrawingActions.clear({ roomName });
-
     if (!room) {
       console.error(`Room ${roomName} not found.`);
       return;
     }
 
-    if (room.getParticipants().length === 0) {
-      console.error(`No participants available in room ${roomName}`);
-      return;
-    }
+    room.advanceTurn();
+    room.resetCorrectAnswers(); // Reset correct answers
+    DrawingActions.clear({ roomName });
 
     const currentDrawer = room.getCurrentDrawer();
     if (!currentDrawer) {
@@ -420,7 +454,6 @@ export class TurnManager {
     console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
 
     setTimeout(() => {
-      // room.advanceTurn();
       TurnManager.startTurnTimer(roomName, totalDuration);
     }, totalDuration * 1000);
   }
@@ -445,14 +478,13 @@ export class GameManager {
 
     console.log(`Turns manually started for room ${roomName}`);
     // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
-    TurnManager.startTurnTimer(roomName, 20);
+    TurnManager.startTurnTimer(roomName, 60);
   }
 };
 
 export function handleUserDisconnect(socket: Socket): void {
   const userInfo = roomUsers[socket.id];
   if (!userInfo) {
-    // TODO(Kevin): do something here?
     console.log(`No user info found for socket ${socket.id}`);
     return;
   }
@@ -460,15 +492,38 @@ export function handleUserDisconnect(socket: Socket): void {
   const { roomName, userId, username } = userInfo;
   console.log(`User ${userId} - ${username} disconnected from room ${roomName}`);
 
-  RoomManager.leave(socket, { roomName, userId, username, userAvatar: null, isLogged: false });
+  const room = rooms[roomName];
+  if (room) {
+    const participant = room.getParticipants().find((p) => p.userId === userId);
+    if (participant) {
+      participant.isConnected = false; // Marca como desconectado
+    }
+
+    delete roomUsers[socket.id];
+
+    // Verifica se todos os participantes conectados acertaram
+    const connectedParticipants = room.getParticipants().filter((p) => p.isConnected);
+    if (connectedParticipants.length > 0 && room.hasEveryoneAnsweredCorrectly()) {
+      console.log(`All connected participants in room ${roomName} have answered correctly after ${username} disconnected.`);
+      room.resetCorrectAnswers();
+      TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+    }
+
+    if (connectedParticipants.length === 0) {
+      console.log(`Room ${roomName} is empty after disconnection. Deleting room.`);
+      delete rooms[roomName];
+      delete roomDrawings[roomName];
+      RoomManager.emitRoomList();
+    } else {
+      RoomManager.emitParticipantsUpdate(roomName);
+    }
+  }
 }
 
 // Socket.IO Configuration
 io.on('connection', (socket: Socket): void => {
   console.log(`Client connected: ${socket.id}`);
-  socket.emit('room:all', {
-    allRooms: Object.keys(rooms)
-  });
+  socket.emit('room:all', { allRooms: Object.keys(rooms) });
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
   socket.on('room:join', (data: RoomUserDTO, callback: any) => RoomManager.join(socket, data, callback));
