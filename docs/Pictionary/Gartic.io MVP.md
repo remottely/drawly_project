@@ -99,6 +99,7 @@
 - [ ] Add a new form that allows user to personalize better the room configs
 - [x] (0.38.0) initialize golang migration with a simple example
 - [x] (0.38.1) add cors and other configurations in new backend in golang
+- [x] (0.38.2) add almost everything from node to golang backend
 
 ### Validações e Regras de Negócio
 
