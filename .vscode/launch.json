@@ -48,6 +48,22 @@
       "program": "lib/main.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8086"],
       "noDebug": false
+    },
+    {
+      "name": "8087",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/testing/golang/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8087"],
+      "noDebug": false
+    },
+    {
+      "name": "8088",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/testing/golang/main.dart",
+      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8088"],
+      "noDebug": false
     }
   ],
   "compounds": [
@@ -66,6 +82,10 @@
     {
       "name": "Run All Instances",
       "configurations": ["8081", "8082", "8083", "8084"]
+    },
+    {
+      "name": "Run 7/8 GOLANG Instances",
+      "configurations": ["8087", "8088"]
     }
   ]
 }

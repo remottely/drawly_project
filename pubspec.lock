@@ -103,21 +103,21 @@ packages:
       path: "packages/drawing_board"
       relative: true
     source: path
-    version: "0.37.1"
+    version: "0.38.0"
   drawly_core:
     dependency: "direct main"
     description:
       path: "packages/drawly_core"
       relative: true
     source: path
-    version: "0.37.1"
+    version: "0.38.0"
   drawly_design_system:
     dependency: "direct main"
     description:
       path: "packages/drawly_design_system"
       relative: true
     source: path
-    version: "0.37.1"
+    version: "0.38.0"
   equatable:
     dependency: "direct main"
     description:
@@ -579,7 +579,7 @@ packages:
     source: sdk
     version: "0.0.99"
   socket_io_client:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: socket_io_client
       sha256: "180fdbc7685e32a849511bbf8b1c7bcc46ab0ff116f7024aa204b425bb3a1ffe"

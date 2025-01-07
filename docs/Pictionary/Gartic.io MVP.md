@@ -97,6 +97,7 @@
 - [ ] Change the way server send rooms
 - [ ] Add validation that only shows rooms that is not full?
 - [ ] Add a new form that allows user to personalize better the room configs
+- [x] (0.38.0) initialize golang migration with a simple example
 
 ### Validações e Regras de Negócio
 
