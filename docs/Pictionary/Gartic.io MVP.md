@@ -98,6 +98,7 @@
 - [ ] Add validation that only shows rooms that is not full?
 - [ ] Add a new form that allows user to personalize better the room configs
 - [x] (0.38.0) initialize golang migration with a simple example
+- [x] (0.38.1) add cors and other configurations in new backend in golang
 
 ### Validações e Regras de Negócio
 
