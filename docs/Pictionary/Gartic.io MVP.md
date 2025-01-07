@@ -93,6 +93,10 @@
 	- Every time someone guesses the answer, increment the counter **and** detect if the correct guesses for the turn reach the expected count.
 - [x] (0.36.1) bug: Quando a pessoa desconectar, a logica deve continuar funcionando
 - [x] (0.37.0) add score based on guess time
+- [x] (0.37.1) some UI improvements
+- [ ] Change the way server send rooms
+- [ ] Add validation that only shows rooms that is not full?
+- [ ] Add a new form that allows user to personalize better the room configs
 
 ### Validações e Regras de Negócio
 
@@ -225,6 +229,7 @@
 - [ ] Store all points earned from games completed by the user. These points can be used within the Remottely ecosystem.
 - [ ] Bug: When drawing near the end of the turn timer, strokes are carried over to the next turn.
 - [ ] Daily challenges.
+- [ ] **Feature**: Add difficulty levels such as Easy, Medium, Hard, and Expert to enhance gameplay customization.
 
 ---
 

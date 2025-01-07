@@ -254,13 +254,7 @@ class RoomManager {
     static emitParticipantsUpdate(roomName) {
         var _a;
         return io.to(roomName).emit('room:participants:update', {
-            participants: ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants())
-                // .map((p) => ({
-                //   userId: p.userId,
-                //   username: p.username,
-                //   score: p.score, // Inclui a pontuação no update
-                // })) 
-                || []
+            participants: ((_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.getParticipants()) || []
         });
     }
     static create({ roomName }) {
@@ -298,6 +292,7 @@ class RoomManager {
         }
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
+        MessageChatActions.message(roomName, new Message('info', userId, username, "entrou"));
         // Sincroniza o estado do jogo com o participante reconectado
         socket.emit('drawing:stroke:all', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
@@ -306,7 +301,7 @@ class RoomManager {
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
         console.log(`${userId} - ${username} left room ${roomName}`);
-        io.to(roomName).emit('chat:message', new Message('info', userId, username, "saiu"));
+        MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(userId);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -366,8 +361,8 @@ class AnswerChatActions {
 }
 exports.AnswerChatActions = AnswerChatActions;
 class MessageChatActions {
-    static send({ roomName, userId, username, text }) {
-        io.to(roomName).emit('chat:message', new Message(null, userId, username, text));
+    static message(roomName, message) {
+        io.to(roomName).emit('chat:message', message);
     }
 }
 exports.MessageChatActions = MessageChatActions;
@@ -479,6 +474,7 @@ function handleUserDisconnect(socket) {
             participant.isConnected = false; // Marca como desconectado
         }
         delete roomUsers[socket.id];
+        MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
         // Verifica se todos os participantes conectados acertaram
         const connectedParticipants = room.getParticipants().filter((p) => p.isConnected);
         if (connectedParticipants.length > 0 && room.hasEveryoneAnsweredCorrectly()) {
@@ -510,7 +506,7 @@ io.on('connection', (socket) => {
     socket.on('drawing:undo', (data) => DrawingActions.undo(data));
     socket.on('drawing:redo', (data) => DrawingActions.redo(data));
     socket.on('chat:answer:guess', (data) => AnswerChatActions.guess(socket, data));
-    socket.on('chat:message', (data) => MessageChatActions.send(data));
+    socket.on('chat:message', ({ roomName, userId, username, text }) => MessageChatActions.message(roomName, new Message(null, userId, username, text)));
     socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });

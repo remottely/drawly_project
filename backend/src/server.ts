@@ -328,6 +328,8 @@ export class RoomManager {
     socket.join(roomName);
     roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
 
+    MessageChatActions.message(roomName, new Message('info', userId, username, "entrou"));
+
     // Sincroniza o estado do jogo com o participante reconectado
     socket.emit('drawing:stroke:all', { strokes: roomDrawings[roomName]?.getStrokes() });
     RoomManager.emitParticipantsUpdate(roomName);
@@ -337,7 +339,7 @@ export class RoomManager {
 
   static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
     console.log(`${userId} - ${username} left room ${roomName}`);
-    io.to(roomName).emit('chat:message', new Message('info', userId, username, "saiu"));
+    MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
     rooms[roomName]?.removeParticipant(userId);
 
     socket.leave(roomName);
@@ -408,8 +410,8 @@ export class AnswerChatActions {
 }
 
 export class MessageChatActions {
-  static send({ roomName, userId, username, text }: RoomUserMessageDTO): void {
-    io.to(roomName).emit('chat:message', new Message(null, userId, username, text));
+  static message(roomName: string, message: Message): void {
+    io.to(roomName).emit('chat:message', message);
   }
 }
 
@@ -539,6 +541,7 @@ export function handleUserDisconnect(socket: Socket): void {
     }
 
     delete roomUsers[socket.id];
+    MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
 
     // Verifica se todos os participantes conectados acertaram
     const connectedParticipants = room.getParticipants().filter((p) => p.isConnected);
@@ -576,7 +579,9 @@ io.on('connection', (socket: Socket): void => {
 
   socket.on('chat:answer:guess', (data: RoomUserAnswerDTO) => AnswerChatActions.guess(socket, data));
 
-  socket.on('chat:message', (data: RoomUserMessageDTO) => MessageChatActions.send(data));
+  socket.on('chat:message', ({ roomName, userId, username, text }: RoomUserMessageDTO) =>
+    MessageChatActions.message(roomName, new Message(null, userId, username, text)));
+
 
   socket.on('game:turns:start', (data: RoomDTO) => GameManager.startTurns(socket, data));
 

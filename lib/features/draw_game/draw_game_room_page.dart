@@ -155,7 +155,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
         AnimatedBuilder(
           animation: Listenable.merge([
             rxIsCurrentDrawerUserId,
-            // rxTurn,
+            rxTurn,
           ]),
           builder: (context, _) {
             return Scaffold(

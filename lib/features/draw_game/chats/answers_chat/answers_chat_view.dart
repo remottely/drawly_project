@@ -122,8 +122,7 @@ class _AnswerChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text:
-                      userId == answer.userId ? 'Você ' : '${answer.username} ',
+                  text: userId == answer.userId ? 'Você' : answer.username,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,
@@ -131,7 +130,7 @@ class _AnswerChatText extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: answer.isCorrect ? 'acertou!' : answer.text,
+                  text: answer.isCorrect ? ' acertou!' : ' ${answer.text}',
                   style: TextStyle(
                     color: color,
                     fontSize: 16,
