@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -53,59 +54,83 @@ func main() {
 
 		// Evento: Entrar na Sala
 		client.On("room:join", func(args ...interface{}) {
+			fmt.Printf("Args received: %+v\n", args)
+
 			if len(args) > 1 {
-				// Converta o primeiro argumento para map[string]interface{}
+				// Extraindo e verificando o formato do primeiro argumento
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
-				// Converta o segundo argumento para função callback
-				callback, ok := args[1].(func(map[string]interface{}))
+				// Extraindo e verificando o formato do callback
+				rawCallback := args[1]
+				callback, ok := rawCallback.(func([]interface{}, error))
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid callback format"})
+					fmt.Printf("Callback type assertion failed: %+v\n", rawCallback)
+					emitError(client, "Invalid callback format", "nothing")
 					return
 				}
 
-				// Extraia os dados do mapa
 				roomName, _ := data["roomName"].(string)
 				userId, _ := data["userId"].(string)
 				username, _ := data["username"].(string)
 				userAvatar, _ := data["userAvatar"].(string)
 
-				// Lógica de entrada na sala
-				if room, exists := rooms[roomName]; exists {
-					if _, alreadyInRoom := room.Participants[userId]; !alreadyInRoom {
+				room, exists := rooms[roomName]
+				if !exists {
+					callback([]interface{}{map[string]interface{}{
+						"success": false,
+						"error":   "Room does not exist",
+					}}, nil)
+					return
+				}
+
+				participant, alreadyInRoom := room.Participants[userId]
+				if alreadyInRoom {
+					participant.IsConnected = true
+					io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
+						"participants": room.GetParticipants(),
+					})
+					callback([]interface{}{map[string]interface{}{
+						"success": false,
+						"message": "Reconnected",
+					}}, nil)
+				} else {
+					if len(room.GetParticipants()) < maxPlayers {
 						participant := &Participant{
-							UserId:      userId,
-							Username:    username,
-							UserAvatar:  userAvatar,
+							UserId:   userId,
+							Username: username,
+							UserAvatar: func(avatar string) *string {
+								if avatar == "" {
+									return nil
+								}
+								return &avatar
+							}(userAvatar),
 							IsLogged:    true,
 							IsConnected: true,
 						}
 						room.AddParticipant(participant)
-
-						// Converta roomName para socket.Room
 						client.Join(socket.Room(roomName))
-
-						// Converta client.Id() para string
 						roomUsers[string(client.Id())] = roomName
 
-						// Sincronizar o estado da sala com o cliente
-						client.Emit("room:joined", map[string]interface{}{"roomName": roomName})
 						io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 							"participants": room.GetParticipants(),
 						})
-						callback(map[string]interface{}{"success": true})
+						callback([]interface{}{map[string]interface{}{
+							"success": true,
+						}}, nil)
 					} else {
-						callback(map[string]interface{}{"success": false, "error": "User already in the room"})
+						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")
+						callback([]interface{}{map[string]interface{}{
+							"success": false,
+							"error":   "Room is full",
+						}}, nil)
 					}
-				} else {
-					callback(map[string]interface{}{"success": false, "error": "Room does not exist"})
 				}
 			} else {
-				client.Emit("error", map[string]interface{}{"message": "Invalid arguments"})
+				emitError(client, "Invalid arguments", "nothing")
 			}
 		})
 
@@ -115,7 +140,7 @@ func main() {
 				// Converta o primeiro argumento para map[string]interface{}
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
@@ -141,45 +166,67 @@ func main() {
 					}
 				}
 			} else {
-				client.Emit("error", map[string]interface{}{"message": "Invalid arguments"})
+				emitError(client, "Invalid arguments", "nothing")
 			}
 		})
 
 		// Evento: Início do traço
 		client.On("drawing:stroke:start", func(args ...interface{}) {
-			if len(args) > 0 {
-				data, ok := args[0].(map[string]interface{})
-				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
-					return
-				}
+			if len(args) == 0 {
+				emitError(client, "No arguments provided", "nothing")
+				return
+			}
 
-				roomName, _ := data["roomName"].(string)
-				stroke, _ := data["stroke"].(map[string]interface{})
+			data, ok := args[0].(map[string]interface{})
+			if !ok {
+				emitError(client, "Invalid data format", "nothing")
+				return
+			}
 
-				if drawing, exists := roomDrawings[roomName]; exists {
-					parsedStroke := parseStroke(stroke)
-					drawing.AddStroke(parsedStroke)
-					io.To(socket.Room(roomName)).Emit("drawing:stroke:start", map[string]interface{}{"stroke": stroke})
-				}
+			roomName, _ := data["roomName"].(string)
+			rawStroke, _ := data["stroke"].(map[string]interface{})
+
+			stroke, err := parseStroke(rawStroke)
+			if err != nil {
+				emitError(client, fmt.Sprintf("Failed to parse stroke: %v", err), "nothing")
+				return
+			}
+
+			if drawing, exists := roomDrawings[roomName]; exists {
+				drawing.AddStroke(stroke)
+				io.To(socket.Room(roomName)).Emit("drawing:stroke:start", map[string]interface{}{"stroke": rawStroke})
 			}
 		})
 
 		// Evento: Últimos pontos do traço
 		client.On("drawing:stroke:lastPoints", func(args ...interface{}) {
 			if len(args) > 0 {
+				// Verifica se o argumento recebido é do tipo esperado
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
-				points, _ := data["strokeLastPoints"].([]map[string]interface{})
+				rawPoints, ok := data["strokeLastPoints"].([]interface{})
+				if !ok {
+					emitError(client, "Invalid strokeLastPoints format", "nothing")
+					return
+				}
+
+				// Processa os pontos
+				points, err := parsePoints(rawPoints)
+				if err != nil {
+					emitError(client, fmt.Sprintf("Failed to parse points: %v", err), "nothing")
+					return
+				}
 
 				if drawing, exists := roomDrawings[roomName]; exists {
-					drawing.AddStrokeLastPoints(parsePoints(points))
-					io.To(socket.Room(roomName)).Emit("drawing:stroke:lastPoints", map[string]interface{}{"strokeLastPoints": points})
+					drawing.AddStrokeLastPoints(points)
+					io.To(socket.Room(roomName)).Emit("drawing:stroke:lastPoints", map[string]interface{}{
+						"strokeLastPoints": rawPoints,
+					})
 				}
 			}
 		})
@@ -189,7 +236,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
@@ -207,21 +254,20 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
+				icon := "info" // Ícone de mensagem padrão
 				message := Message{
-					Icon:     nil,
+					Icon:     &icon,
 					UserId:   data["userId"].(string),
 					Username: data["username"].(string),
 					Text:     data["text"].(string),
 				}
 
-				if _, exists := rooms[roomName]; exists {
-					io.To(socket.Room(roomName)).Emit("chat:message", message)
-				}
+				io.To(socket.Room(roomName)).Emit("chat:message", message)
 			}
 		})
 
@@ -230,7 +276,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
@@ -241,24 +287,17 @@ func main() {
 
 				room, exists := rooms[roomName]
 				if !exists {
-					client.Emit("error", ErrorDTO{
-						Message: "Room does not exist.",
-						Action:  "nothing",
-					})
+					emitError(client, "Room does not exist.", "nothing")
 					return
 				}
 
 				correctWord := room.CurrentWord
 				if correctWord == "" {
-					client.Emit("error", ErrorDTO{
-						Message: "No word is currently being drawn.",
-						Action:  "nothing",
-					})
+					emitError(client, "No word is currently being drawn.", "nothing")
 					return
 				}
 
 				isCorrect := correctWord == text
-				// error: undefined: Answer
 				answer := Answer{
 					Icon:      nil,
 					UserId:    userId,
@@ -293,25 +332,19 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "retry")
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
 				room, exists := rooms[roomName]
 				if !exists {
-					client.Emit("error", ErrorDTO{
-						Message: "Room does not exist.",
-						Action:  "nothing",
-					})
+					emitError(client, "Room does not exist", "nothing")
 					return
 				}
 
-				if len(room.GetParticipants()) < 2 {
-					client.Emit("error", ErrorDTO{
-						Message: "Not enough players to start the game.",
-						Action:  "nothing",
-					})
+				if len(room.GetParticipants()) < minPlayers {
+					emitError(client, fmt.Sprintf("Not enough players. Minimum %d required.", minPlayers), "retry")
 					return
 				}
 
@@ -338,15 +371,12 @@ func main() {
 
 			delete(roomUsers, string(client.Id()))
 
-			// Verifica se a sala está vazia
 			if len(room.GetParticipants()) == 0 {
 				delete(rooms, roomName)
 				delete(roomDrawings, roomName)
-				io.Emit("room:all", map[string]any{
-					"allRooms": getRoomNames(),
-				})
+				emitRoomList(io)
 			} else {
-				io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
+				io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 					"participants": room.GetParticipants(),
 				})
 			}
@@ -357,7 +387,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					client.Emit("error", map[string]interface{}{"message": "Invalid data format"})
+					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
@@ -366,10 +396,10 @@ func main() {
 			}
 		})
 
-		// log.Infof("Client connected: %s", string(client.Id()))
+		// fmt.Printf("Client connected: %s", string(client.Id()))
 
 		// client.On("disconnect", func(...any) {
-		// 	log.Infof("Client disconnected: %s", string(client.Id()))
+		// 	fmt.Printf("Client disconnected: %s", string(client.Id()))
 		// })
 
 		// client.On("error", func(data any) {
@@ -398,6 +428,11 @@ func main() {
 	os.Exit(0)
 }
 
+const (
+	minPlayers = 2
+	maxPlayers = 3
+)
+
 type Offset struct {
 	Dx float64 `json:"dx"`
 	Dy float64 `json:"dy"`
@@ -409,7 +444,7 @@ type Stroke struct {
 	Size       int      `json:"size"`
 	Opacity    float64  `json:"opacity"`
 	StrokeType string   `json:"strokeType"`
-	Filled     bool     `json:"filled"`
+	Filled     *bool    `json:"filled"`
 }
 
 type Drawing struct {
@@ -454,12 +489,12 @@ func (d *Drawing) Redo() *Stroke {
 }
 
 type Participant struct {
-	UserId      string `json:"userId"`
-	Username    string `json:"username"`
-	UserAvatar  string `json:"userAvatar"`
-	IsLogged    bool   `json:"isLogged"`
-	IsConnected bool   `json:"isConnected"`
-	Score       int    `json:"score"`
+	UserId      string  `json:"userId"`
+	Username    string  `json:"username"`
+	UserAvatar  *string `json:"userAvatar"`
+	IsLogged    bool    `json:"isLogged"`
+	IsConnected bool    `json:"isConnected"`
+	Score       int     `json:"score"`
 }
 
 type Room struct {
@@ -527,7 +562,7 @@ type Turn struct {
 
 type ErrorDTO struct {
 	Message string `json:"message"` // Mensagem de erro
-	Action  string `json:"action"`  // Ação sugerida (e.g., "nothing", "retry")
+	Action  string `json:"action"`  // Ação sugerida (e.g., "nothing", "nothing")
 }
 
 func NewRoom(name string) *Room {
@@ -584,27 +619,91 @@ func getRoomNames() []string {
 	return names
 }
 
-func parseStroke(data map[string]any) Stroke {
-	points := parsePoints(data["points"].([]map[string]any))
-	return Stroke{
-		Points:     points,
-		Color:      int(data["color"].(float64)),
-		Size:       int(data["size"].(float64)),
-		Opacity:    data["opacity"].(float64),
-		StrokeType: data["strokeType"].(string),
-		Filled:     data["filled"].(bool),
+func parseStroke(data map[string]any) (Stroke, error) {
+	// Validar e extrair os pontos
+	rawPoints, ok := data["points"].([]any)
+	if !ok {
+		return Stroke{}, fmt.Errorf("invalid or missing 'points'")
 	}
-}
 
-func parsePoints(data []map[string]any) []Offset {
-	points := make([]Offset, len(data))
-	for i, point := range data {
-		points[i] = Offset{
-			Dx: point["dx"].(float64),
-			Dy: point["dy"].(float64),
+	points := make([]Offset, len(rawPoints))
+	for i, rawPoint := range rawPoints {
+		pointMap, ok := rawPoint.(map[string]any)
+		if !ok {
+			return Stroke{}, fmt.Errorf("invalid point format at index %d", i)
+		}
+
+		dx, dxOk := pointMap["dx"].(float64)
+		dy, dyOk := pointMap["dy"].(float64)
+
+		if !dxOk || !dyOk {
+			return Stroke{}, fmt.Errorf("missing or invalid 'dx' or 'dy' at index %d", i)
+		}
+
+		points[i] = Offset{Dx: dx, Dy: dy}
+	}
+
+	// Validar e extrair outras propriedades
+	color, ok := data["color"].(float64)
+	if !ok {
+		return Stroke{}, fmt.Errorf("invalid or missing 'color'")
+	}
+
+	size, ok := data["size"].(float64)
+	if !ok {
+		return Stroke{}, fmt.Errorf("invalid or missing 'size'")
+	}
+
+	opacity, ok := data["opacity"].(float64)
+	if !ok {
+		return Stroke{}, fmt.Errorf("invalid or missing 'opacity'")
+	}
+
+	strokeType, ok := data["strokeType"].(string)
+	if !ok {
+		return Stroke{}, fmt.Errorf("invalid or missing 'strokeType'")
+	}
+
+	// Campo 'Filled' opcional
+	var filled *bool
+	if rawFilled, exists := data["filled"]; exists {
+		if filledValue, ok := rawFilled.(bool); ok {
+			filled = &filledValue
+		} else {
+			return Stroke{}, fmt.Errorf("invalid 'filled' value")
 		}
 	}
-	return points
+
+	// Retorna o objeto Stroke
+	return Stroke{
+		Points:     points,
+		Color:      int(color),
+		Size:       int(size),
+		Opacity:    opacity,
+		StrokeType: strokeType,
+		Filled:     filled,
+	}, nil
+}
+
+func parsePoints(rawPoints []interface{}) ([]Offset, error) {
+	points := make([]Offset, len(rawPoints))
+
+	for i, raw := range rawPoints {
+		point, ok := raw.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid point format at index %d, expected map[string]interface{} but got %T", i, raw)
+		}
+
+		dx, dxOk := point["dx"].(float64)
+		dy, dyOk := point["dy"].(float64)
+		if !dxOk || !dyOk {
+			return nil, fmt.Errorf("missing or invalid 'dx' or 'dy' in point at index %d", i)
+		}
+
+		points[i] = Offset{Dx: dx, Dy: dy}
+	}
+
+	return points, nil
 }
 
 func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration int) {
@@ -630,7 +729,7 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 	wordsList := []string{"gato", "cachorro", "casa", "carro", "árvore"}
 	wordToDraw := wordsList[int(time.Now().Unix()%int64(len(wordsList)))]
 	room.CurrentWord = wordToDraw
-	// error: undefined: io
+
 	io.To(socket.Room(roomName)).Emit("game:turn:new", Turn{
 		Word:                  wordToDraw,
 		Turn:                  room.TurnCount,
@@ -639,7 +738,6 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		CurrentDrawerUsername: currentDrawer.Username,
 	})
 
-	// error: undefined: io
 	// Atualiza participantes
 	io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
 		"participants": room.GetParticipants(),
@@ -674,15 +772,21 @@ func emitRanking(io *socket.Server, roomName string) {
 		return ranking[i]["score"].(int) > ranking[j]["score"].(int)
 	})
 
-	// error: undefined: io
 	io.To(socket.Room(roomName)).Emit("game:ranking", map[string]any{
 		"ranking": ranking,
 	})
 }
 
 func emitRoomList(io *socket.Server) {
-	// error: undefined: io
+
 	io.Emit("room:all", map[string]any{
 		"allRooms": getRoomNames(),
+	})
+}
+
+func emitError(client *socket.Socket, message, action string) {
+	client.Emit("error", ErrorDTO{
+		Message: message,
+		Action:  action,
 	})
 }

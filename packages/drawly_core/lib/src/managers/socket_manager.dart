@@ -92,27 +92,37 @@ class SocketManager {
     String event,
     dynamic data, {
     Duration timeout = const Duration(seconds: 10),
-  }) {
+  }) async {
     final completer = Completer<Map<String, dynamic>>();
 
-    _socket.emitWithAck(
-      event,
-      data,
-      ack: (Map<String, dynamic> response) {
+    try {
+      _socket.emitWithAck(
+        event,
+        data,
+        ack: (response) {
+          if (response is Map<String, dynamic>) {
+            completer.complete(response);
+          } else {
+            completer.completeError(
+              'Invalid response format: Expected Map<String, dynamic>',
+            );
+          }
+        },
+      );
+
+      // Timeout para evitar travamento caso não haja resposta
+      Future.delayed(timeout, () {
         if (!completer.isCompleted) {
-          completer.complete(response);
+          completer
+              .completeError('Timeout: No response received for event $event');
         }
-      },
-    );
+      });
 
-    Future.delayed(timeout, () {
-      if (!completer.isCompleted) {
-        completer
-            .completeError('Timeout: No response received for event $event');
-      }
-    });
-
-    return completer.future;
+      return await completer.future;
+    } catch (e) {
+      completer.completeError('Error while emitting event: $e');
+      rethrow;
+    }
   }
 
   /// Clear all listeners (use with caution)

@@ -37,6 +37,20 @@ class RoomDrawingStartStrokeDTO extends RoomDTO {
   Map<String, dynamic> toJson() => super.toJson()..['stroke'] = stroke.toJson();
 }
 
+// class RoomDrawingStrokePointsDTO extends RoomDTO {
+//   RoomDrawingStrokePointsDTO({
+//     required super.roomName,
+//     required this.strokeLastPoints,
+//   });
+
+//   final List<Offset> strokeLastPoints;
+
+//   @override
+//   Map<String, dynamic> toJson() => super.toJson()
+//     ..['strokeLastPoints'] =
+//         strokeLastPoints.map((point) => [point.dx, point.dy]).toList();
+// }
+
 class RoomDrawingStrokePointsDTO extends RoomDTO {
   RoomDrawingStrokePointsDTO({
     required super.roomName,
@@ -47,6 +61,7 @@ class RoomDrawingStrokePointsDTO extends RoomDTO {
 
   @override
   Map<String, dynamic> toJson() => super.toJson()
-    ..['strokeLastPoints'] =
-        strokeLastPoints.map((point) => [point.dx, point.dy]).toList();
+    ..['strokeLastPoints'] = strokeLastPoints
+        .map((point) => {'dx': point.dx, 'dy': point.dy})
+        .toList();
 }

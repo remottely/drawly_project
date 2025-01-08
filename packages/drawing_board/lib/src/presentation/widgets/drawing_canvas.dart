@@ -133,8 +133,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         final receivedStrokeLastPoints = (strokeLastPoints as List<dynamic>)
             .map(
               (point) => Offset(
-                (point as List<dynamic>)[0] as double,
-                point[1] as double,
+                (point as Map<String, dynamic>)['dx'] as double,
+                point['dy'] as double,
               ),
             )
             .toList();
