@@ -101,7 +101,8 @@
 - [x] (0.38.1) add cors and other configurations in new backend in golang (part 1)
 - [x] (0.38.2) add almost everything from node to golang backend (part 2)
 - [x] (0.38.3) add the rest of node implementation (part 3)
-
+- [x] (0.39.0) add first golang unit test(room:leave)
+- [ ] (0.40.0) Bug: flutter timer feedback, not correct when a turn changes before another turn finish
 ### Validações e Regras de Negócio
 
 - [ ] (0.?.0) Minimum and maximum length validation for usernames (frontend and backend).

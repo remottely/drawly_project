@@ -9,12 +9,12 @@ import (
 	"syscall"
 	"time"
 
-	// "drawly-server/src/app"
-	// Importa o pacote "app"
 	"github.com/zishang520/engine.io/v2/log"
 	"github.com/zishang520/engine.io/v2/types"
 	"github.com/zishang520/socket.io/v2/socket"
 )
+
+const Version = "0.40.0"
 
 func main() {
 	log.DEBUG = true
@@ -146,7 +146,6 @@ func main() {
 			}
 		})
 
-		// chatgpt: era isso q eu estava testando
 		// Evento: Sair da Sala
 		client.On("room:leave", func(args ...interface{}) {
 			if len(args) > 0 {
@@ -334,12 +333,9 @@ func main() {
 					if participant != nil {
 						points := 100
 						participant.Score += points
-						// error: room.ParticipantCorrectAnswer undefined (type *Room has no field or method ParticipantCorrectAnswer)
 						room.ParticipantCorrectAnswer(userId)
 
-						// error: room.HasEveryoneAnsweredCorrectly undefined (type *Room has no field or method HasEveryoneAnsweredCorrectly)
 						if room.HasEveryoneAnsweredCorrectly() {
-							// error: room.ResetCorrectAnswers undefined (type *Room has no field or method ResetCorrectAnswers)
 							room.ResetCorrectAnswers()
 							TurnManagerStartTurnTimer(io, roomName, 60)
 						}
@@ -490,7 +486,6 @@ func (d *Drawing) Redo() *Stroke {
 	return &lastBackup
 }
 
-// error: undefined: Room
 func (r *Room) ParticipantCorrectAnswer(userId string) {
 	if r.ParticipantsWhoAnsweredCorrectly == nil {
 		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
@@ -682,7 +677,11 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 	}
 
 	// Escolha uma palavra aleatória
-	wordsList := []string{"gato", "cachorro", "casa", "carro", "árvore"}
+	wordsList := []string{
+		"gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
+		"rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
+		"namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
+	}
 	wordToDraw := wordsList[int(time.Now().Unix()%int64(len(wordsList)))]
 	room.CurrentWord = wordToDraw
 
@@ -745,4 +744,70 @@ func emitError(client *socket.Socket, message, action string) {
 		Message: message,
 		Action:  action,
 	})
+}
+
+type Offset struct {
+	Dx float64 `json:"dx"`
+	Dy float64 `json:"dy"`
+}
+
+type Stroke struct {
+	Points     []Offset `json:"points"`
+	Color      int      `json:"color"`
+	Size       int      `json:"size"`
+	Opacity    float64  `json:"opacity"`
+	StrokeType string   `json:"strokeType"`
+	Filled     *bool    `json:"filled"`
+}
+
+type Room struct {
+	Name                             string
+	Participants                     map[string]*Participant
+	TurnQueue                        []*Participant
+	CurrentDrawerTurnIndex           int
+	CurrentWord                      string
+	TurnCount                        int
+	ParticipantsWhoAnsweredCorrectly map[string]bool
+}
+
+type Drawing struct {
+	Strokes       []Stroke `json:"strokes"`
+	BackupStrokes []Stroke `json:"backupStrokes"`
+}
+
+type Participant struct {
+	UserId      string  `json:"userId"`
+	Username    string  `json:"username"`
+	UserAvatar  *string `json:"userAvatar"`
+	IsLogged    bool    `json:"isLogged"`
+	IsConnected bool    `json:"isConnected"`
+	Score       int     `json:"score"`
+}
+
+type Message struct {
+	Icon     *string `json:"icon"`     // Ícone opcional
+	UserId   string  `json:"userId"`   // ID do usuário
+	Username string  `json:"username"` // Nome do usuário
+	Text     string  `json:"text"`     // Texto da mensagem
+}
+
+type Answer struct {
+	Icon      *string `json:"icon"`      // Ícone opcional (pode ser nil)
+	UserId    string  `json:"userId"`    // ID do usuário
+	Username  string  `json:"username"`  // Nome do usuário
+	Text      string  `json:"text"`      // Texto da resposta
+	IsCorrect bool    `json:"isCorrect"` // Indica se a resposta está correta
+}
+
+type Turn struct {
+	Word                  string `json:"word"`                  // Palavra que está sendo desenhada
+	Turn                  int    `json:"turn"`                  // Número do turno atual
+	TotalDuration         int    `json:"totalDuration"`         // Duração total do turno em milissegundos
+	CurrentDrawerUserId   string `json:"currentDrawerUserId"`   // ID do usuário que está desenhando
+	CurrentDrawerUsername string `json:"currentDrawerUsername"` // Nome do usuário que está desenhando
+}
+
+type ErrorDTO struct {
+	Message string `json:"message"` // Mensagem de erro
+	Action  string `json:"action"`  // Ação sugerida (e.g., "nothing", "nothing")
 }

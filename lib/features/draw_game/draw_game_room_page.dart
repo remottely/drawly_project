@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:drawing_board/drawing_board.dart';
@@ -42,6 +43,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   final rxIsGameStarted = ValueNotifier<bool>(false);
   final rxTimeLeft = ValueNotifier<int>(0);
   final rxTurn = ValueNotifier<int>(0);
+  Timer? _countdownTimer;
 
   late final void Function(dynamic) _onConnectEvent;
   late final void Function(dynamic) _onNewTurnEvent;
@@ -61,6 +63,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     rxIsCurrentDrawerUserId.dispose();
     rxTotalDuration.dispose();
     rxTimeLeft.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -97,16 +100,21 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void startCountdown(int durationInMs) {
+    // Cancela o temporizador anterior, se existir.
+    _countdownTimer?.cancel();
+
     var remaining = durationInMs;
 
-    Future.doWhile(() async {
-      if (remaining <= 0) return false;
+    _countdownTimer =
+        Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (remaining <= 0) {
+        timer.cancel();
+        _countdownTimer = null;
+        return;
+      }
 
-      await Future<void>.delayed(const Duration(milliseconds: 100));
       remaining -= 100;
       rxTimeLeft.value = remaining;
-
-      return true;
     });
   }
 
