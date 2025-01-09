@@ -568,10 +568,16 @@ func (r *Room) GetParticipants() []*Participant {
 		participants = append(participants, p)
 	}
 
-	// Ordena os participantes em ordem decrescente de pontuação
 	sort.Slice(participants, func(i, j int) bool {
+		if participants[i].Score == participants[j].Score {
+			return participants[i].PreviousOrder < participants[j].PreviousOrder
+		}
 		return participants[i].Score > participants[j].Score
 	})
+
+	for idx, participant := range participants {
+		participant.PreviousOrder = idx
+	}
 
 	return participants
 }
@@ -840,12 +846,13 @@ type Room struct {
 }
 
 type Participant struct {
-	UserId      string  `json:"userId"`
-	Username    string  `json:"username"`
-	UserAvatar  *string `json:"userAvatar"`
-	IsLogged    bool    `json:"isLogged"`
-	IsConnected bool    `json:"isConnected"`
-	Score       int     `json:"score"`
+	UserId        string  `json:"userId"`
+	Username      string  `json:"username"`
+	UserAvatar    *string `json:"userAvatar"`
+	IsLogged      bool    `json:"isLogged"`
+	IsConnected   bool    `json:"isConnected"`
+	Score         int     `json:"score"`
+	PreviousOrder int     `json:"-"` // Ordem da rodada anterior
 }
 
 type Drawing struct {
