@@ -49,6 +49,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
                   itemCount: value.length,
                   itemBuilder: (context, index) {
                     return _MessageChatText(
+                      userId: widget.userId,
                       message: rxAllMessages.value[index],
                     );
                   },
@@ -74,9 +75,11 @@ class _MessagesChatViewState extends MessagesChatViewModel {
 
 class _MessageChatText extends StatelessWidget {
   const _MessageChatText({
+    required this.userId,
     required this.message,
   });
 
+  final String userId;
   final Message message;
 
   @override
@@ -99,7 +102,7 @@ class _MessageChatText extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: message.username,
+                  text: userId == message.userId ? 'Você' : message.username,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,

@@ -4,6 +4,8 @@ class Participant {
     required this.username,
     required this.userAvatar,
     required this.isLogged,
+    required this.isConnected,
+    required this.score,
   });
 
   factory Participant.fromJson(Map<String, dynamic> json) {
@@ -12,6 +14,8 @@ class Participant {
       username: json['username'] as String,
       userAvatar: json['userAvatar'] as String?,
       isLogged: json['isLogged'] as bool,
+      isConnected: json['isConnected'] as bool,
+      score: json['score'] as int,
     );
   }
 
@@ -19,6 +23,8 @@ class Participant {
   final String username;
   final String? userAvatar;
   final bool isLogged;
+  final bool isConnected;
+  final int score;
 
   // Map<String, dynamic> toJson() {
   //   return {
@@ -26,6 +32,8 @@ class Participant {
   //     'username': username,
   //     'userAvatar': userAvatar,
   //     'isLogged': isLogged,
+  //     'isConnected': isConnected,
+  //     'score': score,
   //   };
   // }
 }

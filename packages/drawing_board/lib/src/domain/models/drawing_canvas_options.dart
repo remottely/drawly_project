@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class DrawingCanvasOptions {
   const DrawingCanvasOptions({
-    this.strokeColor = AppColors.blackAccent,
+    this.strokeColor = AppColors.black,
     this.size = 10,
     this.opacity = 1,
     this.currentTool = DrawingTool.pencil,

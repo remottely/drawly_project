@@ -80,11 +80,35 @@
 - [x] (0.31.3) drawly packages tab problems: fix all alerts (part 2)
 - [x] (0.32.0) Add new username logic to backend and frontend
 - [x] (0.32.1) drawly tab problems: fix all alerts
-- [x] (0.33.2) Bug with strokes drawing:draw not working properly
+- [x] (0.33.2) Bug with strokes drawing:stroke not working properly
 - [x] (0.33.3) Add userId logic into the frontend side (part 1)
 - [x] (0.33.4) Add userId logic into the frontend side (part 2)
 - [x] (0.34.1) Organizing code
-- [ ] Add nested navigation
+- [x] (0.35.0) Buffer strokes every 50ms.
+- [x] (0.36.0) **Participant Counter**: Detect the number of participants in the room and emit turn completion when:
+  - A participant leaves the room **and** the increment of players who guessed correctly matches the expected count.
+  - Each time someone guesses correctly, increment the counter **and** check if the correct guesses for the turn reach the expected count.
+- [x] (0.36.1) **Bug**: Ensure logic continues to function when a participant disconnects.
+- [x] (0.37.0) Add scoring system based on guess time.
+- [x] (0.37.1) Apply various UI improvements.
+- [x] (0.38.0) Initialize Golang migration with a simple example.
+- [x] (0.38.1) Add CORS and other configurations in the new Golang backend (part 1).
+- [x] (0.38.2) Migrate almost all functionality from Node.js to Golang backend (part 2).
+- [x] (0.38.3) Complete the migration of remaining Node.js features to Golang backend (part 3).
+- [x] (0.39.0) Add the first Golang unit test (`room:leave`).
+- [x] (0.40.0) **Bug**: Fix incorrect Flutter timer feedback when a turn changes before the previous turn finishes.
+- [x] (0.40.1) **Bug**: Correct the logic for calculating the user's current score.
+- [x] (0.41.0) **Feature**: Emit `room:participants:update` as a list, ordered by each participant's score in descending order.
+- [x] (0.42.0) Implement tiebreaker logic on the Golang side based on the previous round.
+- [x] (0.43.0) Highlight the local user and the drawer in the UI.
+- [ ] Add nested navigation.
+- [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
+- [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.
+- [ ] Change the way the server sends room data.
+- [ ] Add validation to only display rooms that are not full.
+- [ ] Create a new form to allow users to better personalize room configurations.
+- [ ] Add a feature to report the drawer.
+- [ ] Add a feature to report a player.
 
 ### Validações e Regras de Negócio
 
@@ -160,7 +184,6 @@
 ### **V2**
 
 - [ ] (0.?.0) Change current drawer from app bar to participants list feedback.
-- [ ] (0.?.0) Buffer strokes each 100ms.
 - [ ] (0.?.0) Wait 15 seconds to switch rooms.
 - [ ] (0.?.0) Migrate all events to enums that automatically convert to strings.
 - (1.?.0) RedoDraw:
@@ -218,6 +241,7 @@
 - [ ] Store all points earned from games completed by the user. These points can be used within the Remottely ecosystem.
 - [ ] Bug: When drawing near the end of the turn timer, strokes are carried over to the next turn.
 - [ ] Daily challenges.
+- [ ] **Feature**: Add difficulty levels such as Easy, Medium, Hard, and Expert to enhance gameplay customization.
 
 ---
 

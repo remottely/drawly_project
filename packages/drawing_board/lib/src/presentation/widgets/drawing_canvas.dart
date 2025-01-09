@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -45,6 +46,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   ValueNotifier<List<Stroke>> get rxAllStrokes => widget.rxAllStrokes;
 
   final double _canvasSize = 500;
+  final int _bufferDelay = 50;
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
@@ -53,18 +55,26 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   DrawingTool get currentTool => widget.options.currentTool;
 
   late final void Function(dynamic) _onConnectEvent;
-  late final void Function(dynamic) _onDrawDrawingEvent;
+  late final void Function(dynamic) _onAllStrokesDrawingEvent;
+  late final void Function(dynamic) _onStrokeStartDrawingEvent;
+  late final void Function(dynamic) _onStrokeLastPointsDrawingEvent;
 
   @override
   void initState() {
     super.initState();
     _initializeSocket();
+    _startDrawingPointsBuffer();
   }
 
   @override
   void dispose() {
     SocketManager.instance.offEvent('connect', _onConnectEvent);
-    SocketManager.instance.offEvent('drawing:draw', _onDrawDrawingEvent);
+    SocketManager.instance
+        .offEvent('drawing:stroke:all', _onAllStrokesDrawingEvent);
+    SocketManager.instance
+        .offEvent('drawing:stroke:start', _onStrokeStartDrawingEvent);
+    SocketManager.instance
+        .offEvent('drawing:stroke:lastPoints', _onStrokeLastPointsDrawingEvent);
     super.dispose();
   }
 
@@ -72,11 +82,11 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     _onConnectEvent = (_) {
       rxAllStrokes.value = [];
     };
-    _onDrawDrawingEvent = (data) {
-      developer.log('Draw event received: $data');
-      final newStrokes = (data as Map<String, dynamic>)['strokes'];
+
+    _onAllStrokesDrawingEvent = (data) {
       try {
-        final receivedStrokes = (newStrokes as List<dynamic>)
+        final allStrokes = (data as Map<String, dynamic>)['strokes'];
+        final receivedAllStrokes = (allStrokes as List<dynamic>)
             .map(
               (e) => Stroke.fromJson(
                 Map<String, dynamic>.from(e as Map<String, dynamic>),
@@ -86,12 +96,58 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..addAll(
-            receivedStrokes
+            receivedAllStrokes
                 .where((stroke) => !rxAllStrokes.value.contains(stroke)),
           );
       } catch (e, stackTrace) {
         developer.log(
-          'Error processing draw event: $e',
+          'Error processing drawing:stroke:all event: $e',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    };
+
+    _onStrokeStartDrawingEvent = (data) {
+      try {
+        final newStroke = (data as Map<String, dynamic>)['stroke'];
+        final receivedStroke = Stroke.fromJson(
+          Map<String, dynamic>.from(newStroke as Map<String, dynamic>),
+        );
+
+        rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+          ..add(receivedStroke);
+      } catch (e, stackTrace) {
+        developer.log(
+          'Error processing drawing:stroke:start event: $e',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    };
+
+    _onStrokeLastPointsDrawingEvent = (data) {
+      try {
+        final strokeLastPoints =
+            (data as Map<String, dynamic>)['strokeLastPoints'];
+        final receivedStrokeLastPoints = (strokeLastPoints as List<dynamic>)
+            .map(
+              (point) => Offset(
+                (point as Map<String, dynamic>)['dx'] as double,
+                point['dy'] as double,
+              ),
+            )
+            .toList();
+
+        rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+          ..last.points.addAll(
+                receivedStrokeLastPoints.where(
+                  (point) => !rxAllStrokes.value.last.points.contains(point),
+                ),
+              );
+      } catch (e, stackTrace) {
+        developer.log(
+          'Error processing drawing:stroke:lastPoints event: $e',
           error: e,
           stackTrace: stackTrace,
         );
@@ -99,7 +155,12 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     };
 
     SocketManager.instance.onEvent('connect', _onConnectEvent);
-    SocketManager.instance.onEvent('drawing:draw', _onDrawDrawingEvent);
+    SocketManager.instance
+        .onEvent('drawing:stroke:all', _onAllStrokesDrawingEvent);
+    SocketManager.instance
+        .onEvent('drawing:stroke:start', _onStrokeStartDrawingEvent);
+    SocketManager.instance
+        .onEvent('drawing:stroke:lastPoints', _onStrokeLastPointsDrawingEvent);
   }
 
   double _calculateScale(BoxConstraints constraints) {
@@ -116,7 +177,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     }
   }
 
-  bool _isInsideCanvas(Offset point) {
+  bool _isPointInsideCanvas(Offset point) {
     final canvasWidth = _canvasSize;
     final canvasHeight = _canvasSize / (16 / 9);
 
@@ -126,17 +187,41 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         point.dy <= canvasHeight;
   }
 
-  void _sendBufferedPoints() {
+  /// Starts a periodic timer to send points to the server
+  void _startDrawingPointsBuffer() {
+    Timer.periodic(Duration(milliseconds: _bufferDelay), (_) {
+      _sendBufferedDrawingPoints();
+    });
+  }
+
+  void _sendDrawingPointsStart() {
     if (rxCurrentStroke.value == null) return;
 
-    final payload = RoomDrawingDTO(
+    final payload = RoomDrawingStartStrokeDTO(
       roomName: widget.roomName,
-      strokes: [rxCurrentStroke.value!],
+      stroke: rxCurrentStroke.value!,
     ).toJson();
 
-    SocketManager.instance.emit('drawing:draw', payload);
+    SocketManager.instance.emit('drawing:stroke:start', payload);
+  }
+
+  void _sendDrawingPointsEnd() {
+    if (rxCurrentStroke.value?.points == null) return;
 
     rxCurrentStroke.clear();
+  }
+
+  void _sendBufferedDrawingPoints() {
+    if (rxCurrentStroke.value?.points == null ||
+        rxCurrentStroke.value!.points.isEmpty) return;
+
+    final payload = RoomDrawingStrokePointsDTO(
+      roomName: widget.roomName,
+      strokeLastPoints: rxCurrentStroke.value!.points,
+    ).toJson();
+
+    SocketManager.instance.emit('drawing:stroke:lastPoints', payload);
+    rxCurrentStroke.value!.points.clear();
   }
 }
 
@@ -161,7 +246,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                 child: Listener(
                   onPointerDown: (details) {
                     final localPosition = details.localPosition;
-                    if (_isInsideCanvas(localPosition)) {
+                    if (_isPointInsideCanvas(localPosition)) {
                       rxCurrentStroke.startStroke(
                         localPosition,
                         color: strokeColor,
@@ -171,23 +256,27 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                         sides: widget.options.polygonSides,
                         filled: widget.options.fillShape,
                       );
+                      _sendDrawingPointsStart();
+                      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+                      //   ..last.points.add(localPosition);
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerMove: (details) {
                     final localPosition = details.localPosition;
-                    if (_isInsideCanvas(localPosition)) {
+                    if (_isPointInsideCanvas(localPosition)) {
                       rxCurrentStroke.addPoint(localPosition);
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerUp: (_) {
-                    if (rxCurrentStroke.hasStroke) {
-                      _sendBufferedPoints();
-                      // widget.onDrawingStrokeChanged?.call(null);
-                    }
+                    _sendDrawingPointsEnd();
+                    // if (rxCurrentStroke.hasStroke) {
+                    //   _sendBufferedDrawingPoints();
+                    //   // widget.onDrawingStrokeChanged?.call(null);
+                    // }
                   },
                   child: RepaintBoundary(
                     key: widget.canvasGlobalKey,
@@ -258,7 +347,8 @@ class _DrawingCanvasPainter extends CustomPainter {
     final allStrokes = List<Stroke>.from(rxAllStrokes?.value ?? []);
 
     if (rxCurrentStroke?.hasStroke ?? false) {
-      allStrokes.add(rxCurrentStroke!.value!);
+      // TODO(Kevin): do something here?
+      // allStrokes.add(rxCurrentStroke!.value!);
     }
 
     for (final stroke in allStrokes) {

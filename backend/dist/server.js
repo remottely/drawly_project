@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingStrokeLastPointsDTO = exports.RoomDrawingStartStrokeDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -60,8 +60,17 @@ class Drawing {
         this.strokes = [];
         this.backupStrokes = [];
     }
-    addStrokes(newStrokes) {
-        this.strokes.push(...newStrokes);
+    addStroke(newStroke) {
+        this.strokes.push(newStroke);
+    }
+    addStrokeLastPoints(points) {
+        if (this.strokes.length > 0) {
+            const lastStroke = this.strokes[this.strokes.length - 1];
+            lastStroke.points.push(...points);
+        }
+        else {
+            console.error('No strokes available to add points to.');
+        }
     }
     clear() {
         this.strokes = [];
@@ -92,6 +101,8 @@ class Room {
         this.currentDrawerTurnIndex = 0;
         this.currentWord = null;
         this.turnCount = 0;
+        ///
+        this.participantsWhoAnsweredCorrectly = new Set();
     }
     addParticipant(participant) {
         this.participants.add(participant);
@@ -116,6 +127,16 @@ class Room {
     advanceTurn() {
         this.turnCount++;
         this.currentDrawerTurnIndex = (this.turnCount) % this.turnQueue.length;
+    }
+    participantCorrectAnswer(userId) {
+        this.participantsWhoAnsweredCorrectly.add(userId);
+    }
+    hasEveryoneAnsweredCorrectly() {
+        const nonDrawerConnectedParticipants = this.getParticipants().filter((participant) => { var _a; return participant.userId !== ((_a = this.getCurrentDrawer()) === null || _a === void 0 ? void 0 : _a.userId) && participant.isConnected; });
+        return nonDrawerConnectedParticipants.every((participant) => this.participantsWhoAnsweredCorrectly.has(participant.userId));
+    }
+    resetCorrectAnswers() {
+        this.participantsWhoAnsweredCorrectly.clear();
     }
 }
 exports.Room = Room;
@@ -146,11 +167,13 @@ class Turn {
 }
 exports.Turn = Turn;
 class Participant {
-    constructor(userId, username, userAvatar, isLogged) {
+    constructor(userId, username, userAvatar, isLogged, isConnected = true, score = 0) {
         this.userId = userId;
         this.username = username;
         this.userAvatar = userAvatar;
         this.isLogged = isLogged;
+        this.isConnected = isConnected;
+        this.score = score;
     }
 }
 exports.Participant = Participant;
@@ -168,13 +191,20 @@ class RoomDTO {
     }
 }
 exports.RoomDTO = RoomDTO;
-class RoomDrawingDTO extends RoomDTO {
-    constructor(roomName, strokes) {
+class RoomDrawingStartStrokeDTO extends RoomDTO {
+    constructor(roomName, stroke) {
         super(roomName);
-        this.strokes = strokes;
+        this.stroke = stroke;
     }
 }
-exports.RoomDrawingDTO = RoomDrawingDTO;
+exports.RoomDrawingStartStrokeDTO = RoomDrawingStartStrokeDTO;
+class RoomDrawingStrokeLastPointsDTO extends RoomDTO {
+    constructor(roomName, strokeLastPoints) {
+        super(roomName);
+        this.strokeLastPoints = strokeLastPoints;
+    }
+}
+exports.RoomDrawingStrokeLastPointsDTO = RoomDrawingStrokeLastPointsDTO;
 class RoomUserDTO extends RoomDTO {
     constructor(roomName, userId, username, userAvatar, isLogged) {
         super(roomName);
@@ -242,26 +272,36 @@ class RoomManager {
             return;
         }
         const currentRoom = rooms[roomName];
-        if (currentRoom.getParticipants().length >= maxmNumberOfPlayers) {
-            var message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
+        const existingParticipant = currentRoom.getParticipants().find((p) => p.userId === userId);
+        if (existingParticipant) {
+            // Restaura o estado do participante
+            existingParticipant.isConnected = true; // Marca como reconectado
+            console.log(`${userId} - ${username} reconnected to room ${roomName}`);
+        }
+        else if (currentRoom.getParticipants().length < maxmNumberOfPlayers) {
+            // Novo participante entra
+            currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged, true));
+            console.log(`${userId} - ${username} joined room ${roomName}`);
+        }
+        else {
+            const message = `Room ${roomName} is full. Maximum ${maxmNumberOfPlayers} players allowed.`;
             console.error(message);
             socket.emit('error', new ErrorDTO(message, ErrorActionType.pop));
             callback({ success: false });
             return;
         }
-        currentRoom.addParticipant(new Participant(userId, username, userAvatar, isLogged));
         socket.join(roomName);
         roomUsers[socket.id] = { roomName, userId, username, userAvatar, isLogged };
-        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "entrou"));
-        socket.emit('drawing:draw', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
+        MessageChatActions.message(roomName, new Message('info', userId, username, "entrou"));
+        // Sincroniza o estado do jogo com o participante reconectado
+        socket.emit('drawing:stroke:all', { strokes: (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.getStrokes() });
         RoomManager.emitParticipantsUpdate(roomName);
-        console.log(`${userId} - ${username} joined room ${roomName}`);
         callback({ success: true, turn: currentRoom.turnCount });
     }
     static leave(socket, { roomName, userId, username }) {
         var _a, _b, _c;
         console.log(`${userId} - ${username} left room ${roomName}`);
-        io.to(roomName).emit('chat:message:new', new Message('info', userId, username, "saiu"));
+        MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
         (_a = rooms[roomName]) === null || _a === void 0 ? void 0 : _a.removeParticipant(userId);
         socket.leave(roomName);
         if (((_b = roomUsers[socket.id]) === null || _b === void 0 ? void 0 : _b.roomName) === roomName)
@@ -294,21 +334,48 @@ class AnswerChatActions {
         }
         const isCorrect = correctWord.toLowerCase() === text.toLowerCase();
         const icon = isCorrect ? 'check' : null;
+        if (isCorrect) {
+            const participant = room.getParticipants().find((p) => p.userId === userId);
+            const drawer = room.getCurrentDrawer();
+            if (participant) {
+                const timeLeft = room.turnCount; // Exemplo: use o tempo restante no turno para calcular pontos
+                const points = Math.max(100 - (timeLeft * 10), 10); // Mais pontos para respostas rápidas
+                participant.score += points;
+                if (drawer) {
+                    const drawerPoints = 20; // Pontos fixos por jogador que acerta
+                    drawer.score += drawerPoints;
+                }
+                console.log(`${username} acertou! Ganhou ${points} pontos.`);
+                room.participantCorrectAnswer(userId);
+                // Verificar se todos acertaram
+                if (room.hasEveryoneAnsweredCorrectly()) {
+                    console.log(`All participants in room ${roomName} have answered correctly. Advancing turn.`);
+                    room.resetCorrectAnswers();
+                    TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+                    return;
+                }
+            }
+        }
         io.to(roomName).emit('chat:answer:result', new Answer(icon, userId, username, text, isCorrect));
     }
 }
 exports.AnswerChatActions = AnswerChatActions;
 class MessageChatActions {
-    static send({ roomName, userId, username, text }) {
-        io.to(roomName).emit('chat:message:new', new Message(null, userId, username, text));
+    static message(roomName, message) {
+        io.to(roomName).emit('chat:message', message);
     }
 }
 exports.MessageChatActions = MessageChatActions;
 class DrawingActions {
-    static draw({ roomName, strokes }) {
+    static strokeStart({ roomName, stroke }) {
         var _a;
-        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokes(strokes);
-        io.to(roomName).emit('drawing:draw', { strokes });
+        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStroke(stroke);
+        io.to(roomName).emit('drawing:stroke:start', { stroke });
+    }
+    static strokeLastPoints({ roomName, strokeLastPoints }) {
+        var _a;
+        (_a = roomDrawings[roomName]) === null || _a === void 0 ? void 0 : _a.addStrokeLastPoints(strokeLastPoints);
+        io.to(roomName).emit('drawing:stroke:lastPoints', { strokeLastPoints });
     }
     static clear({ roomName }) {
         var _a;
@@ -331,16 +398,13 @@ exports.DrawingActions = DrawingActions;
 class TurnManager {
     static startTurnTimer(roomName, totalDuration = 60) {
         const room = rooms[roomName];
-        room.advanceTurn();
-        DrawingActions.clear({ roomName });
         if (!room) {
             console.error(`Room ${roomName} not found.`);
             return;
         }
-        if (room.getParticipants().length === 0) {
-            console.error(`No participants available in room ${roomName}`);
-            return;
-        }
+        room.advanceTurn();
+        room.resetCorrectAnswers();
+        DrawingActions.clear({ roomName });
         const currentDrawer = room.getCurrentDrawer();
         if (!currentDrawer) {
             console.error(`Failed to get the current drawer in room ${roomName}`);
@@ -349,9 +413,9 @@ class TurnManager {
         const wordToDraw = wordsList[Math.floor(Math.random() * wordsList.length)];
         room.currentWord = wordToDraw;
         io.to(roomName).emit('game:turn:new', new Turn(wordToDraw, room.turnCount, totalDuration * 1000, currentDrawer.userId, currentDrawer.username));
+        RoomManager.emitParticipantsUpdate(roomName); // Atualiza a pontuação ao iniciar o turno
         console.log(`New turn started in room ${roomName}. Drawer: ${currentDrawer.username}, Word: ${wordToDraw}`);
         setTimeout(() => {
-            // room.advanceTurn();
             TurnManager.startTurnTimer(roomName, totalDuration);
         }, totalDuration * 1000);
     }
@@ -374,7 +438,23 @@ class GameManager {
         }
         console.log(`Turns manually started for room ${roomName}`);
         // TODO(Kevin): PUT BACK: TurnManager.startTurnTimer(roomName, 60);
-        TurnManager.startTurnTimer(roomName, 20);
+        TurnManager.startTurnTimer(roomName, 60);
+    }
+    static showRanking(roomName) {
+        const room = rooms[roomName];
+        if (!room) {
+            console.error(`Room ${roomName} does not exist.`);
+            return;
+        }
+        const ranking = room.getParticipants()
+            .sort((a, b) => b.score - a.score) // Ordena por pontuação decrescente
+            .map((p, index) => ({
+            rank: index + 1,
+            username: p.username,
+            score: p.score,
+        }));
+        io.to(roomName).emit('game:ranking', { ranking });
+        console.log(`Ranking for room ${roomName}:`, ranking);
     }
 }
 exports.GameManager = GameManager;
@@ -382,29 +462,51 @@ exports.GameManager = GameManager;
 function handleUserDisconnect(socket) {
     const userInfo = roomUsers[socket.id];
     if (!userInfo) {
-        // TODO(Kevin): do something here?
         console.log(`No user info found for socket ${socket.id}`);
         return;
     }
     const { roomName, userId, username } = userInfo;
     console.log(`User ${userId} - ${username} disconnected from room ${roomName}`);
-    RoomManager.leave(socket, { roomName, userId, username, userAvatar: null, isLogged: false });
+    const room = rooms[roomName];
+    if (room) {
+        const participant = room.getParticipants().find((p) => p.userId === userId);
+        if (participant) {
+            participant.isConnected = false; // Marca como desconectado
+        }
+        delete roomUsers[socket.id];
+        MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
+        // Verifica se todos os participantes conectados acertaram
+        const connectedParticipants = room.getParticipants().filter((p) => p.isConnected);
+        if (connectedParticipants.length > 0 && room.hasEveryoneAnsweredCorrectly()) {
+            console.log(`All connected participants in room ${roomName} have answered correctly after ${username} disconnected.`);
+            room.resetCorrectAnswers();
+            TurnManager.startTurnTimer(roomName, 60); // Avança o turno
+        }
+        if (connectedParticipants.length === 0) {
+            console.log(`Room ${roomName} is empty after disconnection. Deleting room.`);
+            delete rooms[roomName];
+            delete roomDrawings[roomName];
+            RoomManager.emitRoomList();
+        }
+        else {
+            RoomManager.emitParticipantsUpdate(roomName);
+        }
+    }
 }
 // Socket.IO Configuration
 io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
-    socket.emit('room:all', {
-        allRooms: Object.keys(rooms)
-    });
+    socket.emit('room:all', { allRooms: Object.keys(rooms) });
     socket.on('room:create', (data) => RoomManager.create(data));
     socket.on('room:join', (data, callback) => RoomManager.join(socket, data, callback));
     socket.on('room:leave', (data) => RoomManager.leave(socket, data));
-    socket.on('drawing:draw', (data) => DrawingActions.draw(data));
+    socket.on('drawing:stroke:start', (data) => DrawingActions.strokeStart(data));
+    socket.on('drawing:stroke:lastPoints', (data) => DrawingActions.strokeLastPoints(data));
     socket.on('drawing:clear', (data) => DrawingActions.clear(data));
     socket.on('drawing:undo', (data) => DrawingActions.undo(data));
     socket.on('drawing:redo', (data) => DrawingActions.redo(data));
     socket.on('chat:answer:guess', (data) => AnswerChatActions.guess(socket, data));
-    socket.on('chat:message:send', (data) => MessageChatActions.send(data));
+    socket.on('chat:message', ({ roomName, userId, username, text }) => MessageChatActions.message(roomName, new Message(null, userId, username, text)));
     socket.on('game:turns:start', (data) => GameManager.startTurns(socket, data));
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });
