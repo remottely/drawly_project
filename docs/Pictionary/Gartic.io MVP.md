@@ -84,27 +84,32 @@
 - [x] (0.33.3) Add userId logic into the frontend side (part 1)
 - [x] (0.33.4) Add userId logic into the frontend side (part 2)
 - [x] (0.34.1) Organizing code
-- [x] (0.35.0) Buffer strokes each 50ms.
-- [ ] Add nested navigation
-- [ ] **Bug**: Geometric shapes are leaving the drawing board area. Should they be clipped when exceeding the boundaries?
-- [ ] **Disconnection**: Prevent sending cached data upon disconnection, removing this default behavior from Socket.IO.
+- [x] (0.35.0) Buffer strokes every 50ms.
 - [x] (0.36.0) **Participant Counter**: Detect the number of participants in the room and emit turn completion when:
-	- Someone leaves the room **and** the increment of players who guessed correctly matches the expected count.
-	- Every time someone guesses the answer, increment the counter **and** detect if the correct guesses for the turn reach the expected count.
-- [x] (0.36.1) bug: Quando a pessoa desconectar, a logica deve continuar funcionando
-- [x] (0.37.0) add score based on guess time
-- [x] (0.37.1) some UI improvements
-- [ ] Change the way server send rooms
-- [ ] Add validation that only shows rooms that is not full?
-- [ ] Add a new form that allows user to personalize better the room configs
-- [x] (0.38.0) initialize golang migration with a simple example
-- [x] (0.38.1) add cors and other configurations in new backend in golang (part 1)
-- [x] (0.38.2) add almost everything from node to golang backend (part 2)
-- [x] (0.38.3) add the rest of node implementation (part 3)
-- [x] (0.39.0) add first golang unit test(room:leave)
-- [x] (0.40.0) Bug: flutter timer feedback, not correct when a turn changes before another turn finish
-- [x] (0.40.1) Bug: user current score logic not working as expected
-- [ ] (0.40.2) Feature: emit room:participants:update as a list with decrescent values based on each participant score
+  - A participant leaves the room **and** the increment of players who guessed correctly matches the expected count.
+  - Each time someone guesses correctly, increment the counter **and** check if the correct guesses for the turn reach the expected count.
+- [x] (0.36.1) **Bug**: Ensure logic continues to function when a participant disconnects.
+- [x] (0.37.0) Add scoring system based on guess time.
+- [x] (0.37.1) Apply various UI improvements.
+- [x] (0.38.0) Initialize Golang migration with a simple example.
+- [x] (0.38.1) Add CORS and other configurations in the new Golang backend (part 1).
+- [x] (0.38.2) Migrate almost all functionality from Node.js to Golang backend (part 2).
+- [x] (0.38.3) Complete the migration of remaining Node.js features to Golang backend (part 3).
+- [x] (0.39.0) Add the first Golang unit test (`room:leave`).
+- [x] (0.40.0) **Bug**: Fix incorrect Flutter timer feedback when a turn changes before the previous turn finishes.
+- [x] (0.40.1) **Bug**: Correct the logic for calculating the user's current score.
+- [x] (0.41.0) **Feature**: Emit `room:participants:update` as a list, ordered by each participant's score in descending order.
+- [ ] Add nested navigation.
+- [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
+- [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.
+- [ ] Change the way the server sends room data.
+- [ ] Add validation to only display rooms that are not full.
+- [ ] Create a new form to allow users to better personalize room configurations.
+- [ ] (0.42.0) Implement tiebreaker logic on the Golang side based on the previous round.
+- [ ] Add a feature to report the drawer.
+- [ ] Add a feature to report a player.
+- [ ] Highlight the local user and the drawer in the UI.
+
 ### Validações e Regras de Negócio
 
 - [ ] (0.?.0) Minimum and maximum length validation for usernames (frontend and backend).

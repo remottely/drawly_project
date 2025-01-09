@@ -567,6 +567,12 @@ func (r *Room) GetParticipants() []*Participant {
 	for _, p := range r.Participants {
 		participants = append(participants, p)
 	}
+
+	// Ordena os participantes em ordem decrescente de pontuação
+	sort.Slice(participants, func(i, j int) bool {
+		return participants[i].Score > participants[j].Score
+	})
+
 	return participants
 }
 
