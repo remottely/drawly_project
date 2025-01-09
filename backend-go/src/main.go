@@ -149,14 +149,12 @@ func main() {
 		// Evento: Sair da Sala
 		client.On("room:leave", func(args ...interface{}) {
 			if len(args) > 0 {
-				// Converta o primeiro argumento para map[string]interface{}
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
 					emitError(client, "Invalid data format", "nothing")
 					return
 				}
 
-				// Extraia os dados do mapa
 				roomName, _ := data["roomName"].(string)
 				userId, _ := data["userId"].(string)
 
@@ -170,11 +168,10 @@ func main() {
 						"participants": room.GetParticipants(),
 					})
 
-					// Verifica se a sala está vazia e remove-a
+					// Remove a sala se não houver participantes
 					if len(room.GetParticipants()) == 0 {
-						delete(rooms, roomName)
-						delete(roomDrawings, roomName)
-						emitRoomList(io) // Atualiza a lista de salas para todos os clientes
+						deleteRoom(roomName) // Chama deleteRoom para limpar os recursos
+						emitRoomList(io)     // Atualiza a lista de salas para todos os clientes
 					}
 				}
 			} else {
@@ -313,11 +310,12 @@ func main() {
 				isCorrect := correctWord == text
 				var icon *string
 				if isCorrect {
-					value := "check" // Variável auxiliar
-					icon = &value    // Cria um ponteiro para a variável
+					value := "check"
+					icon = &value
 				} else {
-					icon = nil // O valor nil é aceitável para um ponteiro
+					icon = nil
 				}
+
 				answer := Answer{
 					Icon:      icon,
 					UserId:    userId,
@@ -331,11 +329,33 @@ func main() {
 				if isCorrect {
 					participant := room.Participants[userId]
 					if participant != nil {
-						points := 100
+						// Obtém a posição na ordem de respostas corretas
+						rank := room.GetCorrectAnswerRank(userId)
+
+						// Calcula os pontos baseados na posição e no tempo restante
+						basePoints := 100 - (rank-1)*20 // Reduz pontos com base na posição
+						timeLeft := room.TurnCount      // Tempo restante (ajuste para obter o valor real)
+						bonus := timeLeft / 10          // Bônus por rapidez
+						points := max(basePoints+bonus, 10)
+
 						participant.Score += points
+
+						// Atualiza a pontuação do desenhista
+						drawer := room.GetCurrentDrawer()
+						if drawer != nil {
+							totalParticipants := len(room.GetParticipants()) - 1 // Exclui o desenhista
+							if totalParticipants > 0 {
+								drawerPointsPerCorrectGuess := 100 / totalParticipants
+								drawer.Score += drawerPointsPerCorrectGuess
+							}
+						}
+
+						fmt.Printf("%s acertou! Ganhou %d pontos.\n", username, points)
 						room.ParticipantCorrectAnswer(userId)
 
+						// Verifica se todos os participantes acertaram
 						if room.HasEveryoneAnsweredCorrectly() {
+							fmt.Printf("Todos os participantes da sala %s acertaram. Avançando turno.\n", roomName)
 							room.ResetCorrectAnswers()
 							TurnManagerStartTurnTimer(io, roomName, 60)
 						}
@@ -389,9 +409,8 @@ func main() {
 			delete(roomUsers, string(client.Id()))
 
 			if len(room.GetParticipants()) == 0 {
-				delete(rooms, roomName)
-				delete(roomDrawings, roomName)
-				emitRoomList(io)
+				deleteRoom(roomName) // Chama deleteRoom para remover a sala
+				emitRoomList(io)     // Atualiza a lista de salas para todos os clientes
 			} else {
 				io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 					"participants": room.GetParticipants(),
@@ -447,7 +466,7 @@ func main() {
 
 const (
 	minPlayers = 2
-	maxPlayers = 3
+	maxPlayers = 4
 )
 
 func (d *Drawing) AddStroke(stroke Stroke) {
@@ -554,6 +573,25 @@ func (r *Room) GetParticipants() []*Participant {
 func (r *Room) AdvanceTurn() {
 	r.TurnCount++
 	r.CurrentDrawerTurnIndex = r.TurnCount % len(r.TurnQueue)
+}
+
+func (r *Room) GetCorrectAnswerRank(userId string) int {
+	if r.ParticipantsWhoAnsweredCorrectly == nil {
+		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
+	}
+
+	// Verifica se o participante já respondeu corretamente
+	rank := 1
+	for answeredUserId := range r.ParticipantsWhoAnsweredCorrectly {
+		if answeredUserId == userId {
+			return rank // Retorna a posição se já respondeu
+		}
+		rank++
+	}
+
+	// Se não respondeu, adiciona ao mapa e retorna a última posição
+	r.ParticipantsWhoAnsweredCorrectly[userId] = true
+	return rank
 }
 
 var (
@@ -663,6 +701,13 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		return
 	}
 
+	// Cancela o timer anterior se existir
+	if room.ActiveTimer != nil {
+		room.ActiveTimer.Stop()
+		room.ActiveTimer = nil
+	}
+
+	// Configura o novo turno
 	room.AdvanceTurn()
 	room.ResetCorrectAnswers()
 
@@ -678,9 +723,10 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 
 	// Escolha uma palavra aleatória
 	wordsList := []string{
-		"gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
-		"rio", "montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
-		"namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
+		"r",
+		// "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
+		// "rio","montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
+		// "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 	}
 	wordToDraw := wordsList[int(time.Now().Unix()%int64(len(wordsList)))]
 	room.CurrentWord = wordToDraw
@@ -693,16 +739,32 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		CurrentDrawerUsername: currentDrawer.Username,
 	})
 
-	// Atualiza participantes
+	// Atualiza os participantes
 	io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
 		"participants": room.GetParticipants(),
 	})
 
-	// Cronômetro para o próximo turno
-	go func() {
-		time.Sleep(time.Duration(totalDuration) * time.Second)
+	// Configura o novo timer
+	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
+		room.ActiveTimer = nil // Timer concluído, zera a referência
 		TurnManagerStartTurnTimer(io, roomName, totalDuration)
-	}()
+	})
+}
+
+func CancelActiveTimer(room *Room) {
+	if room.ActiveTimer != nil {
+		room.ActiveTimer.Stop()
+		room.ActiveTimer = nil
+	}
+}
+
+func deleteRoom(roomName string) {
+	room, exists := rooms[roomName]
+	if exists {
+		CancelActiveTimer(room)
+		delete(rooms, roomName)
+		delete(roomDrawings, roomName)
+	}
 }
 
 func emitRanking(io *socket.Server, roomName string) {
@@ -768,11 +830,7 @@ type Room struct {
 	CurrentWord                      string
 	TurnCount                        int
 	ParticipantsWhoAnsweredCorrectly map[string]bool
-}
-
-type Drawing struct {
-	Strokes       []Stroke `json:"strokes"`
-	BackupStrokes []Stroke `json:"backupStrokes"`
+	ActiveTimer                      *time.Timer // Referência para o timer ativo
 }
 
 type Participant struct {
@@ -782,6 +840,11 @@ type Participant struct {
 	IsLogged    bool    `json:"isLogged"`
 	IsConnected bool    `json:"isConnected"`
 	Score       int     `json:"score"`
+}
+
+type Drawing struct {
+	Strokes       []Stroke `json:"strokes"`
+	BackupStrokes []Stroke `json:"backupStrokes"`
 }
 
 type Message struct {
