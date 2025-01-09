@@ -1,6 +1,6 @@
 name: drawly_design_system
 description: "A new Flutter package project."
-version: 0.38.3
+version: 0.39.0
 homepage:
 
 environment:
@@ -8,6 +8,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  animated_flip_counter: ^0.3.4
   flutter:
     sdk: flutter
 
