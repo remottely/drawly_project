@@ -103,7 +103,8 @@
 - [x] (0.38.3) add the rest of node implementation (part 3)
 - [x] (0.39.0) add first golang unit test(room:leave)
 - [x] (0.40.0) Bug: flutter timer feedback, not correct when a turn changes before another turn finish
-- [x] (0.40.1) Bug: points not working as expected
+- [x] (0.40.1) Bug: user current score logic not working as expected
+- [ ] (0.40.2) Feature: emit room:participants:update as a list with decrescent values based on each participant score
 ### Validações e Regras de Negócio
 
 - [ ] (0.?.0) Minimum and maximum length validation for usernames (frontend and backend).
