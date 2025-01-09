@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drawly/core/widgets/avatar.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -73,6 +74,7 @@ class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Avatar(
+      color: AppColors.darkBlueAccent,
       backgroundImage: imagePath == null
           ? const AssetImage('assets/avatars/default.webp')
           : kIsWeb

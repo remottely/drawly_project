@@ -100,6 +100,7 @@
 - [x] (0.40.1) **Bug**: Correct the logic for calculating the user's current score.
 - [x] (0.41.0) **Feature**: Emit `room:participants:update` as a list, ordered by each participant's score in descending order.
 - [x] (0.42.0) Implement tiebreaker logic on the Golang side based on the previous round.
+- [x] (0.43.0) Highlight the local user and the drawer in the UI.
 - [ ] Add nested navigation.
 - [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
 - [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.
@@ -108,7 +109,6 @@
 - [ ] Create a new form to allow users to better personalize room configurations.
 - [ ] Add a feature to report the drawer.
 - [ ] Add a feature to report a player.
-- [ ] Highlight the local user and the drawer in the UI.
 
 ### Validações e Regras de Negócio
 

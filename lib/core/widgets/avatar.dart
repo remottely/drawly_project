@@ -1,14 +1,15 @@
-import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class Avatar extends StatelessWidget {
   const Avatar({
+    required this.color,
     this.size = 64,
     this.backgroundImage,
     super.key,
   });
 
   final double size;
+  final Color color;
   final ImageProvider<Object>? backgroundImage;
 
   @override
@@ -19,7 +20,7 @@ class Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: AppColors.darkBlueAccent,
+          color: color,
           width: 4,
         ),
       ),

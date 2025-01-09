@@ -213,8 +213,20 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                   ),
                                 ],
                               ),
-                              const Expanded(
-                                child: AllParticipants(),
+                              Expanded(
+                                child: AnimatedBuilder(
+                                  animation: Listenable.merge([
+                                    rxWord,
+                                    rxCurrentDrawerUserId,
+                                  ]),
+                                  builder: (context, _) {
+                                    return AllParticipants(
+                                      userId: widget.userId,
+                                      currentDrawerUserId:
+                                          rxCurrentDrawerUserId.value,
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -224,6 +236,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                           child: AnimatedBuilder(
                             animation: Listenable.merge([
                               rxWord,
+                              rxCurrentDrawerUserId,
                             ]),
                             builder: (context, _) {
                               return Column(

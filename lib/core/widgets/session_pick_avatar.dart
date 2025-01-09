@@ -1,4 +1,5 @@
 import 'package:drawly/core/widgets/avatar.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -83,6 +84,7 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
         Padding(
           padding: const EdgeInsets.all(8),
           child: Avatar(
+            color: AppColors.darkBlueAccent,
             size: 128,
             backgroundImage: selectedUserAvatar != null
                 ? AssetImage(selectedUserAvatar!)

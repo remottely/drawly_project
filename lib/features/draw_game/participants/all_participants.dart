@@ -5,7 +5,14 @@ import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class AllParticipants extends StatefulWidget {
-  const AllParticipants({super.key});
+  const AllParticipants({
+    required this.userId,
+    required this.currentDrawerUserId,
+    super.key,
+  });
+
+  final String userId;
+  final String? currentDrawerUserId;
 
   @override
   State<AllParticipants> createState() => _AllParticipantsState();
@@ -68,60 +75,90 @@ class _AllParticipantsState extends State<AllParticipants> {
             return ListView.builder(
               itemCount: value.length,
               itemBuilder: (context, index) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          _UserPicture(
-                            userAvatar: value[index].userAvatar,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  value[index].username,
-                                  style: const TextStyle(
-                                    color: AppColors.greyAccent700,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    height: 1,
-                                  ),
-                                  maxLines: 1,
-                                  softWrap: false,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  value[index].score.toString(),
-                                  style: const TextStyle(
-                                    color: AppColors.darkBlueAccent,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    height: 1,
-                                  ),
-                                  maxLines: 1,
-                                  softWrap: false,
-                                ),
-                                const SizedBox(height: 4),
-                                const _Host(),
-                                const SizedBox(height: 6),
-                              ],
+                return Container(
+                  decoration: BoxDecoration(
+                    color: widget.userId == widget.currentDrawerUserId &&
+                            value[index].userId == widget.currentDrawerUserId
+                        ? AppColors.greenAccent
+                        : value[index].userId == widget.currentDrawerUserId
+                            ? AppColors.yellowAccent
+                            : AppColors.white,
+                    borderRadius: BorderRadius.circular(0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          children: [
+                            _UserPicture(
+                              userAvatar: value[index].userAvatar,
+                              currentDrawerIsisCurrentDrawerUserId:
+                                  widget.userId == widget.currentDrawerUserId &&
+                                      value[index].userId ==
+                                          widget.currentDrawerUserId,
+                              isCurrentDrawerUserId: value[index].userId ==
+                                  widget.currentDrawerUserId,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    value[index].username,
+                                    style: const TextStyle(
+                                      color: AppColors.black,
+                                      // widget.userId ==
+                                      //             widget.currentDrawerUserId &&
+                                      //         value[index].userId ==
+                                      //             widget.currentDrawerUserId
+                                      //     ? AppColors.greenAccent
+                                      //     :
+                                      // value[index].userId ==
+                                      //         widget.currentDrawerUserId
+                                      //     ? AppColors.black
+                                      //     : widget.userId ==
+                                      //             value[index].userId
+                                      //         ? AppColors.black
+                                      //         : AppColors.greyAccent700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      height: 1,
+                                    ),
+                                    maxLines: 1,
+                                    softWrap: false,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    value[index].score.toString(),
+                                    style: const TextStyle(
+                                      color: AppColors.darkBlueAccent,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      height: 1,
+                                    ),
+                                    maxLines: 1,
+                                    softWrap: false,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const _Host(),
+                                  const SizedBox(height: 2),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Divider(
-                      color: AppColors.lightGrey300,
-                      height: 1,
-                    ),
-                  ],
+                      Divider(
+                        color: AppColors.lightGrey300,
+                        height: 0,
+                      ),
+                    ],
+                  ),
                 );
               },
             );
@@ -135,9 +172,13 @@ class _AllParticipantsState extends State<AllParticipants> {
 class _UserPicture extends StatelessWidget {
   const _UserPicture({
     required this.userAvatar,
+    required this.currentDrawerIsisCurrentDrawerUserId,
+    required this.isCurrentDrawerUserId,
   });
 
   final String? userAvatar;
+  final bool currentDrawerIsisCurrentDrawerUserId;
+  final bool isCurrentDrawerUserId;
 
   @override
   Widget build(BuildContext context) {
@@ -145,23 +186,35 @@ class _UserPicture extends StatelessWidget {
       children: [
         Avatar(
           backgroundImage: userAvatar != null ? AssetImage(userAvatar!) : null,
+          color: currentDrawerIsisCurrentDrawerUserId
+              ? AppColors.greenAccent
+              : isCurrentDrawerUserId
+                  ? AppColors.yellowAccent
+                  : AppColors.darkBlueAccent,
         ),
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.yellowAccent,
-              border: Border.all(
-                color: AppColors.white,
-                width: 2,
+        if (isCurrentDrawerUserId)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: currentDrawerIsisCurrentDrawerUserId
+                    ? AppColors.greenAccent
+                    : isCurrentDrawerUserId
+                        ? AppColors.yellowAccent
+                        : AppColors.greyAccent,
+                border: Border.all(
+                  color: AppColors.white,
+                  width: 2,
+                ),
               ),
             ),
-          ),
-        ),
+          )
+        else
+          const SizedBox.shrink(),
       ],
     );
   }
