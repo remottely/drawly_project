@@ -43,11 +43,13 @@ class DrawlyContainer extends StatelessWidget {
 class DrawlyTitleContainer extends StatelessWidget {
   const DrawlyTitleContainer({
     required this.text,
+    this.textColor = Colors.white,
     this.color = AppColors.blueAccent,
     super.key,
   });
 
   final String text;
+  final Color textColor;
   final Color color;
 
   @override
@@ -58,8 +60,8 @@ class DrawlyTitleContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: textColor,
           fontSize: 24,
           fontWeight: FontWeight.bold,
         ),

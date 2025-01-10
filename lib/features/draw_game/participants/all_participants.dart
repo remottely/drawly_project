@@ -186,11 +186,12 @@ class _UserPicture extends StatelessWidget {
       children: [
         Avatar(
           backgroundImage: userAvatar != null ? AssetImage(userAvatar!) : null,
-          color: currentDrawerIsisCurrentDrawerUserId
-              ? AppColors.greenAccent
-              : isCurrentDrawerUserId
-                  ? AppColors.yellowAccent
-                  : AppColors.darkBlueAccent,
+          color: AppColors.darkBlueAccent,
+          // currentDrawerIsisCurrentDrawerUserId
+          //     ? AppColors.greenAccent
+          //     : isCurrentDrawerUserId
+          //         ? AppColors.yellowAccent
+          //         : AppColors.darkBlueAccent,
         ),
         if (isCurrentDrawerUserId)
           Positioned(

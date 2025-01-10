@@ -90,9 +90,10 @@ class _DrawingBoardState extends State<DrawingBoard>
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: widget.isCurrentDrawer
-            ? AppColors.lightSecondary
-            : AppColors.lightPrimary,
+        backgroundColor: Colors.transparent,
+        // backgroundColor: widget.isCurrentDrawer
+        //     ? AppColors.lightSecondary
+        //     : AppColors.lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,

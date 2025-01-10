@@ -168,7 +168,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           builder: (context, _) {
             return Scaffold(
               backgroundColor: rxIsCurrentDrawerUserId.value
-                  ? AppColors.lightSecondary
+                  ? AppColors.greenAccent
                   : AppColors.lightPrimary,
               body: Column(
                 children: [
@@ -216,7 +216,6 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                               Expanded(
                                 child: AnimatedBuilder(
                                   animation: Listenable.merge([
-                                    rxWord,
                                     rxCurrentDrawerUserId,
                                   ]),
                                   builder: (context, _) {
@@ -249,13 +248,14 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         )
                                       else
                                         DrawlyTitleContainer(
-                                          color: rxIsCurrentDrawerUserId.value
-                                              ? AppColors.blueAccent
-                                              : AppColors.darkBlueAccent,
                                           text: rxCurrentDrawerUserId.value ==
                                                   null
                                               ? 'Intervalo...'
                                               : '''Vez de ${rxCurrentDrawerUsername.value}''',
+                                          textColor: AppColors.black,
+                                          color: rxIsCurrentDrawerUserId.value
+                                              ? AppColors.greenAccent
+                                              : AppColors.yellowAccent,
                                         ),
                                       if (Tests.isTesting)
                                         const IconButton(

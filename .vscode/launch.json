@@ -80,7 +80,7 @@
       "configurations": ["8085", "8086"]
     },
     {
-      "name": "Run All Instances",
+      "name": "Run 1/2/3/4 Instances",
       "configurations": ["8081", "8082", "8083", "8084"]
     },
     {
