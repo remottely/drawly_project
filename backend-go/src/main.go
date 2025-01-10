@@ -136,6 +136,7 @@ func main() {
 						})
 						callback([]interface{}{map[string]interface{}{
 							"success": true,
+							"turn":    room.TurnCount,
 						}}, nil)
 					} else {
 						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")

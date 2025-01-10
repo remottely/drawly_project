@@ -104,6 +104,7 @@
 - [x] (0.44.0) improve some ui colors
 - [x] (0.44.1) Bug: undo and redo not working
 - [x] (0.44.2) Bug: room:join not calling drawing:stroke:all
+- [x] (0.44.3) Bug: when enter in a room already started the game, button start game are activated
 - [ ] Add nested navigation.
 - [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
 - [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.
