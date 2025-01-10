@@ -102,7 +102,8 @@
 - [x] (0.42.0) Implement tiebreaker logic on the Golang side based on the previous round.
 - [x] (0.43.0) Highlight the local user and the drawer in the UI.
 - [x] (0.44.0) improve some ui colors
-- [ ] Bug: undo and redo not working
+- [x] (0.44.1) Bug: undo and redo not working
+- [x] (0.44.2) Bug: room:join not calling drawing:stroke:all
 - [ ] Add nested navigation.
 - [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
 - [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.

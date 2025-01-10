@@ -127,6 +127,10 @@ func main() {
 
 						io.To(socket.Room(roomName)).Emit("chat:message", message)
 
+						if drawing, exists := roomDrawings[roomName]; exists {
+							emitDrawingState(io, roomName, drawing)
+						}
+
 						io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 							"participants": room.GetParticipants(),
 						})
@@ -254,6 +258,46 @@ func main() {
 				if drawing, exists := roomDrawings[roomName]; exists {
 					drawing.Clear()
 					io.To(socket.Room(roomName)).Emit("drawing:clear")
+				}
+			}
+		})
+
+		// Evento: Undo
+		client.On("drawing:undo", func(args ...interface{}) {
+			if len(args) > 0 {
+				data, ok := args[0].(map[string]interface{})
+				if !ok {
+					emitError(client, "Invalid data format", "nothing")
+					return
+				}
+
+				roomName, _ := data["roomName"].(string)
+
+				if drawing, exists := roomDrawings[roomName]; exists {
+					lastStroke := drawing.Undo()
+					io.To(socket.Room(roomName)).Emit("drawing:undo", map[string]interface{}{
+						"stroke": lastStroke,
+					})
+				}
+			}
+		})
+
+		// Evento: Redo
+		client.On("drawing:redo", func(args ...interface{}) {
+			if len(args) > 0 {
+				data, ok := args[0].(map[string]interface{})
+				if !ok {
+					emitError(client, "Invalid data format", "nothing")
+					return
+				}
+
+				roomName, _ := data["roomName"].(string)
+
+				if drawing, exists := roomDrawings[roomName]; exists {
+					lastStroke := drawing.Redo()
+					io.To(socket.Room(roomName)).Emit("drawing:redo", map[string]interface{}{
+						"stroke": lastStroke,
+					})
 				}
 			}
 		})
@@ -468,6 +512,14 @@ const (
 	minPlayers = 2
 	maxPlayers = 4
 )
+
+// Evento: Atualizar desenho completo
+func emitDrawingState(io *socket.Server, roomName string, drawing *Drawing) {
+	io.To(socket.Room(roomName)).Emit("drawing:stroke:all", map[string]interface{}{
+		"strokes": drawing.Strokes,
+	})
+
+}
 
 func (d *Drawing) AddStroke(stroke Stroke) {
 	d.Strokes = append(d.Strokes, stroke)
