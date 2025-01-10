@@ -91,7 +91,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
       rxIsCurrentDrawerUserId.value =
           rxCurrentDrawerUserId.value == widget.userId;
-      rxIsGameStarted.value = true;
+      rxIsGameStarted.value = data['isGameStarted'] as bool;
 
       startCountdown(rxTotalDuration.value);
     };
@@ -128,14 +128,15 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     ).toJson();
 
     try {
-      final response =
+      final responseData =
           await SocketManager.instance.emitWithAck('room:join', payload);
-      if (response['success'] == false) {
+      if (responseData['success'] == false) {
         if (mounted) {
           Navigator.of(context).pop();
         }
       } else {
-        rxTurn.value = response['turn'] as int;
+        rxTurn.value = responseData['turn'] as int;
+        rxIsGameStarted.value = responseData['isGameStarted'] as bool;
       }
     } catch (e) {
       developer.log('Error joining room: $e');

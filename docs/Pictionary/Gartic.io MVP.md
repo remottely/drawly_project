@@ -105,6 +105,10 @@
 - [x] (0.44.1) Bug: undo and redo not working
 - [x] (0.44.2) Bug: room:join not calling drawing:stroke:all
 - [x] (0.44.3) Bug: when enter in a room already started the game, button start game are activated
+- [x] (0.45.0) feature: implementar isGameStarted para ser controlado do lado do backend
+- [ ] Bug: ao entrar na pagina de listas de salas nao aparece nenhuma sala ate eu criar uma nova sala
+- [ ] feature: implementar Room como um objeto do tipo json nativamente??
+- [ ] feature: ao entrar uma pessoa nova na sala, ela nao pode chutar, mas tb a rodada nao termina pois espera q a mesma quantidade de pessoas junto com a q acabou de entrar acertem a palavra. permitir q a nova pessoa tb adivinhe e acerte a palavra? sim.
 - [ ] Add nested navigation.
 - [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
 - [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.

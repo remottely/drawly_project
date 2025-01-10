@@ -135,8 +135,9 @@ func main() {
 							"participants": room.GetParticipants(),
 						})
 						callback([]interface{}{map[string]interface{}{
-							"success": true,
-							"turn":    room.TurnCount,
+							"success":       true,
+							"turn":          room.TurnCount,
+							"isGameStarted": room.IsGameStarted,
 						}}, nil)
 					} else {
 						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")
@@ -341,8 +342,8 @@ func main() {
 				text, _ := data["text"].(string)
 
 				room, exists := rooms[roomName]
-				if !exists {
-					emitError(client, "Room does not exist.", "nothing")
+				if !exists || !room.IsGameStarted {
+					emitError(client, "Game not started in this room.", "nothing")
 					return
 				}
 
@@ -430,6 +431,7 @@ func main() {
 					return
 				}
 
+				room.IsGameStarted = true
 				TurnManagerStartTurnTimer(io, roomName, 60)
 			}
 		})
@@ -802,6 +804,7 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		TotalDuration:         totalDuration * 1000,
 		CurrentDrawerUserId:   currentDrawer.UserId,
 		CurrentDrawerUsername: currentDrawer.Username,
+		IsGameStarted:         room.IsGameStarted,
 	})
 
 	// Atualiza os participantes
@@ -827,6 +830,7 @@ func deleteRoom(roomName string) {
 	room, exists := rooms[roomName]
 	if exists {
 		CancelActiveTimer(room)
+		room.IsGameStarted = false
 		delete(rooms, roomName)
 		delete(roomDrawings, roomName)
 	}
@@ -895,7 +899,8 @@ type Room struct {
 	CurrentWord                      string
 	TurnCount                        int
 	ParticipantsWhoAnsweredCorrectly map[string]bool
-	ActiveTimer                      *time.Timer // Referência para o timer ativo
+	ActiveTimer                      *time.Timer
+	IsGameStarted                    bool
 }
 
 type Participant struct {
@@ -934,6 +939,7 @@ type Turn struct {
 	TotalDuration         int    `json:"totalDuration"`         // Duração total do turno em milissegundos
 	CurrentDrawerUserId   string `json:"currentDrawerUserId"`   // ID do usuário que está desenhando
 	CurrentDrawerUsername string `json:"currentDrawerUsername"` // Nome do usuário que está desenhando
+	IsGameStarted         bool   `json:"isGameStarted"`
 }
 
 type ErrorDTO struct {

@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_1.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8082",
@@ -15,7 +15,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_2.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8083",
@@ -23,7 +23,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_3.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8084",
@@ -31,7 +31,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_4.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8085",
@@ -39,7 +39,7 @@
       "request": "launch",
       "program": "lib/main.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8085"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8086",
