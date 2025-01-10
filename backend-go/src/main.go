@@ -443,22 +443,39 @@ func main() {
 				return
 			}
 
-			room := rooms[roomName]
-			if room == nil {
+			room, exists := rooms[roomName]
+			if !exists || room == nil {
 				return
 			}
 
-			participant := room.Participants[string(client.Id())]
-			if participant != nil {
-				participant.IsConnected = false
+			participant, participantExists := room.Participants[string(client.Id())]
+			if participantExists && participant != nil {
+				participant.IsConnected = false // Marca o participante como desconectado
+
+				// Emite mensagem para a sala sobre a saída do participante
+				io.To(socket.Room(roomName)).Emit("chat:message", Message{
+					Icon:     nil,
+					UserId:   participant.UserId,
+					Username: participant.Username,
+					Text:     "saiu",
+				})
 			}
 
-			delete(roomUsers, string(client.Id()))
+			delete(roomUsers, string(client.Id())) // Remove o usuário do mapa global
 
+			// Verifica se todos os participantes conectados responderam corretamente
+			if room.HasEveryoneAnsweredCorrectly() {
+				fmt.Printf("Todos os participantes conectados na sala %s responderam corretamente.\n", roomName)
+				room.ResetCorrectAnswers()
+				TurnManagerStartTurnTimer(io, roomName, 60) // Avança para o próximo turno
+			}
+
+			// Se não há mais participantes conectados, remove a sala
 			if len(room.GetParticipants()) == 0 {
-				deleteRoom(roomName) // Chama deleteRoom para remover a sala
+				deleteRoom(roomName) // Remove a sala e seus recursos associados
 				emitRoomList(io)     // Atualiza a lista de salas para todos os clientes
 			} else {
+				// Atualiza a lista de participantes na sala
 				io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 					"participants": room.GetParticipants(),
 				})
@@ -570,6 +587,7 @@ func (r *Room) ParticipantCorrectAnswer(userId string) {
 func (r *Room) HasEveryoneAnsweredCorrectly() bool {
 	currentDrawer := r.GetCurrentDrawer()
 	for _, participant := range r.GetParticipants() {
+		// Ignorar o desenhista e verificar apenas os conectados
 		if participant.UserId != currentDrawer.UserId && participant.IsConnected {
 			if !r.ParticipantsWhoAnsweredCorrectly[participant.UserId] {
 				return false
