@@ -108,8 +108,8 @@
 - [x] (0.45.0) feature: implementar isGameStarted para ser controlado do lado do backend
 - [x] (0.46.0) Ao perder conexao, verificar se a rodada deve ser finalizada
 - [x] (0.46.1) Bug: ao perder conexão e reconectar saindo da sala
-- [ ] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer
-- [ ] (0.46.2) Bug: ao perder conexao a rodada nao finaliza
+- [x] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer. Bug: no if alreadyInRoom o client nao esta dando Join() nem roomUsers nem emitDrawingState, corrigir.
+- [ ] (0.46.3) Bug: ao perder conexao a rodada nao finaliza. criar temporizador para esperar o usuario q desconectou? deixar temporizador para v2?
 - [ ] Bug: mensagem de "... saiu" nunca sendo emitida
 - [ ] Bug: alternancia entre respostas de forma infinita na mesma rodada
 - [ ] Ao sair da sala, verificar se a rodada deve ser finalizada

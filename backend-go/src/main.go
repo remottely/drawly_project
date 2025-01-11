@@ -92,12 +92,23 @@ func main() {
 				participant, alreadyInRoom := room.Participants[userId]
 				if alreadyInRoom {
 					participant.IsConnected = true
+
+					client.Join(socket.Room(roomName))
+					roomUsers[string(client.Id())] = roomName
+
+					if drawing, exists := roomDrawings[roomName]; exists {
+						emitDrawingState(io, roomName, drawing)
+					}
+
 					io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 						"participants": room.GetParticipants(),
 					})
+
 					callback([]interface{}{map[string]interface{}{
-						"success": true,
-						"message": "Reconnected",
+						"success":       true,
+						"turn":          room.TurnCount,
+						"isGameStarted": room.IsGameStarted,
+						"message":       "Reconnected",
 					}}, nil)
 				} else {
 					if len(room.GetParticipants()) < maxPlayers {
@@ -113,6 +124,7 @@ func main() {
 							IsLogged:    true,
 							IsConnected: true,
 						}
+
 						room.AddParticipant(participant)
 						client.Join(socket.Room(roomName))
 						roomUsers[string(client.Id())] = roomName
@@ -134,6 +146,7 @@ func main() {
 						io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
 							"participants": room.GetParticipants(),
 						})
+
 						callback([]interface{}{map[string]interface{}{
 							"success":       true,
 							"turn":          room.TurnCount,

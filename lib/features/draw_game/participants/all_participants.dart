@@ -124,7 +124,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                                                   ? AppColors.black
                                                   : widget.userId ==
                                                           value[index].userId
-                                                      ? AppColors.black
+                                                      ? AppColors.redAccent
                                                       : AppColors.greyAccent700
                                           : AppColors.black,
                                       // widget.userId ==
