@@ -4,7 +4,7 @@ import 'package:drawly_core/drawly_core.dart';
 
 class Tests {
   static const isTesting = true;
-  static void testReconnection() {
+  static void testDisconnectionThenReconnection() {
     developer.log('Simulando desconexão...');
     SocketManager.instance.disconnect();
 

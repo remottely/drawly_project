@@ -106,8 +106,10 @@
 - [x] (0.44.2) Bug: room:join not calling drawing:stroke:all
 - [x] (0.44.3) Bug: when enter in a room already started the game, button start game are activated
 - [x] (0.45.0) feature: implementar isGameStarted para ser controlado do lado do backend
-- [ ] (0.46.0) Ao perder conexao, verificar se a rodada deve ser finalizada
-- [ ] (0.46.1) bug: ao perder conexao a rodada nao finaliza
+- [x] (0.46.0) Ao perder conexao, verificar se a rodada deve ser finalizada
+- [x] (0.46.1) Bug: ao perder conexão e reconectar saindo da sala
+- [ ] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer
+- [ ] (0.46.2) Bug: ao perder conexao a rodada nao finaliza
 - [ ] Bug: mensagem de "... saiu" nunca sendo emitida
 - [ ] Bug: alternancia entre respostas de forma infinita na mesma rodada
 - [ ] Ao sair da sala, verificar se a rodada deve ser finalizada

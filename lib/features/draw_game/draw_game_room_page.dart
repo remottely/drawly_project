@@ -132,6 +132,7 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
           await SocketManager.instance.emitWithAck('room:join', payload);
       if (responseData['success'] == false) {
         if (mounted) {
+          developer.log('join message: ${responseData['message']}');
           Navigator.of(context).pop();
         }
       } else {
@@ -260,7 +261,20 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         ),
                                       if (Tests.isTesting)
                                         const IconButton(
-                                          onPressed: Tests.testReconnection,
+                                          onPressed: Tests
+                                              .testDisconnectionThenReconnection,
+                                          // chatgpt: eu tenho esse codigo q simula a desconexão e reconexão do meu client, mas por algum motivo ele da pop ao reconectar, me explique
+                                          //     () {
+                                          //   developer
+                                          //       .log('Simulando desconexão...');
+                                          //   SocketManager.instance.disconnect();
+
+                                          //   Future.delayed(
+                                          //       const Duration(seconds: 2), () {
+                                          //     developer.log('Reconectando...');
+                                          //     SocketManager.instance.connect();
+                                          //   });
+                                          // },
                                           icon: Icon(Icons.wifi_off_sharp),
                                         )
                                       else

@@ -84,7 +84,7 @@ func main() {
 				if !exists {
 					callback([]interface{}{map[string]interface{}{
 						"success": false,
-						"error":   "Room does not exist",
+						"message": "Room does not exist",
 					}}, nil)
 					return
 				}
@@ -96,7 +96,7 @@ func main() {
 						"participants": room.GetParticipants(),
 					})
 					callback([]interface{}{map[string]interface{}{
-						"success": false,
+						"success": true,
 						"message": "Reconnected",
 					}}, nil)
 				} else {
@@ -138,12 +138,13 @@ func main() {
 							"success":       true,
 							"turn":          room.TurnCount,
 							"isGameStarted": room.IsGameStarted,
+							"message":       "Joined room",
 						}}, nil)
 					} else {
 						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")
 						callback([]interface{}{map[string]interface{}{
 							"success": false,
-							"error":   "Room is full",
+							"message": "Room is full",
 						}}, nil)
 					}
 				}
