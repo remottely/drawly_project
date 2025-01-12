@@ -16,7 +16,7 @@ import (
 
 // Configurações do servidor
 const (
-	Version    = "0.50.0"
+	Version    = "0.50.1"
 	MinPlayers = 2
 	MaxPlayers = 4
 )

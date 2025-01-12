@@ -4,7 +4,7 @@ go 1.23.1
 
 toolchain go1.23.3
 
-require github.com/zishang520/socket.io/v2 v2.0.0 // usa a versão 2.x
+require github.com/zishang520/socket.io/v2 v2.3.6 // usa a versão 2.x
 
 require (
 	github.com/stretchr/testify v1.9.0
@@ -41,4 +41,4 @@ require (
 )
 
 // Indica que o módulo `github.com/zishang520/socket.io/v2` é local
-replace github.com/zishang520/socket.io/v2 => ./internals/socket.io
+replace github.com/zishang520/socket.io/v2 => ./external/socket.io

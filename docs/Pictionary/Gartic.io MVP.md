@@ -116,7 +116,9 @@
 	- [x] (0.48.0) feature: quando o usuario q esta desenhando cair, ele deve pular o turno esperar 5s para qualquer participant independente se ele esta desenhando?
 	- [x] (0.49.0) quando a pessoa q esta desenhando(drawer) cai por 5s, e enquanto ela esta fora todos os outros acertam, o turno troca etc tudo certinho, mas na tela do participant q caiu permanece a possibilidade dela continuar desenhando. corrigir isso.
 	- [ ]  esta correto: quando a pessoa acerta e cai por menos de 5s e volta as pontuacoes permanecem. por mais de 10s ela perde todos os pontos, pois ela foi removida e reincerida na lista de participants. manter assim ou criar uma outra logica q pula a vez dps de 5s mas manter todas as pontuacoes etc do participant?
+	- [ ] remover a verificacao isConnect da validacao de guess, pois agora existe a regra dos 5s q elimina a pessoa da sala. logo, agora devemos esperar 5s o participant voltar, entao se passar disso remove-lo e verificar se ele esta na lista de participants da sala.
 - [x] (0.50.0) start code enchance
+- [x] (0.50.1) atualizando zishang520/socket.io/v2 lib
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
 - ...:
 	- [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso. 
