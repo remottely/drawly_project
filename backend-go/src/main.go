@@ -103,6 +103,8 @@ func main() {
 						IsLogged:   true,
 					}
 
+					sendJoinMessage(io, roomName, userId, username)
+
 					if drawing, exists := roomDrawings[roomName]; exists {
 						emitDrawingState(io, roomName, drawing)
 					}
@@ -142,15 +144,7 @@ func main() {
 							IsLogged:   true,
 						}
 
-						icon := "info"
-						message := Message{
-							Icon:     &icon,
-							UserId:   userId,
-							Username: username,
-							Text:     "entrou",
-						}
-
-						io.To(socket.Room(roomName)).Emit("chat:message", message)
+						sendJoinMessage(io, roomName, userId, username)
 
 						if drawing, exists := roomDrawings[roomName]; exists {
 							emitDrawingState(io, roomName, drawing)
@@ -465,7 +459,6 @@ func main() {
 
 		// Evento: Desconexão
 		client.On("disconnect", func(...any) {
-			// chatgpt: me explique pq aqui eu recupero roomName, userExists do roomUsers e logo abaixo recupero userId do roomUsers, como isso unciona em Go?
 			userInfo, exists := roomUsers[string(client.Id())]
 			if !exists {
 				return
@@ -481,33 +474,44 @@ func main() {
 				participant.IsConnected = false // Marca o participante como desconectado
 
 				// Emite mensagem para a sala sobre a saída do participante
+				icon := "info"
 				io.To(socket.Room(userInfo.RoomName)).Emit("chat:message", Message{
-					Icon:     nil,
+					Icon:     &icon,
 					UserId:   participant.UserId,
 					Username: participant.Username,
 					Text:     "saiu",
 				})
+
+				// Adiciona o temporizador de 5 segundos
+				time.AfterFunc(5*time.Second, func() {
+					// Verifica se o participante ainda está desconectado
+					if !participant.IsConnected {
+						fmt.Printf("Removendo participante %s da sala %s após 5 segundos de desconexão.\n", participant.Username, room.Name)
+
+						// Remove o participante do jogo
+						room.RemoveParticipant(participant.UserId)
+
+						// Ajusta os turnos se necessário
+						if room.CurrentDrawerTurnIndex >= len(room.TurnQueue) {
+							room.AdvanceTurn()
+						}
+
+						// Atualiza o estado do jogo
+						io.To(socket.Room(room.Name)).Emit("room:participants:update", map[string]interface{}{
+							"participants": room.GetParticipants(),
+						})
+
+						if len(room.TurnQueue) == 0 {
+							deleteRoom(room.Name) // Remove a sala se não houver mais participantes
+							emitRoomList(io)
+						} else if room.HasEveryoneAnsweredCorrectly() {
+							TurnManagerStartTurnTimer(io, room.Name, 60) // Avança o turno
+						}
+					}
+				})
 			}
 
 			delete(roomUsers, string(client.Id())) // Remove o usuário do mapa global
-
-			// Verifica se todos os participantes conectados responderam corretamente
-			if room.HasEveryoneAnsweredCorrectly() {
-				fmt.Printf("Todos os participantes conectados na sala %s responderam corretamente.\n", userInfo.RoomName)
-				room.ResetCorrectAnswers()
-				TurnManagerStartTurnTimer(io, userInfo.RoomName, 60) // Avança para o próximo turno
-			}
-
-			// Se não há mais participantes conectados, remove a sala
-			if len(room.GetParticipants()) == 0 {
-				deleteRoom(userInfo.RoomName) // Remove a sala e seus recursos associados
-				emitRoomList(io)              // Atualiza a lista de salas para todos os clientes
-			} else {
-				// Atualiza a lista de participantes na sala
-				io.To(socket.Room(userInfo.RoomName)).Emit("room:participants:update", map[string]interface{}{
-					"participants": room.GetParticipants(),
-				})
-			}
 		})
 
 		// Evento: Solicitar ranking
@@ -578,6 +582,17 @@ func (d *Drawing) AddStrokeLastPoints(points []Offset) {
 		lastStroke := &d.Strokes[len(d.Strokes)-1]
 		lastStroke.Points = append(lastStroke.Points, points...)
 	}
+}
+
+func sendJoinMessage(io *socket.Server, roomName, userId, username string) {
+	icon := "info"
+	message := Message{
+		Icon:     &icon,
+		UserId:   userId,
+		Username: username,
+		Text:     "entrou",
+	}
+	io.To(socket.Room(roomName)).Emit("chat:message", message)
 }
 
 func (d *Drawing) Clear() {
@@ -661,15 +676,21 @@ func (r *Room) AddParticipant(participant *Participant) {
 
 func (r *Room) RemoveParticipant(userId string) {
 	delete(r.Participants, userId)
+
 	var newQueue []*Participant
 	for _, p := range r.TurnQueue {
 		if p.UserId != userId {
 			newQueue = append(newQueue, p)
 		}
 	}
+
 	r.TurnQueue = newQueue
-	if r.CurrentDrawerTurnIndex >= len(r.TurnQueue) {
-		r.CurrentDrawerTurnIndex = 0
+
+	// Ajusta o índice do desenhista atual
+	if len(r.TurnQueue) == 0 {
+		r.CurrentDrawerTurnIndex = -1 // Nenhum desenhista disponível
+	} else if r.CurrentDrawerTurnIndex >= len(r.TurnQueue) {
+		r.AdvanceTurn() // Avança o turno
 	}
 }
 

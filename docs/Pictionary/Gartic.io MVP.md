@@ -112,9 +112,16 @@
 - [x] (0.46.3) Bug: roomUsers retornando sempre uma string sendo referenciada como roomName ou userId, oq n fazia o menor sentido. Removido e colocado o RoomUser struct no lugar.
 - [x] (0.47.0) feature: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
 - [x] (0.47.1) Bug: turnos durando pouco tempo, verificar o timer no backend ou frontend
-- [ ] O timer esta desincronizado entre as salas, ressincronizar em algum momento?
-- [ ] add a logica de escolha de palavra etc entre os turnos. turn ON, turn Off, bloqueio de envio de desenho entre os turnos etc.
-- [ ] feature: quando o usuario q esta desenhando cair, ele deve pular o turno imediatamente ou esperar um tempo?
+- ...:
+	- [x] (0.48.0) feature: quando o usuario q esta desenhando cair, ele deve pular o turno esperar 5s para qualquer participant independente se ele esta desenhando?
+	- [ ] quando a pessoa q esta desenhando(drawer) cai por 5s, e enquanto ela esta fora todos os outros acertam, o turno troca etc tudo certinho, mas na tela do participant q caiu permanece a possibilidade dela continuar desenhando. corrigir isso.
+	- [ ]  esta correto: quando a pessoa acerta e cai por menos de 5s e volta as pontuacoes permanecem. por mais de 10s ela perde todos os pontos, pois ela foi removida e reincerida na lista de participants. manter assim ou criar uma outra logica q pula a vez dps de 5s mas manter todas as pontuacoes etc do participant?
+- ...:
+	- [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso. 
+	- [ ] (2) adicionar realtime feedback mesmo offline??
+- [ ] garantir q o jogo irá finalizar sempre q houver menos de 2 participants
+- [ ] bug de strokes, investigar
+- [ ]
 - [ ] Criar um temporizador para eliminar esse participant da sala ou nao? mante-lo ate o final caso ele queira entrar na sala novamente ??
 - [ ] Undo e redo bugando quando cliente desconecta e reconecta. tirar a responsabilidade do frontend??
 - [ ] Bug: ao perder conexao a rodada nao finaliza. criar temporizador para esperar o usuario q desconectou? deixar temporizador para v2?
@@ -133,6 +140,7 @@
 - [ ] Create a new form to allow users to better personalize room configurations.
 - [ ] Add a feature to report the drawer.
 - [ ] Add a feature to report a player. (Add a feature to report a message?)
+- [ ] add a logica de escolha de palavra etc entre os turnos. turn ON, turn Off, bloqueio de envio de desenho entre os turnos etc.
 
 ### Validações e Regras de Negócio
 
@@ -239,6 +247,7 @@
   - [ ] Confirm.
 - [ ] Limit the number of messages each user can send per second or minute.
 - [ ] (0.?.0) Polygon outside canvas limits.
+- [ ] O timer esta desincronizado entre as salas, ressincronizar em algum momento?
 
 ---
 
