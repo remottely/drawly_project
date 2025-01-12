@@ -14,7 +14,12 @@ import (
 	"github.com/zishang520/socket.io/v2/socket"
 )
 
-const Version = "0.40.0"
+// Configurações do servidor
+const (
+	Version    = "0.50.0"
+	MinPlayers = 2
+	MaxPlayers = 4
+)
 
 func main() {
 	log.DEBUG = true
@@ -63,7 +68,7 @@ func main() {
 				// Extraindo e verificando o formato do primeiro argumento
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
@@ -72,7 +77,7 @@ func main() {
 				callback, ok := rawCallback.(func([]interface{}, error))
 				if !ok {
 					fmt.Printf("Callback type assertion failed: %+v\n", rawCallback)
-					emitError(client, "Invalid callback format", "nothing")
+					emitError(client, "Invalid callback format", Nothing)
 					return
 				}
 
@@ -110,7 +115,7 @@ func main() {
 					}
 
 					io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
-						"participants": room.GetParticipants(),
+						"participants": room.getParticipants(),
 					})
 
 					currentDrawer := validateCurrentDrawer(io, room, roomName)
@@ -126,7 +131,7 @@ func main() {
 						"message":             "Reconnected",
 					}}, nil)
 				} else {
-					if len(room.GetParticipants()) < maxPlayers {
+					if len(room.getParticipants()) < MaxPlayers {
 						participant := &Participant{
 							UserId:   userId,
 							Username: username,
@@ -140,7 +145,7 @@ func main() {
 							IsConnected: true,
 						}
 
-						room.AddParticipant(participant)
+						room.addParticipant(participant)
 						client.Join(socket.Room(roomName))
 						roomUsers[string(client.Id())] = &RoomUser{
 							RoomName:   roomName,
@@ -157,7 +162,7 @@ func main() {
 						}
 
 						io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
-							"participants": room.GetParticipants(),
+							"participants": room.getParticipants(),
 						})
 
 						currentDrawer := validateCurrentDrawer(io, room, roomName)
@@ -173,7 +178,7 @@ func main() {
 							"message":             "Joined room",
 						}}, nil)
 					} else {
-						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")
+						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, MaxPlayers), Nothing)
 						callback([]interface{}{map[string]interface{}{
 							"success": false,
 							"message": "Room is full",
@@ -181,7 +186,7 @@ func main() {
 					}
 				}
 			} else {
-				emitError(client, "Invalid arguments", "nothing")
+				emitError(client, "Invalid arguments", Nothing)
 			}
 		})
 
@@ -190,7 +195,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
@@ -198,36 +203,36 @@ func main() {
 				userId, _ := data["userId"].(string)
 
 				if room, exists := rooms[roomName]; exists {
-					room.RemoveParticipant(userId)
+					room.removeParticipant(userId)
 					client.Leave(socket.Room(roomName))
 					delete(roomUsers, string(client.Id()))
 
 					// Atualiza os participantes na sala
 					io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
-						"participants": room.GetParticipants(),
+						"participants": room.getParticipants(),
 					})
 
 					// Remove a sala se não houver participantes
-					if len(room.GetParticipants()) == 0 {
+					if len(room.getParticipants()) == 0 {
 						deleteRoom(roomName) // Chama deleteRoom para limpar os recursos
 						emitRoomList(io)     // Atualiza a lista de salas para todos os clientes
 					}
 				}
 			} else {
-				emitError(client, "Invalid arguments", "nothing")
+				emitError(client, "Invalid arguments", Nothing)
 			}
 		})
 
 		// Evento: Início do traço
 		client.On("drawing:stroke:start", func(args ...interface{}) {
 			if len(args) == 0 {
-				emitError(client, "No arguments provided", "nothing")
+				emitError(client, "No arguments provided", Nothing)
 				return
 			}
 
 			data, ok := args[0].(map[string]interface{})
 			if !ok {
-				emitError(client, "Invalid data format", "nothing")
+				emitError(client, "Invalid data format", Nothing)
 				return
 			}
 
@@ -236,12 +241,12 @@ func main() {
 
 			stroke, err := parseStroke(rawStroke)
 			if err != nil {
-				emitError(client, fmt.Sprintf("Failed to parse stroke: %v", err), "nothing")
+				emitError(client, fmt.Sprintf("Failed to parse stroke: %v", err), Nothing)
 				return
 			}
 
 			if drawing, exists := roomDrawings[roomName]; exists {
-				drawing.AddStroke(stroke)
+				drawing.addStroke(stroke)
 				io.To(socket.Room(roomName)).Emit("drawing:stroke:start", map[string]interface{}{"stroke": rawStroke})
 			}
 		})
@@ -252,26 +257,26 @@ func main() {
 				// Verifica se o argumento recebido é do tipo esperado
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
 				rawPoints, ok := data["strokeLastPoints"].([]interface{})
 				if !ok {
-					emitError(client, "Invalid strokeLastPoints format", "nothing")
+					emitError(client, "Invalid strokeLastPoints format", Nothing)
 					return
 				}
 
 				// Processa os pontos
 				points, err := parsePoints(rawPoints)
 				if err != nil {
-					emitError(client, fmt.Sprintf("Failed to parse points: %v", err), "nothing")
+					emitError(client, fmt.Sprintf("Failed to parse points: %v", err), Nothing)
 					return
 				}
 
 				if drawing, exists := roomDrawings[roomName]; exists {
-					drawing.AddStrokeLastPoints(points)
+					drawing.addStrokeLastPoints(points)
 					io.To(socket.Room(roomName)).Emit("drawing:stroke:lastPoints", map[string]interface{}{
 						"strokeLastPoints": rawPoints,
 					})
@@ -284,14 +289,14 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
 
 				if drawing, exists := roomDrawings[roomName]; exists {
-					drawing.Clear()
+					drawing.clear()
 					io.To(socket.Room(roomName)).Emit("drawing:clear")
 				}
 			}
@@ -302,14 +307,14 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
 
 				if drawing, exists := roomDrawings[roomName]; exists {
-					lastStroke := drawing.Undo()
+					lastStroke := drawing.undo()
 					io.To(socket.Room(roomName)).Emit("drawing:undo", map[string]interface{}{
 						"stroke": lastStroke,
 					})
@@ -322,14 +327,14 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
 				roomName, _ := data["roomName"].(string)
 
 				if drawing, exists := roomDrawings[roomName]; exists {
-					lastStroke := drawing.Redo()
+					lastStroke := drawing.redo()
 					io.To(socket.Room(roomName)).Emit("drawing:redo", map[string]interface{}{
 						"stroke": lastStroke,
 					})
@@ -342,7 +347,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
@@ -365,7 +370,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
@@ -376,13 +381,13 @@ func main() {
 
 				room, exists := rooms[roomName]
 				if !exists || !room.IsGameStarted {
-					emitError(client, "Game not started in this room.", "nothing")
+					emitError(client, "Game not started in this room.", Nothing)
 					return
 				}
 
 				correctWord := room.CurrentWord
 				if correctWord == "" {
-					emitError(client, "No word is currently being drawn.", "nothing")
+					emitError(client, "No word is currently being drawn.", Nothing)
 					return
 				}
 
@@ -409,7 +414,7 @@ func main() {
 					participant := room.Participants[userId]
 					if participant != nil {
 						// Obtém a posição na ordem de respostas corretas
-						rank := room.GetCorrectAnswerRank(userId)
+						rank := room.getCorrectAnswerRank(userId)
 
 						// Calcula os pontos baseados na posição e no tempo restante
 						basePoints := 100 - (rank-1)*20 // Reduz pontos com base na posição
@@ -420,9 +425,9 @@ func main() {
 						participant.Score += points
 
 						// Atualiza a pontuação do desenhista
-						drawer := room.GetCurrentDrawer()
+						drawer := room.getCurrentDrawer()
 						if drawer != nil {
-							totalParticipants := len(room.GetParticipants()) - 1 // Exclui o desenhista
+							totalParticipants := len(room.getParticipants()) - 1 // Exclui o desenhista
 							if totalParticipants > 0 {
 								drawerPointsPerCorrectGuess := 100 / totalParticipants
 								drawer.Score += drawerPointsPerCorrectGuess
@@ -430,13 +435,13 @@ func main() {
 						}
 
 						fmt.Printf("%s acertou! Ganhou %d pontos.\n", username, points)
-						room.ParticipantCorrectAnswer(userId)
+						room.participantCorrectAnswer(userId)
 
 						// Verifica se todos os participantes acertaram
-						if room.HasEveryoneAnsweredCorrectly() {
+						if room.hasEveryoneAnsweredCorrectly() {
 							fmt.Printf("Todos os participantes da sala %s acertaram. Avançando turno.\n", roomName)
-							room.ResetCorrectAnswers()
-							TurnManagerStartTurnTimer(io, roomName, 60)
+							room.resetCorrectAnswers()
+							startTurnTimer(io, roomName, 60)
 						}
 					}
 				}
@@ -455,17 +460,17 @@ func main() {
 				roomName, _ := data["roomName"].(string)
 				room, exists := rooms[roomName]
 				if !exists {
-					emitError(client, "Room does not exist", "nothing")
+					emitError(client, "Room does not exist", Nothing)
 					return
 				}
 
-				if len(room.GetParticipants()) < minPlayers {
-					emitError(client, fmt.Sprintf("Not enough players. Minimum %d required.", minPlayers), "retry")
+				if len(room.getParticipants()) < MinPlayers {
+					emitError(client, fmt.Sprintf("Not enough players. Minimum %d required.", MinPlayers), "retry")
 					return
 				}
 
 				room.IsGameStarted = true
-				TurnManagerStartTurnTimer(io, roomName, 60)
+				startTurnTimer(io, roomName, 60)
 			}
 		})
 
@@ -501,23 +506,23 @@ func main() {
 						fmt.Printf("Removendo participante %s da sala %s após 5 segundos de desconexão.\n", participant.Username, room.Name)
 
 						// Remove o participante do jogo
-						room.RemoveParticipant(participant.UserId)
+						room.removeParticipant(participant.UserId)
 
 						// Ajusta os turnos se necessário
 						if room.CurrentDrawerTurnIndex >= len(room.TurnQueue) {
-							room.AdvanceTurn()
+							room.advanceTurn()
 						}
 
 						// Atualiza o estado do jogo
 						io.To(socket.Room(room.Name)).Emit("room:participants:update", map[string]interface{}{
-							"participants": room.GetParticipants(),
+							"participants": room.getParticipants(),
 						})
 
 						if len(room.TurnQueue) == 0 {
 							deleteRoom(room.Name) // Remove a sala se não houver mais participantes
 							emitRoomList(io)
-						} else if room.HasEveryoneAnsweredCorrectly() {
-							TurnManagerStartTurnTimer(io, room.Name, 60) // Avança o turno
+						} else if room.hasEveryoneAnsweredCorrectly() {
+							startTurnTimer(io, room.Name, 60) // Avança o turno
 						}
 					}
 				})
@@ -531,7 +536,7 @@ func main() {
 			if len(args) > 0 {
 				data, ok := args[0].(map[string]interface{})
 				if !ok {
-					emitError(client, "Invalid data format", "nothing")
+					emitError(client, "Invalid data format", Nothing)
 					return
 				}
 
@@ -572,217 +577,14 @@ func main() {
 	os.Exit(0)
 }
 
-const (
-	minPlayers = 2
-	maxPlayers = 4
-)
-
+// ===================
+// Funções de Desenho
+// ===================
 // Evento: Atualizar desenho completo
 func emitDrawingState(io *socket.Server, roomName string, drawing *Drawing) {
 	io.To(socket.Room(roomName)).Emit("drawing:stroke:all", map[string]interface{}{
 		"strokes": drawing.Strokes,
 	})
-
-}
-
-func (d *Drawing) AddStroke(stroke Stroke) {
-	d.Strokes = append(d.Strokes, stroke)
-}
-
-func (d *Drawing) AddStrokeLastPoints(points []Offset) {
-	if len(d.Strokes) > 0 {
-		lastStroke := &d.Strokes[len(d.Strokes)-1]
-		lastStroke.Points = append(lastStroke.Points, points...)
-	}
-}
-
-func sendJoinMessage(io *socket.Server, roomName, userId, username string) {
-	icon := "info"
-	message := Message{
-		Icon:     &icon,
-		UserId:   userId,
-		Username: username,
-		Text:     "entrou",
-	}
-	io.To(socket.Room(roomName)).Emit("chat:message", message)
-}
-
-func (d *Drawing) Clear() {
-	d.Strokes = nil
-	d.BackupStrokes = nil
-}
-
-func (d *Drawing) Undo() *Stroke {
-	if len(d.Strokes) == 0 {
-		return nil
-	}
-	lastStroke := d.Strokes[len(d.Strokes)-1]
-	d.Strokes = d.Strokes[:len(d.Strokes)-1]
-	d.BackupStrokes = append(d.BackupStrokes, lastStroke)
-	return &lastStroke
-}
-
-func (d *Drawing) Redo() *Stroke {
-	if len(d.BackupStrokes) == 0 {
-		return nil
-	}
-	lastBackup := d.BackupStrokes[len(d.BackupStrokes)-1]
-	d.BackupStrokes = d.BackupStrokes[:len(d.BackupStrokes)-1]
-	d.Strokes = append(d.Strokes, lastBackup)
-	return &lastBackup
-}
-
-// Função para criar uma nova sala
-func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
-	if _, exists := rooms[roomName]; !exists {
-		rooms[roomName] = NewRoom(roomName)
-		roomDrawings[roomName] = &Drawing{}
-		emitRoomList(io) // Atualiza a lista de salas
-		client.Emit("room:created", map[string]interface{}{"roomName": roomName})
-	}
-}
-
-func (r *Room) ParticipantCorrectAnswer(userId string) {
-	if r.ParticipantsWhoAnsweredCorrectly == nil {
-		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
-	}
-	r.ParticipantsWhoAnsweredCorrectly[userId] = true
-}
-
-func (r *Room) HasEveryoneAnsweredCorrectly() bool {
-	currentDrawer := r.GetCurrentDrawer()
-	for _, participant := range r.GetParticipants() {
-		// Ignorar o desenhista e verificar apenas os conectados
-		if participant.UserId != currentDrawer.UserId && participant.IsConnected {
-			if !r.ParticipantsWhoAnsweredCorrectly[participant.UserId] {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (r *Room) GetCurrentDrawer() *Participant {
-	if r.CurrentDrawerTurnIndex == -1 || len(r.TurnQueue) == 0 {
-		return nil
-	}
-	return r.TurnQueue[r.CurrentDrawerTurnIndex]
-}
-
-func (r *Room) ResetCorrectAnswers() {
-	r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
-}
-
-func NewRoom(name string) *Room {
-	return &Room{
-		Name:                             name,
-		Participants:                     make(map[string]*Participant),
-		ParticipantsWhoAnsweredCorrectly: make(map[string]bool),
-	}
-}
-
-func (r *Room) AddParticipant(participant *Participant) {
-	r.Participants[participant.UserId] = participant
-	r.TurnQueue = append(r.TurnQueue, participant)
-}
-
-func (r *Room) RemoveParticipant(userId string) {
-	delete(r.Participants, userId)
-
-	var newQueue []*Participant
-	for _, p := range r.TurnQueue {
-		if p.UserId != userId {
-			newQueue = append(newQueue, p)
-		}
-	}
-
-	r.TurnQueue = newQueue
-
-	// Ajusta o índice do desenhista atual
-	if len(r.TurnQueue) == 0 {
-		r.CurrentDrawerTurnIndex = -1 // Nenhum desenhista disponível
-	} else if r.CurrentDrawerTurnIndex >= len(r.TurnQueue) {
-		r.AdvanceTurn() // Avança o turno
-	}
-}
-
-func (r *Room) GetParticipants() []*Participant {
-	participants := []*Participant{}
-	for _, p := range r.Participants {
-		participants = append(participants, p)
-	}
-
-	sort.Slice(participants, func(i, j int) bool {
-		if participants[i].Score == participants[j].Score {
-			return participants[i].PreviousOrder < participants[j].PreviousOrder
-		}
-		return participants[i].Score > participants[j].Score
-	})
-
-	for idx, participant := range participants {
-		participant.PreviousOrder = idx
-	}
-
-	return participants
-}
-
-func (r *Room) AdvanceTurn() {
-	if len(r.TurnQueue) == 0 {
-		return
-	}
-
-	r.TurnCount++
-	startIdx := r.CurrentDrawerTurnIndex // Guarda o ponto inicial para evitar loops infinitos
-
-	for {
-		r.CurrentDrawerTurnIndex = (r.CurrentDrawerTurnIndex + 1) % len(r.TurnQueue)
-		currentDrawer := r.TurnQueue[r.CurrentDrawerTurnIndex]
-
-		// Verifica se o participante está conectado
-		if currentDrawer.IsConnected {
-			break
-		}
-
-		// Se percorremos todos os participantes sem encontrar um conectado
-		if r.CurrentDrawerTurnIndex == startIdx {
-			fmt.Println("Nenhum participante conectado para ser o desenhista.")
-			r.CurrentDrawerTurnIndex = -1 // Define como inválido se não houver conectados
-			return
-		}
-	}
-}
-
-func (r *Room) GetCorrectAnswerRank(userId string) int {
-	if r.ParticipantsWhoAnsweredCorrectly == nil {
-		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
-	}
-
-	// Verifica se o participante já respondeu corretamente
-	rank := 1
-	for answeredUserId := range r.ParticipantsWhoAnsweredCorrectly {
-		if answeredUserId == userId {
-			return rank // Retorna a posição se já respondeu
-		}
-		rank++
-	}
-
-	// Se não respondeu, adiciona ao mapa e retorna a última posição
-	r.ParticipantsWhoAnsweredCorrectly[userId] = true
-	return rank
-}
-
-var (
-	rooms        = make(map[string]*Room)     // Nome da sala -> Room
-	roomDrawings = make(map[string]*Drawing)  // Nome da sala -> Drawing
-	roomUsers    = make(map[string]*RoomUser) // Socket ID -> RoomUserInfo
-)
-
-func getRoomNames() []string {
-	names := make([]string, 0, len(rooms))
-	for name := range rooms {
-		names = append(names, name)
-	}
-	return names
 }
 
 func parseStroke(data map[string]any) (Stroke, error) {
@@ -851,6 +653,235 @@ func parseStroke(data map[string]any) (Stroke, error) {
 	}, nil
 }
 
+func sendJoinMessage(io *socket.Server, roomName, userId, username string) {
+	icon := "info"
+	message := Message{
+		Icon:     &icon,
+		UserId:   userId,
+		Username: username,
+		Text:     "entrou",
+	}
+	io.To(socket.Room(roomName)).Emit("chat:message", message)
+}
+
+// ===================
+// Funções de Gerenciamento de Salas
+// ===================
+// Função para criar uma nova sala
+func newRoom(name string) *Room {
+	return &Room{
+		Name:                             name,
+		Participants:                     make(map[string]*Participant),
+		ParticipantsWhoAnsweredCorrectly: make(map[string]bool),
+	}
+}
+
+func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
+	if _, exists := rooms[roomName]; !exists {
+		rooms[roomName] = newRoom(roomName)
+		roomDrawings[roomName] = &Drawing{}
+		emitRoomList(io) // Atualiza a lista de salas
+		client.Emit("room:created", map[string]interface{}{"roomName": roomName})
+	}
+}
+
+func deleteRoom(roomName string) {
+	room, exists := rooms[roomName]
+	if exists {
+		cancelActiveTimer(room)
+		room.IsGameStarted = false
+		delete(rooms, roomName)
+		delete(roomDrawings, roomName)
+	}
+}
+
+func emitErrorToRoom(io *socket.Server, roomName string, message string, action ErrorActionType) {
+	io.To(socket.Room(roomName)).Emit("error", ErrorDTO{
+		Message: message,
+		Action:  action,
+	})
+}
+
+// ===================
+// Funções de Room
+// ===================
+func (r *Room) participantCorrectAnswer(userId string) {
+	if r.ParticipantsWhoAnsweredCorrectly == nil {
+		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
+	}
+	r.ParticipantsWhoAnsweredCorrectly[userId] = true
+}
+
+func (r *Room) hasEveryoneAnsweredCorrectly() bool {
+	currentDrawer := r.getCurrentDrawer()
+	for _, participant := range r.getParticipants() {
+		// Ignorar o desenhista e verificar apenas os conectados
+		if participant.UserId != currentDrawer.UserId && participant.IsConnected {
+			if !r.ParticipantsWhoAnsweredCorrectly[participant.UserId] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (r *Room) getCurrentDrawer() *Participant {
+	if r.CurrentDrawerTurnIndex == -1 || len(r.TurnQueue) == 0 {
+		return nil
+	}
+	return r.TurnQueue[r.CurrentDrawerTurnIndex]
+}
+
+func (r *Room) resetCorrectAnswers() {
+	r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
+}
+
+func (r *Room) addParticipant(participant *Participant) {
+	r.Participants[participant.UserId] = participant
+	r.TurnQueue = append(r.TurnQueue, participant)
+}
+
+func (r *Room) removeParticipant(userId string) {
+	delete(r.Participants, userId)
+
+	var newQueue []*Participant
+	for _, p := range r.TurnQueue {
+		if p.UserId != userId {
+			newQueue = append(newQueue, p)
+		}
+	}
+
+	r.TurnQueue = newQueue
+
+	// Ajusta o índice do desenhista atual
+	if len(r.TurnQueue) == 0 {
+		r.CurrentDrawerTurnIndex = -1 // Nenhum desenhista disponível
+	} else if r.CurrentDrawerTurnIndex >= len(r.TurnQueue) {
+		r.advanceTurn() // Avança o turno
+	}
+}
+
+func (r *Room) getParticipants() []*Participant {
+	participants := []*Participant{}
+	for _, p := range r.Participants {
+		participants = append(participants, p)
+	}
+
+	sort.Slice(participants, func(i, j int) bool {
+		if participants[i].Score == participants[j].Score {
+			return participants[i].PreviousOrder < participants[j].PreviousOrder
+		}
+		return participants[i].Score > participants[j].Score
+	})
+
+	for idx, participant := range participants {
+		participant.PreviousOrder = idx
+	}
+
+	return participants
+}
+
+func (r *Room) advanceTurn() {
+	if len(r.TurnQueue) == 0 {
+		return
+	}
+
+	r.TurnCount++
+	startIdx := r.CurrentDrawerTurnIndex // Guarda o ponto inicial para evitar loops infinitos
+
+	for {
+		r.CurrentDrawerTurnIndex = (r.CurrentDrawerTurnIndex + 1) % len(r.TurnQueue)
+		currentDrawer := r.TurnQueue[r.CurrentDrawerTurnIndex]
+
+		// Verifica se o participante está conectado
+		if currentDrawer.IsConnected {
+			break
+		}
+
+		// Se percorremos todos os participantes sem encontrar um conectado
+		if r.CurrentDrawerTurnIndex == startIdx {
+			fmt.Println("Nenhum participante conectado para ser o desenhista.")
+			r.CurrentDrawerTurnIndex = -1 // Define como inválido se não houver conectados
+			return
+		}
+	}
+}
+
+func (r *Room) getCorrectAnswerRank(userId string) int {
+	if r.ParticipantsWhoAnsweredCorrectly == nil {
+		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
+	}
+
+	// Verifica se o participante já respondeu corretamente
+	rank := 1
+	for answeredUserId := range r.ParticipantsWhoAnsweredCorrectly {
+		if answeredUserId == userId {
+			return rank // Retorna a posição se já respondeu
+		}
+		rank++
+	}
+
+	// Se não respondeu, adiciona ao mapa e retorna a última posição
+	r.ParticipantsWhoAnsweredCorrectly[userId] = true
+	return rank
+}
+
+// ===================
+// Funções de Drawing
+// ===================
+func (d *Drawing) addStroke(stroke Stroke) {
+	d.Strokes = append(d.Strokes, stroke)
+}
+
+func (d *Drawing) addStrokeLastPoints(points []Offset) {
+	if len(d.Strokes) > 0 {
+		lastStroke := &d.Strokes[len(d.Strokes)-1]
+		lastStroke.Points = append(lastStroke.Points, points...)
+	}
+}
+
+func (d *Drawing) clear() {
+	d.Strokes = nil
+	d.BackupStrokes = nil
+}
+
+func (d *Drawing) undo() *Stroke {
+	if len(d.Strokes) == 0 {
+		return nil
+	}
+	lastStroke := d.Strokes[len(d.Strokes)-1]
+	d.Strokes = d.Strokes[:len(d.Strokes)-1]
+	d.BackupStrokes = append(d.BackupStrokes, lastStroke)
+	return &lastStroke
+}
+
+func (d *Drawing) redo() *Stroke {
+	if len(d.BackupStrokes) == 0 {
+		return nil
+	}
+	lastBackup := d.BackupStrokes[len(d.BackupStrokes)-1]
+	d.BackupStrokes = d.BackupStrokes[:len(d.BackupStrokes)-1]
+	d.Strokes = append(d.Strokes, lastBackup)
+	return &lastBackup
+}
+
+// ===================
+// ???
+// ===================
+var (
+	rooms        = make(map[string]*Room)     // Nome da sala -> Room
+	roomDrawings = make(map[string]*Drawing)  // Nome da sala -> Drawing
+	roomUsers    = make(map[string]*RoomUser) // Socket ID -> RoomUserInfo
+)
+
+func getRoomNames() []string {
+	names := make([]string, 0, len(rooms))
+	for name := range rooms {
+		names = append(names, name)
+	}
+	return names
+}
+
 func parsePoints(rawPoints []interface{}) ([]Offset, error) {
 	points := make([]Offset, len(rawPoints))
 
@@ -872,16 +903,16 @@ func parsePoints(rawPoints []interface{}) ([]Offset, error) {
 	return points, nil
 }
 
-func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration int) {
+func startTurnTimer(io *socket.Server, roomName string, totalDuration int) {
 	room, exists := rooms[roomName]
 	if !exists {
 		return
 	}
 
 	// Cancela o timer anterior, se existir
-	CancelActiveTimer(room)
+	cancelActiveTimer(room)
 
-	room.AdvanceTurn()
+	room.advanceTurn()
 
 	currentDrawer := validateCurrentDrawer(io, room, roomName)
 	if currentDrawer == nil {
@@ -889,8 +920,8 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 	}
 
 	// Resetar estado para o novo turno
-	room.ResetCorrectAnswers()
-	roomDrawings[roomName].Clear()
+	room.resetCorrectAnswers()
+	roomDrawings[roomName].clear()
 
 	wordToDraw := chooseRandomWord()
 	room.CurrentWord = wordToDraw
@@ -905,25 +936,18 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 	})
 
 	io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
-		"participants": room.GetParticipants(),
+		"participants": room.getParticipants(),
 	})
 
 	// Configura o novo timer
 	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
 		fmt.Printf("Timer executado para a sala %s.\n", roomName)
-		TurnManagerStartTurnTimer(io, roomName, totalDuration)
+		startTurnTimer(io, roomName, totalDuration)
 	})
 	fmt.Printf("Novo timer configurado para a sala %s.\n", roomName)
 }
 
-func emitErrorToRoom(io *socket.Server, roomName string, message string, action string) {
-	io.To(socket.Room(roomName)).Emit("error", ErrorDTO{
-		Message: message,
-		Action:  action,
-	})
-}
-
-func CancelActiveTimer(room *Room) {
+func cancelActiveTimer(room *Room) {
 	if room.ActiveTimer != nil {
 		room.ActiveTimer.Stop()
 		room.ActiveTimer = nil
@@ -939,10 +963,10 @@ var wordsList = []string{
 }
 
 func validateCurrentDrawer(io *socket.Server, room *Room, roomName string) *Participant {
-	currentDrawer := room.GetCurrentDrawer()
+	currentDrawer := room.getCurrentDrawer()
 	if currentDrawer == nil {
 		fmt.Printf("Não há participantes conectados na sala %s.\n", roomName)
-		emitErrorToRoom(io, roomName, "Nenhum participante conectado para ser o desenhista.", "dialog")
+		emitErrorToRoom(io, roomName, "Nenhum participante conectado para ser o desenhista.", Dialog)
 		return nil
 	}
 	return currentDrawer
@@ -956,16 +980,6 @@ func chooseRandomWord() string {
 	return wordsList[randomIndex]
 }
 
-func deleteRoom(roomName string) {
-	room, exists := rooms[roomName]
-	if exists {
-		CancelActiveTimer(room)
-		room.IsGameStarted = false
-		delete(rooms, roomName)
-		delete(roomDrawings, roomName)
-	}
-}
-
 func emitRanking(io *socket.Server, roomName string) {
 	room, exists := rooms[roomName]
 	if !exists {
@@ -974,7 +988,7 @@ func emitRanking(io *socket.Server, roomName string) {
 
 	// Calcular ranking
 	ranking := make([]map[string]any, 0)
-	participants := room.GetParticipants()
+	participants := room.getParticipants()
 
 	for _, participant := range participants {
 		ranking = append(ranking, map[string]any{
@@ -994,13 +1008,12 @@ func emitRanking(io *socket.Server, roomName string) {
 }
 
 func emitRoomList(io *socket.Server) {
-
 	io.Emit("room:all", map[string]any{
 		"allRooms": getRoomNames(),
 	})
 }
 
-func emitError(client *socket.Socket, message, action string) {
+func emitError(client *socket.Socket, message string, action ErrorActionType) {
 	client.Emit("error", ErrorDTO{
 		Message: message,
 		Action:  action,
@@ -1072,9 +1085,30 @@ type Turn struct {
 	IsGameStarted         bool   `json:"isGameStarted"`
 }
 
+type ErrorActionType string
+
+const (
+	Nothing ErrorActionType = "nothing"
+	Retry   ErrorActionType = "retry"
+	Ignore  ErrorActionType = "ignore"
+	Log     ErrorActionType = "log"
+	Pop     ErrorActionType = "pop"
+	Dialog  ErrorActionType = "dialog"
+)
+
+// Validação do enum
+func isValidErrorActionType(action ErrorActionType) bool {
+	switch action {
+	case Nothing, Retry, Ignore, Log, Pop, Dialog:
+		return true
+	default:
+		return false
+	}
+}
+
 type ErrorDTO struct {
-	Message string `json:"message"` // Mensagem de erro
-	Action  string `json:"action"`  // Ação sugerida (e.g., "nothing", "nothing")
+	Message string          `json:"message"`
+	Action  ErrorActionType `json:"action"`
 }
 
 type RoomUser struct {
@@ -1083,4 +1117,12 @@ type RoomUser struct {
 	Username   string  `json:"username"`
 	UserAvatar *string `json:"userAvatar"`
 	IsLogged   bool    `json:"isLogged"`
+}
+
+func logInfo(message string, args ...interface{}) {
+	fmt.Printf("[INFO] "+message+"\n", args...)
+}
+
+func logError(message string, args ...interface{}) {
+	fmt.Printf("[ERROR] "+message+"\n", args...)
 }
