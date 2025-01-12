@@ -84,13 +84,13 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     _onNewTurnEvent = (data) {
       rxWord.value = (data as Map<String, dynamic>)['word'] as String;
       rxCurrentDrawerUserId.value = data['currentDrawerUserId'] as String;
+      rxIsCurrentDrawerUserId.value =
+          rxCurrentDrawerUserId.value == widget.userId;
       rxCurrentDrawerUsername.value = data['currentDrawerUsername'] as String;
       rxTotalDuration.value = data['totalDuration'] as int;
       rxTurn.value = data['turn'] as int;
       rxTimeLeft.value = rxTotalDuration.value - 300;
 
-      rxIsCurrentDrawerUserId.value =
-          rxCurrentDrawerUserId.value == widget.userId;
       rxIsGameStarted.value = data['isGameStarted'] as bool;
 
       startCountdown(rxTotalDuration.value);
@@ -138,6 +138,10 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
       } else {
         rxTurn.value = responseData['turn'] as int;
         rxIsGameStarted.value = responseData['isGameStarted'] as bool;
+        rxCurrentDrawerUserId.value =
+            responseData['currentDrawerUserId'] as String;
+        rxIsCurrentDrawerUserId.value =
+            rxCurrentDrawerUserId.value == widget.userId;
       }
     } catch (e) {
       developer.log('Error joining room: $e');
@@ -259,25 +263,21 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                               ? AppColors.greenAccent
                                               : AppColors.yellowAccent,
                                         ),
-                                      if (Tests.isTesting)
+                                      if (Tests.isTesting) ...[
                                         const IconButton(
                                           onPressed: Tests
-                                              .testDisconnectionThenReconnection,
-                                          // chatgpt: eu tenho esse codigo q simula a desconexão e reconexão do meu client, mas por algum motivo ele da pop ao reconectar, me explique
-                                          //     () {
-                                          //   developer
-                                          //       .log('Simulando desconexão...');
-                                          //   SocketManager.instance.disconnect();
-
-                                          //   Future.delayed(
-                                          //       const Duration(seconds: 2), () {
-                                          //     developer.log('Reconectando...');
-                                          //     SocketManager.instance.connect();
-                                          //   });
-                                          // },
+                                              .testDisconnectionThenReconnection4s,
+                                          icon: Icon(
+                                            Icons.wifi_off_sharp,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const IconButton(
+                                          onPressed: Tests
+                                              .testDisconnectionThenReconnection10s,
                                           icon: Icon(Icons.wifi_off_sharp),
-                                        )
-                                      else
+                                        ),
+                                      ] else
                                         const SizedBox.shrink(),
                                     ],
                                   ),

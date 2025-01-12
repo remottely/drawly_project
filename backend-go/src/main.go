@@ -113,11 +113,17 @@ func main() {
 						"participants": room.GetParticipants(),
 					})
 
+					currentDrawer := validateCurrentDrawer(io, room, roomName)
+					if currentDrawer == nil {
+						return // Retorna se não houver desenhista válido
+					}
+
 					callback([]interface{}{map[string]interface{}{
-						"success":       true,
-						"turn":          room.TurnCount,
-						"isGameStarted": room.IsGameStarted,
-						"message":       "Reconnected",
+						"success":             true,
+						"turn":                room.TurnCount,
+						"isGameStarted":       room.IsGameStarted,
+						"currentDrawerUserId": currentDrawer.UserId,
+						"message":             "Reconnected",
 					}}, nil)
 				} else {
 					if len(room.GetParticipants()) < maxPlayers {
@@ -154,11 +160,17 @@ func main() {
 							"participants": room.GetParticipants(),
 						})
 
+						currentDrawer := validateCurrentDrawer(io, room, roomName)
+						if currentDrawer == nil {
+							return // Retorna se não houver desenhista válido
+						}
+
 						callback([]interface{}{map[string]interface{}{
-							"success":       true,
-							"turn":          room.TurnCount,
-							"isGameStarted": room.IsGameStarted,
-							"message":       "Joined room",
+							"success":             true,
+							"turn":                room.TurnCount,
+							"isGameStarted":       room.IsGameStarted,
+							"currentDrawerUserId": currentDrawer.UserId,
+							"message":             "Joined room",
 						}}, nil)
 					} else {
 						emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, maxPlayers), "nothing")
@@ -870,11 +882,10 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 	CancelActiveTimer(room)
 
 	room.AdvanceTurn()
-	currentDrawer := room.GetCurrentDrawer()
+
+	currentDrawer := validateCurrentDrawer(io, room, roomName)
 	if currentDrawer == nil {
-		fmt.Printf("Não há participantes conectados na sala %s.\n", roomName)
-		emitErrorToRoom(io, roomName, "Nenhum participante conectado para ser o desenhista.", "dialog")
-		return
+		return // Retorna se não houver desenhista válido
 	}
 
 	// Resetar estado para o novo turno
@@ -925,6 +936,16 @@ var wordsList = []string{
 	// "livro", "avião", "rio", "montanha", "praia", "peixe", "pássaro",
 	// "computador", "telefone", "cadeira", "mesa", "namorados", "corda",
 	// "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
+}
+
+func validateCurrentDrawer(io *socket.Server, room *Room, roomName string) *Participant {
+	currentDrawer := room.GetCurrentDrawer()
+	if currentDrawer == nil {
+		fmt.Printf("Não há participantes conectados na sala %s.\n", roomName)
+		emitErrorToRoom(io, roomName, "Nenhum participante conectado para ser o desenhista.", "dialog")
+		return nil
+	}
+	return currentDrawer
 }
 
 func chooseRandomWord() string {
