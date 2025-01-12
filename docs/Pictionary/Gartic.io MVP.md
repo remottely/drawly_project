@@ -113,6 +113,7 @@
 - [x] (0.47.0) feature: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
 - [x] (0.47.1) Bug: turnos durando pouco tempo, verificar o timer no backend ou frontend
 - [ ] O timer esta desincronizado entre as salas, ressincronizar em algum momento?
+- [ ] add a logica de escolha de palavra etc entre os turnos. turn ON, turn Off, bloqueio de envio de desenho entre os turnos etc.
 - [ ] feature: quando o usuario q esta desenhando cair, ele deve pular o turno imediatamente ou esperar um tempo?
 - [ ] Criar um temporizador para eliminar esse participant da sala ou nao? mante-lo ate o final caso ele queira entrar na sala novamente ??
 - [ ] Undo e redo bugando quando cliente desconecta e reconecta. tirar a responsabilidade do frontend??
