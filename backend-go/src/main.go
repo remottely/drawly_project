@@ -636,7 +636,7 @@ func (r *Room) HasEveryoneAnsweredCorrectly() bool {
 }
 
 func (r *Room) GetCurrentDrawer() *Participant {
-	if len(r.TurnQueue) == 0 {
+	if r.CurrentDrawerTurnIndex == -1 || len(r.TurnQueue) == 0 {
 		return nil
 	}
 	return r.TurnQueue[r.CurrentDrawerTurnIndex]
@@ -694,8 +694,29 @@ func (r *Room) GetParticipants() []*Participant {
 }
 
 func (r *Room) AdvanceTurn() {
+	if len(r.TurnQueue) == 0 {
+		return
+	}
+
 	r.TurnCount++
-	r.CurrentDrawerTurnIndex = r.TurnCount % len(r.TurnQueue)
+	startIdx := r.CurrentDrawerTurnIndex // Guarda o ponto inicial para evitar loops infinitos
+
+	for {
+		r.CurrentDrawerTurnIndex = (r.CurrentDrawerTurnIndex + 1) % len(r.TurnQueue)
+		currentDrawer := r.TurnQueue[r.CurrentDrawerTurnIndex]
+
+		// Verifica se o participante está conectado
+		if currentDrawer.IsConnected {
+			break
+		}
+
+		// Se percorremos todos os participantes sem encontrar um conectado
+		if r.CurrentDrawerTurnIndex == startIdx {
+			fmt.Println("Nenhum participante conectado para ser o desenhista.")
+			r.CurrentDrawerTurnIndex = -1 // Define como inválido se não houver conectados
+			return
+		}
+	}
 }
 
 func (r *Room) GetCorrectAnswerRank(userId string) int {
@@ -824,34 +845,19 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		return
 	}
 
-	// Cancela o timer anterior se existir
-	if room.ActiveTimer != nil {
-		room.ActiveTimer.Stop()
-		room.ActiveTimer = nil
-	}
-
-	// Configura o novo turno
 	room.AdvanceTurn()
-	room.ResetCorrectAnswers()
-
-	drawing := roomDrawings[roomName]
-	if drawing != nil {
-		drawing.Clear()
-	}
-
 	currentDrawer := room.GetCurrentDrawer()
 	if currentDrawer == nil {
+		fmt.Printf("Não há participantes conectados na sala %s.\n", roomName)
+		emitErrorToRoom(io, roomName, "Nenhum participante conectado para ser o desenhista.", "dialog")
 		return
 	}
 
-	// Escolha uma palavra aleatória
-	wordsList := []string{
-		"r",
-		// "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua", "livro", "avião",
-		// "rio","montanha", "praia", "peixe", "pássaro", "computador", "telefone", "cadeira", "mesa",
-		// "namorados", "corda", "pular", "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
-	}
-	wordToDraw := wordsList[int(time.Now().Unix()%int64(len(wordsList)))]
+	// Lógica de novo turno continua aqui
+	room.ResetCorrectAnswers()
+	roomDrawings[roomName].Clear()
+
+	wordToDraw := chooseRandomWord()
 	room.CurrentWord = wordToDraw
 
 	io.To(socket.Room(roomName)).Emit("game:turn:new", Turn{
@@ -863,15 +869,19 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		IsGameStarted:         room.IsGameStarted,
 	})
 
-	// Atualiza os participantes
 	io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
 		"participants": room.GetParticipants(),
 	})
 
-	// Configura o novo timer
 	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
-		room.ActiveTimer = nil // Timer concluído, zera a referência
 		TurnManagerStartTurnTimer(io, roomName, totalDuration)
+	})
+}
+
+func emitErrorToRoom(io *socket.Server, roomName string, message string, action string) {
+	io.To(socket.Room(roomName)).Emit("error", ErrorDTO{
+		Message: message,
+		Action:  action,
 	})
 }
 
@@ -880,6 +890,22 @@ func CancelActiveTimer(room *Room) {
 		room.ActiveTimer.Stop()
 		room.ActiveTimer = nil
 	}
+}
+
+var wordsList = []string{
+	"r",
+	// "gato", "cachorro", "casa", "carro", "árvore", "flor", "sol", "lua",
+	// "livro", "avião", "rio", "montanha", "praia", "peixe", "pássaro",
+	// "computador", "telefone", "cadeira", "mesa", "namorados", "corda",
+	// "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
+}
+
+func chooseRandomWord() string {
+	if len(wordsList) == 0 {
+		return "Nenhuma palavra disponível."
+	}
+	randomIndex := time.Now().UnixNano() % int64(len(wordsList))
+	return wordsList[randomIndex]
 }
 
 func deleteRoom(roomName string) {
