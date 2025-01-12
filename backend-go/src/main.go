@@ -845,6 +845,9 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		return
 	}
 
+	// Cancela o timer anterior, se existir
+	CancelActiveTimer(room)
+
 	room.AdvanceTurn()
 	currentDrawer := room.GetCurrentDrawer()
 	if currentDrawer == nil {
@@ -853,7 +856,7 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		return
 	}
 
-	// Lógica de novo turno continua aqui
+	// Resetar estado para o novo turno
 	room.ResetCorrectAnswers()
 	roomDrawings[roomName].Clear()
 
@@ -873,9 +876,12 @@ func TurnManagerStartTurnTimer(io *socket.Server, roomName string, totalDuration
 		"participants": room.GetParticipants(),
 	})
 
+	// Configura o novo timer
 	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
+		fmt.Printf("Timer executado para a sala %s.\n", roomName)
 		TurnManagerStartTurnTimer(io, roomName, totalDuration)
 	})
+	fmt.Printf("Novo timer configurado para a sala %s.\n", roomName)
 }
 
 func emitErrorToRoom(io *socket.Server, roomName string, message string, action string) {

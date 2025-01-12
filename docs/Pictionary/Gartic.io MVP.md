@@ -111,6 +111,8 @@
 - [x] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer. Bug: no if alreadyInRoom o client nao esta dando Join() nem roomUsers nem emitDrawingState, corrigir.
 - [x] (0.46.3) Bug: roomUsers retornando sempre uma string sendo referenciada como roomName ou userId, oq n fazia o menor sentido. Removido e colocado o RoomUser struct no lugar.
 - [x] (0.47.0) feature: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
+- [x] (0.47.1) Bug: turnos durando pouco tempo, verificar o timer no backend ou frontend
+- [ ] O timer esta desincronizado entre as salas, ressincronizar em algum momento?
 - [ ] feature: quando o usuario q esta desenhando cair, ele deve pular o turno imediatamente ou esperar um tempo?
 - [ ] Criar um temporizador para eliminar esse participant da sala ou nao? mante-lo ate o final caso ele queira entrar na sala novamente ??
 - [ ] Undo e redo bugando quando cliente desconecta e reconecta. tirar a responsabilidade do frontend??
