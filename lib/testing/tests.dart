@@ -8,7 +8,7 @@ class Tests {
     developer.log('Simulando desconexão...');
     SocketManager.instance.disconnect();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 5), () {
       developer.log('Reconectando...');
       SocketManager.instance.connect();
     });

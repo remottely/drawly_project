@@ -118,7 +118,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                                                           .currentDrawerUserId &&
                                                   value[index].userId ==
                                                       widget.currentDrawerUserId
-                                              ? AppColors.greenAccent
+                                              ? AppColors.black
                                               : value[index].userId ==
                                                       widget.currentDrawerUserId
                                                   ? AppColors.black

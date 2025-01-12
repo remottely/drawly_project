@@ -109,6 +109,10 @@
 - [x] (0.46.0) Ao perder conexao, verificar se a rodada deve ser finalizada
 - [x] (0.46.1) Bug: ao perder conexão e reconectar saindo da sala
 - [x] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer. Bug: no if alreadyInRoom o client nao esta dando Join() nem roomUsers nem emitDrawingState, corrigir.
+- [x] (0.46.3) Bug: roomUsers retornando sempre uma string sendo referenciada como roomName ou userId, oq n fazia o menor sentido. Removido e colocado o RoomUser struct no lugar.
+- [ ] (0.46.4) Bug: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
+- [ ] Criar um temporizador para eliminar esse participant da sala ou nao? mante-lo ate o final caso ele queira entrar na sala novamente ??
+- [ ] Undo e redo bugando quando cliente desconecta e reconecta. tirar a responsabilidade do frontend??
 - [ ] (0.46.3) Bug: ao perder conexao a rodada nao finaliza. criar temporizador para esperar o usuario q desconectou? deixar temporizador para v2?
 - [ ] Bug: mensagem de "... saiu" nunca sendo emitida
 - [ ] Bug: alternancia entre respostas de forma infinita na mesma rodada

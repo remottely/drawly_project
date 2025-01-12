@@ -44,12 +44,13 @@ func main() {
 			if len(args) > 0 {
 				if data, ok := args[0].(map[string]interface{}); ok {
 					roomName, _ := data["roomName"].(string) // Converte o nome da sala para string
-					if _, exists := rooms[roomName]; !exists {
-						rooms[roomName] = NewRoom(roomName)
-						roomDrawings[roomName] = &Drawing{}
-						emitRoomList(io) // Atualiza a lista de salas para todos os clientes
-						client.Emit("room:created", map[string]interface{}{"roomName": roomName})
-					}
+					createRoom(io, client, roomName)
+					// if _, exists := rooms[roomName]; !exists {
+					// 	rooms[roomName] = NewRoom(roomName)
+					// 	roomDrawings[roomName] = &Drawing{}
+					// 	emitRoomList(io) // Atualiza a lista de salas
+					// 	client.Emit("room:created", map[string]interface{}{"roomName": roomName})
+					// }
 				}
 			}
 		})
@@ -94,7 +95,13 @@ func main() {
 					participant.IsConnected = true
 
 					client.Join(socket.Room(roomName))
-					roomUsers[string(client.Id())] = roomName
+					roomUsers[string(client.Id())] = &RoomUser{
+						RoomName:   roomName,
+						UserId:     userId,
+						Username:   username,
+						UserAvatar: &userAvatar,
+						IsLogged:   true,
+					}
 
 					if drawing, exists := roomDrawings[roomName]; exists {
 						emitDrawingState(io, roomName, drawing)
@@ -127,7 +134,13 @@ func main() {
 
 						room.AddParticipant(participant)
 						client.Join(socket.Room(roomName))
-						roomUsers[string(client.Id())] = roomName
+						roomUsers[string(client.Id())] = &RoomUser{
+							RoomName:   roomName,
+							UserId:     userId,
+							Username:   username,
+							UserAvatar: &userAvatar,
+							IsLogged:   true,
+						}
 
 						icon := "info"
 						message := Message{
@@ -452,22 +465,23 @@ func main() {
 
 		// Evento: Desconexão
 		client.On("disconnect", func(...any) {
-			roomName, userExists := roomUsers[string(client.Id())]
-			if !userExists {
+			// chatgpt: me explique pq aqui eu recupero roomName, userExists do roomUsers e logo abaixo recupero userId do roomUsers, como isso unciona em Go?
+			userInfo, exists := roomUsers[string(client.Id())]
+			if !exists {
 				return
 			}
 
-			room, exists := rooms[roomName]
-			if !exists || room == nil {
+			room, exists := rooms[userInfo.RoomName]
+			if !exists {
 				return
 			}
 
-			participant, participantExists := room.Participants[string(client.Id())]
+			participant, participantExists := room.Participants[userInfo.UserId]
 			if participantExists && participant != nil {
 				participant.IsConnected = false // Marca o participante como desconectado
 
 				// Emite mensagem para a sala sobre a saída do participante
-				io.To(socket.Room(roomName)).Emit("chat:message", Message{
+				io.To(socket.Room(userInfo.RoomName)).Emit("chat:message", Message{
 					Icon:     nil,
 					UserId:   participant.UserId,
 					Username: participant.Username,
@@ -479,18 +493,18 @@ func main() {
 
 			// Verifica se todos os participantes conectados responderam corretamente
 			if room.HasEveryoneAnsweredCorrectly() {
-				fmt.Printf("Todos os participantes conectados na sala %s responderam corretamente.\n", roomName)
+				fmt.Printf("Todos os participantes conectados na sala %s responderam corretamente.\n", userInfo.RoomName)
 				room.ResetCorrectAnswers()
-				TurnManagerStartTurnTimer(io, roomName, 60) // Avança para o próximo turno
+				TurnManagerStartTurnTimer(io, userInfo.RoomName, 60) // Avança para o próximo turno
 			}
 
 			// Se não há mais participantes conectados, remove a sala
 			if len(room.GetParticipants()) == 0 {
-				deleteRoom(roomName) // Remove a sala e seus recursos associados
-				emitRoomList(io)     // Atualiza a lista de salas para todos os clientes
+				deleteRoom(userInfo.RoomName) // Remove a sala e seus recursos associados
+				emitRoomList(io)              // Atualiza a lista de salas para todos os clientes
 			} else {
 				// Atualiza a lista de participantes na sala
-				io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]interface{}{
+				io.To(socket.Room(userInfo.RoomName)).Emit("room:participants:update", map[string]interface{}{
 					"participants": room.GetParticipants(),
 				})
 			}
@@ -589,6 +603,16 @@ func (d *Drawing) Redo() *Stroke {
 	d.BackupStrokes = d.BackupStrokes[:len(d.BackupStrokes)-1]
 	d.Strokes = append(d.Strokes, lastBackup)
 	return &lastBackup
+}
+
+// Função para criar uma nova sala
+func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
+	if _, exists := rooms[roomName]; !exists {
+		rooms[roomName] = NewRoom(roomName)
+		roomDrawings[roomName] = &Drawing{}
+		emitRoomList(io) // Atualiza a lista de salas
+		client.Emit("room:created", map[string]interface{}{"roomName": roomName})
+	}
 }
 
 func (r *Room) ParticipantCorrectAnswer(userId string) {
@@ -694,9 +718,9 @@ func (r *Room) GetCorrectAnswerRank(userId string) int {
 }
 
 var (
-	rooms        = make(map[string]*Room)    // Nome da sala -> Room
-	roomDrawings = make(map[string]*Drawing) // Nome da sala -> Drawing
-	roomUsers    = make(map[string]string)   // Socket ID -> RoomUserDTO
+	rooms        = make(map[string]*Room)     // Nome da sala -> Room
+	roomDrawings = make(map[string]*Drawing)  // Nome da sala -> Drawing
+	roomUsers    = make(map[string]*RoomUser) // Socket ID -> RoomUserInfo
 )
 
 func getRoomNames() []string {
@@ -977,4 +1001,12 @@ type Turn struct {
 type ErrorDTO struct {
 	Message string `json:"message"` // Mensagem de erro
 	Action  string `json:"action"`  // Ação sugerida (e.g., "nothing", "nothing")
+}
+
+type RoomUser struct {
+	RoomName   string  `json:"roomName"`
+	UserId     string  `json:"userId"`
+	Username   string  `json:"username"`
+	UserAvatar *string `json:"userAvatar"`
+	IsLogged   bool    `json:"isLogged"`
 }

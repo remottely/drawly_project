@@ -75,7 +75,7 @@
       "args": [],
       "env": {},
       "cwd": "./backend-go/src/"
-    },
+    }
     // {
     //   // dlv debug --headless --listen=:2345 --api-version=2 --log
     //   "name": "Backend-Go Remote Debug",
@@ -87,16 +87,16 @@
     //   "host": "127.0.0.1", // TODO
     //   "program": "./backend-go/src/" // TODO
     // },
-    {
-      "name": "Backend-Go Test",
-      "type": "go",
-      "request": "launch",
-      "mode": "test",
-      "program": "./backend-go/src/",
-      "args": [],
-      "env": {},
-      "cwd": "./backend-go/src/"
-    }
+    // {
+    //   "name": "Backend-Go Test",
+    //   "type": "go",
+    //   "request": "launch",
+    //   "mode": "test",
+    //   "program": "./backend-go/src/",
+    //   "args": [],
+    //   "env": {},
+    //   "cwd": "./backend-go/src/"
+    // }
   ],
   "compounds": [
     {

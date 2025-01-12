@@ -3,7 +3,7 @@ description: "Desenhe, adivinhe e se divirta como nunca"
 
 publish_to: "none"
 
-version: 0.46.2
+version: 0.46.3
 
 environment:
   sdk: ^3.5.4
