@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:drawing_board/src/src.dart';
 import 'package:drawly_core/drawly_core.dart';
@@ -18,7 +17,7 @@ class DrawingCanvas extends StatefulWidget {
     required this.username,
     required this.roomName,
     super.key,
-    this.rxBackgroundImage,
+    // this.rxBackgroundImage,
   })  : assert(
           username.length >= 3,
           'The username must be at least 3 characters long',
@@ -29,7 +28,7 @@ class DrawingCanvas extends StatefulWidget {
         );
 
   final ValueNotifier<List<Stroke>> rxAllStrokes;
-  final ValueNotifier<ui.Image?>? rxBackgroundImage;
+  // final ValueNotifier<ui.Image?>? rxBackgroundImage;
   final CurrentStrokeValueNotifier rxCurrentStroke;
   final DrawingCanvasOptions options;
   // final Function(Stroke?)? onDrawingStrokeChanged;
@@ -287,7 +286,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                         rxCurrentStroke: rxCurrentStroke,
                         backgroundColor: widget.options.backgroundColor,
                         rxIsShowGrid: rxIsShowGrid,
-                        rxBackgroundImage: widget.rxBackgroundImage,
+                        // rxBackgroundImage: widget.rxBackgroundImage,
                       ),
                     ),
                   ),
@@ -307,14 +306,14 @@ class _DrawingCanvasPainter extends CustomPainter {
     this.rxCurrentStroke,
     this.backgroundColor = Colors.white,
     this.rxIsShowGrid,
-    this.rxBackgroundImage,
+    // this.rxBackgroundImage,
   }) : super(
           repaint: Listenable.merge(
             [
               rxAllStrokes,
               rxCurrentStroke,
               rxIsShowGrid,
-              rxBackgroundImage,
+              // rxBackgroundImage,
             ],
           ),
         );
@@ -322,27 +321,27 @@ class _DrawingCanvasPainter extends CustomPainter {
   final CurrentStrokeValueNotifier? rxCurrentStroke;
   final Color backgroundColor;
   final ValueNotifier<bool>? rxIsShowGrid;
-  final ValueNotifier<ui.Image?>? rxBackgroundImage;
+  // final ValueNotifier<ui.Image?>? rxBackgroundImage;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (rxBackgroundImage != null) {
-      final backgroundImage = rxBackgroundImage!.value;
+    // if (rxBackgroundImage != null) {
+    //   final backgroundImage = rxBackgroundImage!.value;
 
-      if (backgroundImage != null) {
-        canvas.drawImageRect(
-          backgroundImage,
-          Rect.fromLTWH(
-            0,
-            0,
-            backgroundImage.width.toDouble(),
-            backgroundImage.height.toDouble(),
-          ),
-          Rect.fromLTWH(0, 0, size.width, size.height),
-          Paint(),
-        );
-      }
-    }
+    //   if (backgroundImage != null) {
+    //     canvas.drawImageRect(
+    //       backgroundImage,
+    //       Rect.fromLTWH(
+    //         0,
+    //         0,
+    //         backgroundImage.width.toDouble(),
+    //         backgroundImage.height.toDouble(),
+    //       ),
+    //       Rect.fromLTWH(0, 0, size.width, size.height),
+    //       Paint(),
+    //     );
+    //   }
+    // }
 
     final allStrokes = List<Stroke>.from(rxAllStrokes?.value ?? []);
 
