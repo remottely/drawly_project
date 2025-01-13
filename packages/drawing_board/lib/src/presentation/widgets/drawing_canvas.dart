@@ -250,7 +250,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       rxCurrentStroke.startStroke(
                         localPosition,
                         color: strokeColor,
-                        size: size / scale,
+                        size: size / scale, // TODONOW
                         opacity: opacity,
                         type: currentTool.strokeType,
                         sides: widget.options.polygonSides,
@@ -467,11 +467,11 @@ class _DrawingCanvasPainter extends CustomPainter {
     const subGridStrokeWidth = 0.5;
 
     final gridPaint = Paint()
-      ..color = Colors.red.withOpacity(0.3)
+      ..color = Colors.red.withOpacity(0.2)
       ..strokeWidth = gridStrokeWidth;
 
     final subGridPaint = Paint()
-      ..color = Colors.red.withOpacity(0.3)
+      ..color = Colors.red.withOpacity(0.2)
       ..strokeWidth = subGridStrokeWidth;
 
     for (var y = 0.0; y <= size.height; y += gridSpacing) {

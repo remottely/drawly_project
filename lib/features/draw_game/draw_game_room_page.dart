@@ -84,14 +84,14 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     _onNewTurnEvent = (data) {
       rxWord.value = (data as Map<String, dynamic>)['word'] as String;
       rxCurrentDrawerUserId.value = data['currentDrawerUserId'] as String;
+      rxIsCurrentDrawerUserId.value =
+          rxCurrentDrawerUserId.value == widget.userId;
       rxCurrentDrawerUsername.value = data['currentDrawerUsername'] as String;
       rxTotalDuration.value = data['totalDuration'] as int;
       rxTurn.value = data['turn'] as int;
       rxTimeLeft.value = rxTotalDuration.value - 300;
 
-      rxIsCurrentDrawerUserId.value =
-          rxCurrentDrawerUserId.value == widget.userId;
-      rxIsGameStarted.value = true;
+      rxIsGameStarted.value = data['isGameStarted'] as bool;
 
       startCountdown(rxTotalDuration.value);
     };
@@ -128,14 +128,20 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
     ).toJson();
 
     try {
-      final response =
+      final responseData =
           await SocketManager.instance.emitWithAck('room:join', payload);
-      if (response['success'] == false) {
+      if (responseData['success'] == false) {
         if (mounted) {
+          developer.log('join message: ${responseData['message']}');
           Navigator.of(context).pop();
         }
       } else {
-        rxTurn.value = response['turn'] as int;
+        rxTurn.value = responseData['turn'] as int;
+        rxIsGameStarted.value = responseData['isGameStarted'] as bool;
+        rxCurrentDrawerUserId.value =
+            responseData['currentDrawerUserId'] as String;
+        rxIsCurrentDrawerUserId.value =
+            rxCurrentDrawerUserId.value == widget.userId;
       }
     } catch (e) {
       developer.log('Error joining room: $e');
@@ -168,7 +174,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           builder: (context, _) {
             return Scaffold(
               backgroundColor: rxIsCurrentDrawerUserId.value
-                  ? AppColors.lightSecondary
+                  ? AppColors.greenAccent
                   : AppColors.lightPrimary,
               body: Column(
                 children: [
@@ -216,7 +222,6 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                               Expanded(
                                 child: AnimatedBuilder(
                                   animation: Listenable.merge([
-                                    rxWord,
                                     rxCurrentDrawerUserId,
                                   ]),
                                   builder: (context, _) {
@@ -249,20 +254,30 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         )
                                       else
                                         DrawlyTitleContainer(
-                                          color: rxIsCurrentDrawerUserId.value
-                                              ? AppColors.blueAccent
-                                              : AppColors.darkBlueAccent,
                                           text: rxCurrentDrawerUserId.value ==
                                                   null
                                               ? 'Intervalo...'
                                               : '''Vez de ${rxCurrentDrawerUsername.value}''',
+                                          textColor: AppColors.black,
+                                          color: rxIsCurrentDrawerUserId.value
+                                              ? AppColors.greenAccent
+                                              : AppColors.yellowAccent,
                                         ),
-                                      if (Tests.isTesting)
+                                      if (Tests.isTesting) ...[
                                         const IconButton(
-                                          onPressed: Tests.testReconnection,
+                                          onPressed: Tests
+                                              .testDisconnectionThenReconnection4s,
+                                          icon: Icon(
+                                            Icons.wifi_off_sharp,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const IconButton(
+                                          onPressed: Tests
+                                              .testDisconnectionThenReconnection10s,
                                           icon: Icon(Icons.wifi_off_sharp),
-                                        )
-                                      else
+                                        ),
+                                      ] else
                                         const SizedBox.shrink(),
                                     ],
                                   ),

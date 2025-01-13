@@ -230,7 +230,7 @@ export class RoomDrawingStrokeLastPointsDTO extends RoomDTO {
   }
 }
 
-export class RoomUserDTO extends RoomDTO {
+export class RoomUser extends RoomDTO {
   constructor(
     roomName: string,
     public userId: string,
@@ -267,7 +267,7 @@ export class RoomUserAnswerDTO extends RoomDTO {
 // Global variables
 const rooms: { [roomName: string]: Room } = {};
 const roomDrawings: { [roomName: string]: Drawing } = {};
-const roomUsers: { [socketId: string]: RoomUserDTO } = {};
+const roomUsers: { [socketId: string]: RoomUser } = {};
 const minNumberOfPlayers = 2;
 // TODO(Kevin): Change back to 12
 const maxmNumberOfPlayers = 3;
@@ -300,7 +300,7 @@ export class RoomManager {
     }
   }
 
-  static join(socket: Socket, { roomName, userId, username, userAvatar, isLogged }: RoomUserDTO, callback: any): void {
+  static join(socket: Socket, { roomName, userId, username, userAvatar, isLogged }: RoomUser, callback: any): void {
     if (!rooms[roomName]) {
       console.log(`Room ${roomName} does not exist`);
       return;
@@ -337,7 +337,7 @@ export class RoomManager {
     callback({ success: true, turn: currentRoom.turnCount });
   }
 
-  static leave(socket: Socket, { roomName, userId, username }: RoomUserDTO): void {
+  static leave(socket: Socket, { roomName, userId, username }: RoomUser): void {
     console.log(`${userId} - ${username} left room ${roomName}`);
     MessageChatActions.message(roomName, new Message('info', userId, username, "saiu"));
     rooms[roomName]?.removeParticipant(userId);
@@ -568,8 +568,8 @@ io.on('connection', (socket: Socket): void => {
   socket.emit('room:all', { allRooms: Object.keys(rooms) });
 
   socket.on('room:create', (data: RoomDTO) => RoomManager.create(data));
-  socket.on('room:join', (data: RoomUserDTO, callback: any) => RoomManager.join(socket, data, callback));
-  socket.on('room:leave', (data: RoomUserDTO) => RoomManager.leave(socket, data));
+  socket.on('room:join', (data: RoomUser, callback: any) => RoomManager.join(socket, data, callback));
+  socket.on('room:leave', (data: RoomUser) => RoomManager.leave(socket, data));
 
   socket.on('drawing:stroke:start', (data: RoomDrawingStartStrokeDTO) => DrawingActions.strokeStart(data));
   socket.on('drawing:stroke:lastPoints', (data: RoomDrawingStrokeLastPointsDTO) => DrawingActions.strokeLastPoints(data));

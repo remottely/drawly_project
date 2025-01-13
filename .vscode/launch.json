@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_1.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8082",
@@ -15,7 +15,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_2.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8083",
@@ -23,7 +23,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_3.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8084",
@@ -31,7 +31,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_4.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8085",
@@ -39,7 +39,7 @@
       "request": "launch",
       "program": "lib/main.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8085"],
-      "noDebug": false
+      "noDebug": true
     },
     {
       "name": "8086",
@@ -49,22 +49,54 @@
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8086"],
       "noDebug": false
     },
+    // {
+    //   "name": "8087",
+    //   "type": "dart",
+    //   "request": "launch",
+    //   "program": "lib/testing/golang/main.dart",
+    //   "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8087"],
+    //   "noDebug": false
+    // },
+    // {
+    //   "name": "8088",
+    //   "type": "dart",
+    //   "request": "launch",
+    //   "program": "lib/testing/golang/main.dart",
+    //   "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8088"],
+    //   "noDebug": false
+    // }
     {
-      "name": "8087",
-      "type": "dart",
+      "name": "Backend-Go DEV",
+      "type": "go",
       "request": "launch",
-      "program": "lib/testing/golang/main.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8087"],
-      "noDebug": false
-    },
-    {
-      "name": "8088",
-      "type": "dart",
-      "request": "launch",
-      "program": "lib/testing/golang/main.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8088"],
-      "noDebug": false
+      "mode": "auto",
+      "program": "./backend-go/src/",
+      "buildFlags": "",
+      "args": [],
+      "env": {},
+      "cwd": "./backend-go/src/"
     }
+    // {
+    //   // dlv debug --headless --listen=:2345 --api-version=2 --log
+    //   "name": "Backend-Go Remote Debug",
+    //   "type": "go",
+    //   "request": "attach",
+    //   "mode": "remote",
+    //   "remotePath": "/path/to/code", // TODO
+    //   "port": 2345, // TODO
+    //   "host": "127.0.0.1", // TODO
+    //   "program": "./backend-go/src/" // TODO
+    // },
+    // {
+    //   "name": "Backend-Go Test",
+    //   "type": "go",
+    //   "request": "launch",
+    //   "mode": "test",
+    //   "program": "./backend-go/src/",
+    //   "args": [],
+    //   "env": {},
+    //   "cwd": "./backend-go/src/"
+    // }
   ],
   "compounds": [
     {
@@ -80,12 +112,16 @@
       "configurations": ["8085", "8086"]
     },
     {
-      "name": "Run All Instances",
+      "name": "Run 1/2/3/4 Instances",
       "configurations": ["8081", "8082", "8083", "8084"]
     },
     {
-      "name": "Run 7/8 GOLANG Instances",
-      "configurations": ["8087", "8088"]
+      "name": "Run 1/2/6 Instances",
+      "configurations": ["8081", "8082", "8086"]
     }
+    // {
+    //   "name": "Run 7/8 GOLANG Instances",
+    //   "configurations": ["8087", "8088"]
+    // }
   ]
 }

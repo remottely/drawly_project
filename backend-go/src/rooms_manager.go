@@ -1,0 +1,44 @@
+package main
+
+import "github.com/zishang520/socket.io/v2/socket"
+
+var (
+	rooms        = make(map[string]*Room)
+	roomDrawings = make(map[string]*Drawing)
+	roomUsers    = make(map[string]*RoomUser)
+)
+
+func newRoom(name string) *Room {
+	return &Room{
+		Name:                             name,
+		Participants:                     make(map[string]*Participant),
+		ParticipantsWhoAnsweredCorrectly: make(map[string]bool),
+	}
+}
+
+func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
+	if _, exists := rooms[roomName]; !exists {
+		rooms[roomName] = newRoom(roomName)
+		roomDrawings[roomName] = &Drawing{}
+		emitRoomList(io) // Atualiza a lista de salas
+		client.Emit("room:created", map[string]interface{}{"roomName": roomName})
+	}
+}
+
+func deleteRoom(roomName string) {
+	room, exists := rooms[roomName]
+	if exists {
+		cancelActiveTimer(room)
+		room.IsGameStarted = false
+		delete(rooms, roomName)
+		delete(roomDrawings, roomName)
+	}
+}
+
+func getRoomNames() []string {
+	names := make([]string, 0, len(rooms))
+	for name := range rooms {
+		names = append(names, name)
+	}
+	return names
+}

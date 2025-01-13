@@ -37,7 +37,7 @@ class _DrawingBoardState extends State<DrawingBoard>
   CurrentStrokeValueNotifier rxCurrentStroke = CurrentStrokeValueNotifier();
   final rxSelectedColor = ValueNotifier<Color>(Colors.black);
   final rxSelectedColorOpacity = ValueNotifier<double>(1);
-  final rxCurrentStrokeSize = ValueNotifier<double>(10);
+  final rxCurrentStrokeSize = ValueNotifier<double>(6);
   // final rxEraserSize = ValueNotifier<double>(30.0);
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
   final rxIsFilled = ValueNotifier<bool>(false);
@@ -73,7 +73,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxCurrentStroke = CurrentStrokeValueNotifier();
       rxSelectedColor.value = Colors.black;
       rxSelectedColorOpacity.value = 1.0;
-      rxCurrentStrokeSize.value = 5.0;
+      rxCurrentStrokeSize.value = 6.0;
       // rxEraserSize.value = 30.0;
       rxDrawingTool.value = DrawingTool.pencil;
       rxIsFilled.value = false;
@@ -90,9 +90,10 @@ class _DrawingBoardState extends State<DrawingBoard>
     return IgnorePointer(
       ignoring: !widget.isCurrentDrawer,
       child: Scaffold(
-        backgroundColor: widget.isCurrentDrawer
-            ? AppColors.lightSecondary
-            : AppColors.lightPrimary,
+        backgroundColor: Colors.transparent,
+        // backgroundColor: widget.isCurrentDrawer
+        //     ? AppColors.lightSecondary
+        //     : AppColors.lightPrimary,
         body: HotkeyListener(
           onRedo: undoRedoStack.redo,
           onUndo: undoRedoStack.undo,

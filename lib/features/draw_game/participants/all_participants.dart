@@ -1,5 +1,6 @@
 import 'package:drawly/core/widgets/avatar.dart';
 import 'package:drawly/features/draw_game/models/participants.dart';
+import 'package:drawly/main.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -110,21 +111,34 @@ class _AllParticipantsState extends State<AllParticipants> {
                                 children: [
                                   Text(
                                     value[index].username,
-                                    style: const TextStyle(
-                                      color: AppColors.black,
+                                    style: TextStyle(
+                                      color: App.isDebugMode
+                                          ? widget.userId ==
+                                                      widget
+                                                          .currentDrawerUserId &&
+                                                  value[index].userId ==
+                                                      widget.currentDrawerUserId
+                                              ? AppColors.black
+                                              : value[index].userId ==
+                                                      widget.currentDrawerUserId
+                                                  ? AppColors.black
+                                                  : widget.userId ==
+                                                          value[index].userId
+                                                      ? AppColors.redAccent
+                                                      : AppColors.greyAccent700
+                                          : AppColors.black,
                                       // widget.userId ==
                                       //             widget.currentDrawerUserId &&
                                       //         value[index].userId ==
                                       //             widget.currentDrawerUserId
                                       //     ? AppColors.greenAccent
-                                      //     :
-                                      // value[index].userId ==
-                                      //         widget.currentDrawerUserId
-                                      //     ? AppColors.black
-                                      //     : widget.userId ==
-                                      //             value[index].userId
+                                      //     : value[index].userId ==
+                                      //             widget.currentDrawerUserId
                                       //         ? AppColors.black
-                                      //         : AppColors.greyAccent700,
+                                      //         : widget.userId ==
+                                      //                 value[index].userId
+                                      //             ? AppColors.black
+                                      //             : AppColors.greyAccent700,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       height: 1,
@@ -186,11 +200,12 @@ class _UserPicture extends StatelessWidget {
       children: [
         Avatar(
           backgroundImage: userAvatar != null ? AssetImage(userAvatar!) : null,
-          color: currentDrawerIsisCurrentDrawerUserId
-              ? AppColors.greenAccent
-              : isCurrentDrawerUserId
-                  ? AppColors.yellowAccent
-                  : AppColors.darkBlueAccent,
+          color: AppColors.darkBlueAccent,
+          // currentDrawerIsisCurrentDrawerUserId
+          //     ? AppColors.greenAccent
+          //     : isCurrentDrawerUserId
+          //         ? AppColors.yellowAccent
+          //         : AppColors.darkBlueAccent,
         ),
         if (isCurrentDrawerUserId)
           Positioned(

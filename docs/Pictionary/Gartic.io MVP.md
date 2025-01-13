@@ -101,6 +101,44 @@
 - [x] (0.41.0) **Feature**: Emit `room:participants:update` as a list, ordered by each participant's score in descending order.
 - [x] (0.42.0) Implement tiebreaker logic on the Golang side based on the previous round.
 - [x] (0.43.0) Highlight the local user and the drawer in the UI.
+- [x] (0.44.0) improve some ui colors
+- [x] (0.44.1) Bug: undo and redo not working
+- [x] (0.44.2) Bug: room:join not calling drawing:stroke:all
+- [x] (0.44.3) Bug: when enter in a room already started the game, button start game are activated
+- [x] (0.45.0) feature: implementar isGameStarted para ser controlado do lado do backend
+- [x] (0.46.0) Ao perder conexao, verificar se a rodada deve ser finalizada
+- [x] (0.46.1) Bug: ao perder conexão e reconectar saindo da sala
+- [x] (0.46.2) Bug: ao perder conexão e reconectar o jogo quebra e fica sem drawer. Bug: no if alreadyInRoom o client nao esta dando Join() nem roomUsers nem emitDrawingState, corrigir.
+- [x] (0.46.3) Bug: roomUsers retornando sempre uma string sendo referenciada como roomName ou userId, oq n fazia o menor sentido. Removido e colocado o RoomUser struct no lugar.
+- [x] (0.47.0) feature: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
+- [x] (0.47.1) Bug: turnos durando pouco tempo, verificar o timer no backend ou frontend
+- ...:
+	- [x] (0.48.0) feature: quando o usuario q esta desenhando cair, ele deve pular o turno esperar 5s para qualquer participant independente se ele esta desenhando?
+	- [x] (0.49.0) quando a pessoa q esta desenhando(drawer) cai por 5s, e enquanto ela esta fora todos os outros acertam, o turno troca etc tudo certinho, mas na tela do participant q caiu permanece a possibilidade dela continuar desenhando. corrigir isso.
+	- [ ]  esta correto: quando a pessoa acerta e cai por menos de 5s e volta as pontuacoes permanecem. por mais de 10s ela perde todos os pontos, pois ela foi removida e reincerida na lista de participants. manter assim ou criar uma outra logica q pula a vez dps de 5s mas manter todas as pontuacoes etc do participant?
+	- [ ] remover a verificacao isConnect da validacao de guess, pois agora existe a regra dos 5s q elimina a pessoa da sala. logo, agora devemos esperar 5s o participant voltar, entao se passar disso remove-lo e verificar se ele esta na lista de participants da sala.
+- [x] (0.50.0) start code enchance
+- [x] (0.50.1) atualizando zishang520/socket.io/v2 lib
+- [x] (0.50.2) manipulando tipos especificos para economizar memoria e tratar melhor as variaveis, float32, uint8, etc
+- [x] (0.50.3) separando o main.go em arquivos simples
+- [ ] (0.50.4) enchance the code
+- [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
+- ...:
+	- [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso. 
+	- [ ] (2) adicionar realtime feedback mesmo offline??
+- [ ] garantir q o jogo irá finalizar sempre q houver menos de 2 participants
+- [ ] bug de strokes, investigar
+- [ ]
+- [ ] Criar um temporizador para eliminar esse participant da sala ou nao? mante-lo ate o final caso ele queira entrar na sala novamente ??
+- [ ] Undo e redo bugando quando cliente desconecta e reconecta. tirar a responsabilidade do frontend??
+- [ ] Bug: ao perder conexao a rodada nao finaliza. criar temporizador para esperar o usuario q desconectou? deixar temporizador para v2?
+- [ ] Bug: mensagem de "... saiu" nunca sendo emitida
+- [ ] Bug: alternancia entre respostas de forma infinita na mesma rodada
+- [ ] Ao sair da sala, verificar se a rodada deve ser finalizada
+- [ ] Bug: quando desconectado anteriormente em node ele continuava na mesma pagina, agora ele navega para uma pagina anterior(pop), corrigir isso
+- [ ] Bug: ao entrar na pagina de listas de salas nao aparece nenhuma sala ate eu criar uma nova sala
+- [ ] feature: implementar Room como um objeto do tipo json nativamente??
+- [ ] feature: ao entrar uma pessoa nova na sala, ela nao pode chutar, mas tb a rodada nao termina pois espera q a mesma quantidade de pessoas junto com a q acabou de entrar acertem a palavra. permitir q a nova pessoa tb adivinhe e acerte a palavra? sim.
 - [ ] Add nested navigation.
 - [ ] **Bug**: Ensure geometric shapes are clipped when exceeding the drawing board boundaries.
 - [ ] **Disconnection**: Prevent sending cached data upon disconnection by removing this default Socket.IO behavior.
@@ -108,7 +146,8 @@
 - [ ] Add validation to only display rooms that are not full.
 - [ ] Create a new form to allow users to better personalize room configurations.
 - [ ] Add a feature to report the drawer.
-- [ ] Add a feature to report a player.
+- [ ] Add a feature to report a player. (Add a feature to report a message?)
+- [ ] add a logica de escolha de palavra etc entre os turnos. turn ON, turn Off, bloqueio de envio de desenho entre os turnos etc.
 
 ### Validações e Regras de Negócio
 
@@ -215,6 +254,7 @@
   - [ ] Confirm.
 - [ ] Limit the number of messages each user can send per second or minute.
 - [ ] (0.?.0) Polygon outside canvas limits.
+- [ ] O timer esta desincronizado entre as salas, ressincronizar em algum momento?
 
 ---
 
