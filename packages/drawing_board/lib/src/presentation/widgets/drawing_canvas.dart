@@ -250,7 +250,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       rxCurrentStroke.startStroke(
                         localPosition,
                         color: strokeColor,
-                        size: size / scale,
+                        size: size / scale, // TODONOW
                         opacity: opacity,
                         type: currentTool.strokeType,
                         sides: widget.options.polygonSides,

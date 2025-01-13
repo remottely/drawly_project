@@ -16,7 +16,7 @@ import (
 
 // Configurações do servidor
 const (
-	Version    = "0.50.1"
+	Version    = "0.50.2"
 	MinPlayers = 2
 	MaxPlayers = 4
 )
@@ -48,14 +48,8 @@ func main() {
 			// Verifica se o argumento é um mapa
 			if len(args) > 0 {
 				if data, ok := args[0].(map[string]interface{}); ok {
-					roomName, _ := data["roomName"].(string) // Converte o nome da sala para string
+					roomName, _ := data["roomName"].(string)
 					createRoom(io, client, roomName)
-					// if _, exists := rooms[roomName]; !exists {
-					// 	rooms[roomName] = NewRoom(roomName)
-					// 	roomDrawings[roomName] = &Drawing{}
-					// 	emitRoomList(io) // Atualiza a lista de salas
-					// 	client.Emit("room:created", map[string]interface{}{"roomName": roomName})
-					// }
 				}
 			}
 		})
@@ -417,19 +411,19 @@ func main() {
 						rank := room.getCorrectAnswerRank(userId)
 
 						// Calcula os pontos baseados na posição e no tempo restante
-						basePoints := 100 - (rank-1)*20 // Reduz pontos com base na posição
-						timeLeft := room.TurnCount      // Tempo restante (ajuste para obter o valor real)
-						bonus := timeLeft / 10          // Bônus por rapidez
-						points := max(basePoints+bonus, 10)
+						basePoints := uint16(100 - (rank-1)*20) // Reduz pontos com base na posição
+						timeLeft := room.TurnCount              // Tempo restante (ajuste para obter o valor real)
+						bonus := timeLeft / 10                  // Bônus por rapidez
+						points := max(basePoints+uint16(bonus), 10)
 
 						participant.Score += points
 
 						// Atualiza a pontuação do desenhista
 						drawer := room.getCurrentDrawer()
 						if drawer != nil {
-							totalParticipants := len(room.getParticipants()) - 1 // Exclui o desenhista
+							totalParticipants := uint8(len(room.getParticipants()) - 1) // Exclui o desenhista
 							if totalParticipants > 0 {
-								drawerPointsPerCorrectGuess := 100 / totalParticipants
+								drawerPointsPerCorrectGuess := uint16(100 / totalParticipants)
 								drawer.Score += drawerPointsPerCorrectGuess
 							}
 						}
@@ -509,7 +503,7 @@ func main() {
 						room.removeParticipant(participant.UserId)
 
 						// Ajusta os turnos se necessário
-						if room.CurrentDrawerTurnIndex >= len(room.TurnQueue) {
+						if room.CurrentDrawerTurnIndex >= int8(len(room.TurnQueue)) {
 							room.advanceTurn()
 						}
 
@@ -587,6 +581,26 @@ func emitDrawingState(io *socket.Server, roomName string, drawing *Drawing) {
 	})
 }
 
+type StrokeType string
+
+const (
+	normal  StrokeType = "normal"
+	eraser  StrokeType = "eraser"
+	line    StrokeType = "line"
+	polygon StrokeType = "polygon"
+	square  StrokeType = "square"
+	circle  StrokeType = "circle"
+)
+
+func ParseStrokeType(value string) (StrokeType, error) {
+	switch StrokeType(value) {
+	case normal, eraser, line, polygon, square, circle:
+		return StrokeType(value), nil
+	default:
+		return "", fmt.Errorf("invalid stroke type: %s", value)
+	}
+}
+
 func parseStroke(data map[string]any) (Stroke, error) {
 	// Validar e extrair os pontos
 	rawPoints, ok := data["points"].([]any)
@@ -612,24 +626,32 @@ func parseStroke(data map[string]any) (Stroke, error) {
 	}
 
 	// Validar e extrair outras propriedades
-	color, ok := data["color"].(float64)
+	colorFloat64, ok := data["color"].(float64)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'color'")
 	}
+	// if colorFloat < 0 || colorFloat > 4294967295 {
+	// 	return Stroke{}, fmt.Errorf("'color' value out of range for uint32")
+	// }
+	// color := uint32(colorFloat)
 
-	size, ok := data["size"].(float64)
+	sizeFloat64, ok := data["size"].(float64)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'size'")
 	}
 
-	opacity, ok := data["opacity"].(float64)
+	opacityFloat64, ok := data["opacity"].(float64)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'opacity'")
 	}
 
-	strokeType, ok := data["strokeType"].(string)
+	rawType, ok := data["strokeType"].(string)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'strokeType'")
+	}
+	strokeType, err := ParseStrokeType(rawType)
+	if err != nil {
+		return Stroke{}, err
 	}
 
 	// Campo 'Filled' opcional
@@ -645,9 +667,9 @@ func parseStroke(data map[string]any) (Stroke, error) {
 	// Retorna o objeto Stroke
 	return Stroke{
 		Points:     points,
-		Color:      int(color),
-		Size:       int(size),
-		Opacity:    opacity,
+		Color:      uint32(colorFloat64),
+		Size:       float32(sizeFloat64),
+		Opacity:    uint8(opacityFloat64),
 		StrokeType: strokeType,
 		Filled:     filled,
 	}, nil
@@ -756,7 +778,7 @@ func (r *Room) removeParticipant(userId string) {
 	// Ajusta o índice do desenhista atual
 	if len(r.TurnQueue) == 0 {
 		r.CurrentDrawerTurnIndex = -1 // Nenhum desenhista disponível
-	} else if r.CurrentDrawerTurnIndex >= len(r.TurnQueue) {
+	} else if r.CurrentDrawerTurnIndex >= int8(len(r.TurnQueue)) {
 		r.advanceTurn() // Avança o turno
 	}
 }
@@ -766,7 +788,7 @@ func (r *Room) getParticipants() []*Participant {
 	for _, p := range r.Participants {
 		participants = append(participants, p)
 	}
-
+	// cannot use (func(i, j uint8) bool literal) (value of type func(i uint8, j uint8) bool) as func(i int, j int) bool value in argument to sort.Slice
 	sort.Slice(participants, func(i, j int) bool {
 		if participants[i].Score == participants[j].Score {
 			return participants[i].PreviousOrder < participants[j].PreviousOrder
@@ -775,7 +797,7 @@ func (r *Room) getParticipants() []*Participant {
 	})
 
 	for idx, participant := range participants {
-		participant.PreviousOrder = idx
+		participant.PreviousOrder = uint8(idx)
 	}
 
 	return participants
@@ -790,7 +812,7 @@ func (r *Room) advanceTurn() {
 	startIdx := r.CurrentDrawerTurnIndex // Guarda o ponto inicial para evitar loops infinitos
 
 	for {
-		r.CurrentDrawerTurnIndex = (r.CurrentDrawerTurnIndex + 1) % len(r.TurnQueue)
+		r.CurrentDrawerTurnIndex = (r.CurrentDrawerTurnIndex + 1) % int8(len(r.TurnQueue))
 		currentDrawer := r.TurnQueue[r.CurrentDrawerTurnIndex]
 
 		// Verifica se o participante está conectado
@@ -807,13 +829,13 @@ func (r *Room) advanceTurn() {
 	}
 }
 
-func (r *Room) getCorrectAnswerRank(userId string) int {
+func (r *Room) getCorrectAnswerRank(userId string) uint8 {
 	if r.ParticipantsWhoAnsweredCorrectly == nil {
 		r.ParticipantsWhoAnsweredCorrectly = make(map[string]bool)
 	}
 
 	// Verifica se o participante já respondeu corretamente
-	rank := 1
+	var rank uint8 = 1
 	for answeredUserId := range r.ParticipantsWhoAnsweredCorrectly {
 		if answeredUserId == userId {
 			return rank // Retorna a posição se já respondeu
@@ -903,7 +925,7 @@ func parsePoints(rawPoints []interface{}) ([]Offset, error) {
 	return points, nil
 }
 
-func startTurnTimer(io *socket.Server, roomName string, totalDuration int) {
+func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 	room, exists := rooms[roomName]
 	if !exists {
 		return
@@ -998,8 +1020,9 @@ func emitRanking(io *socket.Server, roomName string) {
 	}
 
 	// Ordenar por pontuação decrescente
+	// cannot use (func(i, j uint8) bool literal) (value of type func(i uint8, j uint8) bool) as func(i int, j int) bool value in argument to sort.Slice
 	sort.Slice(ranking, func(i, j int) bool {
-		return ranking[i]["score"].(int) > ranking[j]["score"].(int)
+		return ranking[i]["score"].(uint16) > ranking[j]["score"].(uint16)
 	})
 
 	io.To(socket.Room(roomName)).Emit("game:ranking", map[string]any{
@@ -1026,21 +1049,21 @@ type Offset struct {
 }
 
 type Stroke struct {
-	Points     []Offset `json:"points"`
-	Color      int      `json:"color"`
-	Size       int      `json:"size"`
-	Opacity    float64  `json:"opacity"`
-	StrokeType string   `json:"strokeType"`
-	Filled     *bool    `json:"filled"`
+	Points     []Offset   `json:"points"`
+	Color      uint32     `json:"color"`
+	Size       float32    `json:"size"`
+	Opacity    uint8      `json:"opacity"`
+	StrokeType StrokeType `json:"strokeType"`
+	Filled     *bool      `json:"filled"`
 }
 
 type Room struct {
 	Name                             string
 	Participants                     map[string]*Participant
 	TurnQueue                        []*Participant
-	CurrentDrawerTurnIndex           int
+	CurrentDrawerTurnIndex           int8
 	CurrentWord                      string
-	TurnCount                        int
+	TurnCount                        uint8
 	ParticipantsWhoAnsweredCorrectly map[string]bool
 	ActiveTimer                      *time.Timer
 	IsGameStarted                    bool
@@ -1052,8 +1075,8 @@ type Participant struct {
 	UserAvatar    *string `json:"userAvatar"`
 	IsLogged      bool    `json:"isLogged"`
 	IsConnected   bool    `json:"isConnected"`
-	Score         int     `json:"score"`
-	PreviousOrder int     `json:"-"` // Ordem da rodada anterior
+	Score         uint16  `json:"score"`
+	PreviousOrder uint8   `json:"-"`
 }
 
 type Drawing struct {
@@ -1078,8 +1101,8 @@ type Answer struct {
 
 type Turn struct {
 	Word                  string `json:"word"`                  // Palavra que está sendo desenhada
-	Turn                  int    `json:"turn"`                  // Número do turno atual
-	TotalDuration         int    `json:"totalDuration"`         // Duração total do turno em milissegundos
+	Turn                  uint8  `json:"turn"`                  // Número do turno atual
+	TotalDuration         uint32 `json:"totalDuration"`         // Duração total do turno em milissegundos
 	CurrentDrawerUserId   string `json:"currentDrawerUserId"`   // ID do usuário que está desenhando
 	CurrentDrawerUsername string `json:"currentDrawerUsername"` // Nome do usuário que está desenhando
 	IsGameStarted         bool   `json:"isGameStarted"`
