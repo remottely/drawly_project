@@ -79,16 +79,13 @@ func handleConnection(io *socket.Server, client *socket.Socket) {
 		handleGameRanking(io, client, args...)
 	})
 
-	// fmt.Printf("Client connected: %s", string(client.Id()))
-
 	// client.On("disconnect", func(...any) {
-	// 	fmt.Printf("Client disconnected: %s", string(client.Id()))
+	// 	logInfo("Client disconnected: %s", string(client.Id()))
 	// })
 
 	// client.On("error", func(data any) {
-	// 	log.Errorf("Error: %v", data)
+	// 	logError("Error: %v", data)
 	// })
-	//////
 }
 
 func handleCreateRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
@@ -102,13 +99,12 @@ func handleCreateRoom(io *socket.Server, client *socket.Socket, args ...interfac
 }
 
 func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
-	fmt.Printf("Args received: %+v\n", args)
-
+	logInfo("Args received: %+v", args)
 	if len(args) > 1 {
 		// Extraindo e verificando o formato do primeiro argumento
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -116,8 +112,8 @@ func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{
 		rawCallback := args[1]
 		callback, ok := rawCallback.(func([]interface{}, error))
 		if !ok {
-			fmt.Printf("Callback type assertion failed: %+v\n", rawCallback)
-			emitError(client, "Invalid callback format", Nothing)
+			logError("Callback type assertion failed: %+v", rawCallback)
+			emitClientError(client, "Invalid callback format", Nothing)
 			return
 		}
 
@@ -218,7 +214,7 @@ func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{
 					"message":             "Joined room",
 				}}, nil)
 			} else {
-				emitError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, MaxPlayers), Nothing)
+				emitClientError(client, fmt.Sprintf("Room %s is full. Maximum %d players allowed.", roomName, MaxPlayers), Nothing)
 				callback([]interface{}{map[string]interface{}{
 					"success": false,
 					"message": "Room is full",
@@ -226,7 +222,7 @@ func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{
 			}
 		}
 	} else {
-		emitError(client, "Invalid arguments", Nothing)
+		emitClientError(client, "Invalid arguments", Nothing)
 	}
 }
 
@@ -234,7 +230,7 @@ func handleLeaveRoom(io *socket.Server, client *socket.Socket, args ...interface
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -258,19 +254,19 @@ func handleLeaveRoom(io *socket.Server, client *socket.Socket, args ...interface
 			}
 		}
 	} else {
-		emitError(client, "Invalid arguments", Nothing)
+		emitClientError(client, "Invalid arguments", Nothing)
 	}
 }
 
 func handleStartStrokeDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
 	if len(args) == 0 {
-		emitError(client, "No arguments provided", Nothing)
+		emitClientError(client, "No arguments provided", Nothing)
 		return
 	}
 
 	data, ok := args[0].(map[string]interface{})
 	if !ok {
-		emitError(client, "Invalid data format", Nothing)
+		emitClientError(client, "Invalid data format", Nothing)
 		return
 	}
 
@@ -279,7 +275,7 @@ func handleStartStrokeDrawing(io *socket.Server, client *socket.Socket, args ...
 
 	stroke, err := parseStroke(rawStroke)
 	if err != nil {
-		emitError(client, fmt.Sprintf("Failed to parse stroke: %v", err), Nothing)
+		emitClientError(client, fmt.Sprintf("Failed to parse stroke: %v", err), Nothing)
 		return
 	}
 
@@ -294,21 +290,21 @@ func handleLastPointsStrokeDrawing(io *socket.Server, client *socket.Socket, arg
 		// Verifica se o argumento recebido é do tipo esperado
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
 		roomName, _ := data["roomName"].(string)
 		rawPoints, ok := data["strokeLastPoints"].([]interface{})
 		if !ok {
-			emitError(client, "Invalid strokeLastPoints format", Nothing)
+			emitClientError(client, "Invalid strokeLastPoints format", Nothing)
 			return
 		}
 
 		// Processa os pontos
 		points, err := parsePoints(rawPoints)
 		if err != nil {
-			emitError(client, fmt.Sprintf("Failed to parse points: %v", err), Nothing)
+			emitClientError(client, fmt.Sprintf("Failed to parse points: %v", err), Nothing)
 			return
 		}
 
@@ -325,7 +321,7 @@ func handleClearDrawing(io *socket.Server, client *socket.Socket, args ...interf
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -342,7 +338,7 @@ func handleUndoDrawing(io *socket.Server, client *socket.Socket, args ...interfa
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -361,7 +357,7 @@ func handleRedoDrawing(io *socket.Server, client *socket.Socket, args ...interfa
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -380,7 +376,7 @@ func handleMessageChat(io *socket.Server, client *socket.Socket, args ...interfa
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -402,7 +398,7 @@ func handleGuessAnswerChat(io *socket.Server, client *socket.Socket, args ...int
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 
@@ -413,13 +409,13 @@ func handleGuessAnswerChat(io *socket.Server, client *socket.Socket, args ...int
 
 		room, exists := rooms[roomName]
 		if !exists || !room.IsGameStarted {
-			emitError(client, "Game not started in this room.", Nothing)
+			emitClientError(client, "Game not started in this room.", Nothing)
 			return
 		}
 
 		correctWord := room.CurrentWord
 		if correctWord == "" {
-			emitError(client, "No word is currently being drawn.", Nothing)
+			emitClientError(client, "No word is currently being drawn.", Nothing)
 			return
 		}
 
@@ -466,12 +462,12 @@ func handleGuessAnswerChat(io *socket.Server, client *socket.Socket, args ...int
 					}
 				}
 
-				fmt.Printf("%s acertou! Ganhou %d pontos.\n", username, points)
+				logInfo("%s acertou! Ganhou %d pontos.", username, points)
 				room.participantCorrectAnswer(userId)
 
 				// Verifica se todos os participantes acertaram
 				if room.hasEveryoneAnsweredCorrectly() {
-					fmt.Printf("Todos os participantes da sala %s acertaram. Avançando turno.\n", roomName)
+					logInfo("Todos os participantes da sala %s acertaram. Avançando turno.", roomName)
 					room.resetCorrectAnswers()
 					startTurnTimer(io, roomName, 60)
 				}
@@ -484,19 +480,19 @@ func handleGameTurnsStart(io *socket.Server, client *socket.Socket, args ...inte
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", "retry")
+			emitClientError(client, "Invalid data format", "retry")
 			return
 		}
 
 		roomName, _ := data["roomName"].(string)
 		room, exists := rooms[roomName]
 		if !exists {
-			emitError(client, "Room does not exist", Nothing)
+			emitClientError(client, "Room does not exist", Nothing)
 			return
 		}
 
 		if len(room.getParticipants()) < MinPlayers {
-			emitError(client, fmt.Sprintf("Not enough players. Minimum %d required.", MinPlayers), "retry")
+			emitClientError(client, fmt.Sprintf("Not enough players. Minimum %d required.", MinPlayers), "retry")
 			return
 		}
 
@@ -533,7 +529,7 @@ func handleParticipantDisconnect(io *socket.Server, client *socket.Socket) {
 		time.AfterFunc(5*time.Second, func() {
 			// Verifica se o participante ainda está desconectado
 			if !participant.IsConnected {
-				fmt.Printf("Removendo participante %s da sala %s após 5 segundos de desconexão.\n", participant.Username, room.Name)
+				logInfo("Removendo participante %s da sala %s após 5 segundos de desconexão.", participant.Username, room.Name)
 
 				// Remove o participante do jogo
 				room.removeParticipant(participant.UserId)
@@ -565,7 +561,7 @@ func handleGameRanking(io *socket.Server, client *socket.Socket, args ...interfa
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
-			emitError(client, "Invalid data format", Nothing)
+			emitClientError(client, "Invalid data format", Nothing)
 			return
 		}
 

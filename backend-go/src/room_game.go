@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/zishang520/socket.io/v2/socket"
@@ -61,8 +60,8 @@ func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 
 	// Configura o novo timer
 	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
-		fmt.Printf("Timer executado para a sala %s.\n", roomName)
+		logInfo("Timer executado para a sala %s.\n", roomName)
 		startTurnTimer(io, roomName, totalDuration)
 	})
-	fmt.Printf("Novo timer configurado para a sala %s.\n", roomName)
+	logInfo("Novo timer configurado para a sala %s.\n", roomName)
 }

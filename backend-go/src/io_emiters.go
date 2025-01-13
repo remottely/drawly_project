@@ -29,7 +29,7 @@ func emitJoinMessage(io *socket.Server, roomName, userId, username string) {
 	io.To(socket.Room(roomName)).Emit("chat:message", message)
 }
 
-func emitErrorToRoom(io *socket.Server, roomName string, message string, action ErrorActionType) {
+func emitRoomError(io *socket.Server, roomName string, message string, action ErrorActionType) {
 	io.To(socket.Room(roomName)).Emit("error", ErrorDTO{
 		Message: message,
 		Action:  action,
@@ -54,7 +54,6 @@ func emitRanking(io *socket.Server, roomName string) {
 	}
 
 	// Ordenar por pontuação decrescente
-	// cannot use (func(i, j uint8) bool literal) (value of type func(i uint8, j uint8) bool) as func(i int, j int) bool value in argument to sort.Slice
 	sort.Slice(ranking, func(i, j int) bool {
 		return ranking[i]["score"].(uint16) > ranking[j]["score"].(uint16)
 	})

@@ -79,7 +79,6 @@ func (r *Room) getParticipants() []*Participant {
 	for _, p := range r.Participants {
 		participants = append(participants, p)
 	}
-	// cannot use (func(i, j uint8) bool literal) (value of type func(i uint8, j uint8) bool) as func(i int, j int) bool value in argument to sort.Slice
 	sort.Slice(participants, func(i, j int) bool {
 		if participants[i].Score == participants[j].Score {
 			return participants[i].PreviousOrder < participants[j].PreviousOrder

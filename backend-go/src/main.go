@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	Version = "0.50.3"
+	Version = "0.50.4"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
 	io := setupServer()
 	io.On("connection", func(clients ...any) {
 		client := clients[0].(*socket.Socket)
+		fmt.Printf("Client connected: %s", string(client.Id()))
+
 		handleConnection(io, client)
 	})
 	handleGracefulShutdown(io)

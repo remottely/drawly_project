@@ -121,6 +121,7 @@
 - [x] (0.50.1) atualizando zishang520/socket.io/v2 lib
 - [x] (0.50.2) manipulando tipos especificos para economizar memoria e tratar melhor as variaveis, float32, uint8, etc
 - [x] (0.50.3) separando o main.go em arquivos simples
+- [ ] (0.50.4) enchance the code
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
 - ...:
 	- [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso. 
