@@ -249,7 +249,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       rxCurrentStroke.startStroke(
                         localPosition,
                         color: strokeColor,
-                        size: size / scale, // TODONOW
+                        size: size / scale, // TODO: NOW
                         opacity: opacity,
                         type: currentTool.strokeType,
                         sides: widget.options.polygonSides,
@@ -260,6 +260,9 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       //   ..last.points.add(localPosition);
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
+                      if (currentTool.isBucket) {
+                        _applyBucketFill(localPosition, scale);
+                      }
                     }
                   },
                   onPointerMove: (details) {
@@ -271,7 +274,11 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                     }
                   },
                   onPointerUp: (_) {
-                    _sendDrawingPointsEnd();
+                    if (currentTool.isBucket) {
+                      return;
+                    } else {
+                      _sendDrawingPointsEnd();
+                    }
                     // if (rxCurrentStroke.hasStroke) {
                     //   _sendBufferedDrawingPoints();
                     //   // widget.onDrawingStrokeChanged?.call(null);
@@ -297,6 +304,140 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
         );
       },
     );
+  }
+
+  List<Offset> _convertPathToPoints(Path path) {
+    final boundaryPoints = <Offset>[];
+
+    // Utiliza PathMetrics para percorrer os segmentos do Path
+    for (final metric in path.computeMetrics()) {
+      final length = metric.length;
+
+      // Divide o comprimento do Path em segmentos para gerar pontos
+      const step = 5.0; // Distância entre os pontos
+      for (var distance = 0.0; distance < length; distance += step) {
+        final tangent = metric.getTangentForOffset(distance);
+        if (tangent != null) {
+          boundaryPoints.add(tangent.position);
+        }
+      }
+    }
+
+    return boundaryPoints;
+  }
+
+  Path _getFillBoundary({
+    required Offset startPoint,
+    required Path combinedPath,
+    required double canvasWidth,
+    required double canvasHeight,
+  }) {
+    final boundaryPath = Path();
+    final visited = <Offset>{};
+    final queue = <Offset>[startPoint];
+
+    while (queue.isNotEmpty) {
+      final point = queue.removeLast();
+
+      // Ignorar pontos já visitados
+      if (visited.contains(point)) continue;
+      visited.add(point);
+
+      // Verificar se o ponto está fora do canvas
+      if (point.dx < 0 ||
+          point.dy < 0 ||
+          point.dx > canvasWidth ||
+          point.dy > canvasHeight) {
+        continue;
+      }
+
+      // Verificar se o ponto está fora do contorno combinado
+      if (!combinedPath.contains(point)) {
+        boundaryPath.addOval(
+          Rect.fromCircle(
+            center: point,
+            radius: 1,
+          ), // Representa o ponto como um pixel
+        );
+        continue;
+      }
+
+      // Adicionar os vizinhos do ponto à fila
+      queue.addAll([
+        Offset(point.dx + 1, point.dy),
+        Offset(point.dx - 1, point.dy),
+        Offset(point.dx, point.dy + 1),
+        Offset(point.dx, point.dy - 1),
+      ]);
+    }
+
+    boundaryPath.close();
+    return boundaryPath;
+  }
+
+  void _applyBucketFill(Offset startPoint, double scale) {
+    try {
+      final allStrokes = List<Stroke>.from(rxAllStrokes.value);
+
+      // Dimensões do canvas
+      final canvasWidth = _canvasSize;
+      final canvasHeight = _canvasSize / (16 / 9);
+
+      // Criar um Path para representar todos os contornos existentes
+      final combinedPath = Path();
+      for (final stroke in allStrokes) {
+        if (stroke.points.isNotEmpty) {
+          final path = Path()
+            ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+          for (var i = 1; i < stroke.points.length; i++) {
+            path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
+          }
+          path.close();
+          combinedPath.addPath(path, Offset.zero);
+        }
+      }
+
+      // Verificar se o ponto inicial está dentro de uma área fechada
+      if (!combinedPath.contains(startPoint)) {
+        developer.log(
+          'Ponto inicial não está em nenhuma área fechada. Considerando o canvas inteiro.',
+          name: '_applyBucketFill',
+        );
+        combinedPath.addRect(Rect.fromLTWH(0, 0, canvasWidth, canvasHeight));
+      }
+
+      // Determinar o contorno da área de preenchimento
+      final boundaryPath = _getFillBoundary(
+        startPoint: startPoint,
+        combinedPath: combinedPath,
+        canvasWidth: canvasWidth,
+        canvasHeight: canvasHeight,
+      );
+
+      // Converter o Path de contorno em pontos
+      final boundaryPoints = _convertPathToPoints(boundaryPath);
+
+      // Criar um novo objeto de Stroke para representar o contorno
+      final bucketStroke = BucketStroke(
+        points: boundaryPoints,
+        color: strokeColor,
+        size: size / scale,
+        opacity: opacity,
+      );
+
+      // Adicionar o novo objeto contornado ao rxAllStrokes
+      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+      //   ..add(bucketStroke);
+      rxCurrentStroke.addPoints(bucketStroke.points);
+      _sendBufferedDrawingPoints();
+      _sendDrawingPointsEnd();
+    } catch (e, stackTrace) {
+      developer.log(
+        'Erro ao aplicar bucket fill: $e',
+        name: '_applyBucketFill',
+        stackTrace: stackTrace,
+      );
+    }
   }
 }
 
@@ -360,6 +501,7 @@ class _DrawingCanvasPainter extends CustomPainter {
         ..strokeJoin = StrokeJoin.round
         ..style = PaintingStyle.stroke;
 
+      // chatgpt: existe um problema, preciso q vc crie o BucketStroke e passe a logica dele para ele mesmo
       if (stroke is NormalStroke) {
         if (stroke.points.length == 1) {
           final center = stroke.points.first;
@@ -371,6 +513,8 @@ class _DrawingCanvasPainter extends CustomPainter {
           for (var i = 1; i < stroke.points.length; i++) {
             path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
           }
+          // path.close();
+          // paint.style = PaintingStyle.fill;
           canvas.drawPath(path, paint);
         }
       }
@@ -452,14 +596,25 @@ class _DrawingCanvasPainter extends CustomPainter {
           canvas.drawPath(path, paint);
         }
       }
+
+      if (stroke is BucketStroke) {
+        final path = Path()
+          ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
+        for (var i = 1; i < stroke.points.length; i++) {
+          path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
+        }
+        path.close();
+        // paint.style = PaintingStyle.fill;
+        canvas.drawPath(path, paint);
+      }
     }
 
     if (rxIsShowGrid?.value ?? false) {
-      _drawGrid(size, canvas);
+      drawGrid(size, canvas);
     }
   }
 
-  void _drawGrid(Size size, Canvas canvas) {
+  void drawGrid(Size size, Canvas canvas) {
     const gridStrokeWidth = 1.0;
     const gridSpacing = 50.0;
     const subGridSpacing = 10.0;
@@ -507,5 +662,5 @@ class _DrawingCanvasPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

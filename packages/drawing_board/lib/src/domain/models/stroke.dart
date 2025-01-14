@@ -76,6 +76,13 @@ abstract class Stroke {
           opacity: opacity,
           filled: (json['filled'] as bool?) ?? false,
         );
+      case StrokeType.bucket:
+        return BucketStroke(
+          points: points,
+          color: color,
+          size: size,
+          opacity: opacity,
+        );
     }
   }
 
@@ -218,6 +225,7 @@ class PolygonStroke extends Stroke {
     super.size,
     super.opacity,
   }) : super(strokeType: StrokeType.polygon);
+
   final int sides;
   final bool filled;
 
@@ -343,7 +351,8 @@ enum StrokeType {
   line,
   polygon,
   square,
-  circle;
+  circle,
+  bucket;
 
   static StrokeType fromString(String value) {
     switch (value) {
@@ -359,6 +368,8 @@ enum StrokeType {
         return StrokeType.square;
       case 'circle':
         return StrokeType.circle;
+      case 'bucket':
+        return StrokeType.bucket;
       default:
         return StrokeType.normal;
     }
@@ -379,6 +390,48 @@ enum StrokeType {
         return 'square';
       case StrokeType.circle:
         return 'circle';
+      case StrokeType.bucket:
+        return 'bucket';
     }
+  }
+}
+
+class BucketStroke extends Stroke {
+  BucketStroke({
+    required super.points,
+    super.color,
+    super.size,
+    super.opacity,
+  })  : filled = true,
+        super(strokeType: StrokeType.bucket);
+
+  final bool filled;
+
+  @override
+  BucketStroke copyWith({
+    List<Offset>? points,
+    int? sides,
+    Color? color,
+    double? size,
+    double? opacity,
+  }) {
+    return BucketStroke(
+      points: points ?? this.points,
+      color: color ?? this.color,
+      size: size ?? this.size,
+      opacity: opacity ?? this.opacity,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+          points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
+      'color': color.value,
+      'size': size,
+      'opacity': opacity,
+      'strokeType': strokeType.toString(),
+    };
   }
 }

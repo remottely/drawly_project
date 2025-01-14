@@ -123,8 +123,11 @@
 - [x] (0.50.3) separando o main.go em arquivos simples
 - [x] (0.50.5) enchance the code
 - [x] (0.50.5) removendo backgroundImage
-- [ ] (0.51.1) balde de tinta
+- [x] (0.51.0) balde de tinta bugado
+- [ ] (0.51.1) 
+- [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
+- [ ] agora quero mudar a forma como é preenchido o objeto. quero deixar da mesma forma q é feita hj com circle, square etc. apenas desenhar as bordas e setar o objeto como filled igua a true. mas para isso preciso mudar a logica
 - ...:
   - [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso.
   - [ ] (2) adicionar realtime feedback mesmo offline??

@@ -173,9 +173,10 @@ class _DrawGameRoomPageState extends GamePageViewModel {
           ]),
           builder: (context, _) {
             return Scaffold(
-              backgroundColor: rxIsCurrentDrawerUserId.value
-                  ? AppColors.greenAccent
-                  : AppColors.lightPrimary,
+              backgroundColor:
+                  rxIsCurrentDrawerUserId.value && rxIsGameStarted.value
+                      ? AppColors.greenAccent
+                      : AppColors.lightPrimary,
               body: Column(
                 children: [
                   AnimatedBuilder(
@@ -291,7 +292,8 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                           roomName: widget.roomName,
                                           word: rxWord.value ?? '',
                                           isCurrentDrawer:
-                                              rxIsCurrentDrawerUserId.value,
+                                              rxIsCurrentDrawerUserId.value &&
+                                                  rxIsGameStarted.value,
                                         ),
                                         ValueListenableBuilder<int>(
                                           valueListenable: rxTurn,
