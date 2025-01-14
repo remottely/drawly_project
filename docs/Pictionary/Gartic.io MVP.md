@@ -125,11 +125,16 @@
 - [x] (0.50.5) removendo backgroundImage
 - [x] (0.51.0) (1) implementando balde de tinta. bugado e nao funcionando do lado de fora de objetos
 - [x] (0.51.1) (2) implementando balde de tinta.
+- [x] (0.51.2) (3) implementando balde de tinta. melhorando documentacao no codigo.
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
 - [ ] agora quero mudar a forma como é preenchido o objeto. quero deixar da mesma forma q é feita hj com circle, square etc. apenas desenhar as bordas e setar o objeto como filled igua a true. mas para isso preciso mudar a logica
 - [ ] eu acho q passei a instrucao um pouco imprecisa anteriormente, preciso q vc pinte as areas disponiveis do canvas e nao encima dos strokes q ja existem, exemplo, se eu tehno um circulo fechado com borda preta mas oco por dentro, e eu clicar com o balde selecionado o rosa dentro da parte oca, ele deve pintar a parte oca de rosa e manter as bordas pretas, ou seja, criar o bucketstroke contendo apenas points relacionados a parte oca, assim como ocorre no uso do bucket do photoshop. hoje se eu clico com o bucket dentro do circulo, ele sobrescreve os strokes pretos e pinta de rosa, preciso q vc arrume isso:
 - [ ] Eu pedi para q vc implementasse o bucket para q ele criasse apenas as bordas do meu objeto, e q nao preenchesse ele por inteiro. vc preenche quando esta dentro de um objeto mas cria bordas quando se trata do canvas, ou seja, do lado de fora de um objeto. preciso q crie a logica de nao preenchimento do objeto, me de apenas os stroke.points relacionados as bordas necessarias para pintar as bordas.
+- [ ] // chatgpt: como q eu garanto que o contorno é fechado, e caso contrario havera vazamento preenchendo todo o canvas?
+- [ ] // chatgpt: eu preciso q vc crie quantos paths forem necessários para preencher o canvas inteiro sempre detectando os conflitos entre os strokes para conseguir simular de vdd o bucket, o preenchimento do desenho com a cor pode deixar q eu faco
+- [ ] // chatgpt: existe um problema, preciso q vc crie o BucketStroke e passe a logica dele para ele mesmo
+- [ ] // chatgpt: eu preciso criar uma regra para garantir q todos os vizinhos do meu startPoint fechem uma figura(convexa ou nao convexa) sem brechas, se ele tiver brechas ele deve pintar toda a area do canvas
 - ...:
   - [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso.
   - [ ] (2) adicionar realtime feedback mesmo offline??
