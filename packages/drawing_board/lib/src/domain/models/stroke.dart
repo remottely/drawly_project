@@ -402,7 +402,7 @@ class BucketStroke extends Stroke {
     super.color,
     super.size,
     super.opacity,
-  })  : filled = true,
+  })  : filled = false,
         super(strokeType: StrokeType.bucket);
 
   final bool filled;

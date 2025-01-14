@@ -306,75 +306,6 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
     );
   }
 
-  List<Offset> _convertPathToPoints(Path path) {
-    final boundaryPoints = <Offset>[];
-
-    // Utiliza PathMetrics para percorrer os segmentos do Path
-    for (final metric in path.computeMetrics()) {
-      final length = metric.length;
-
-      // Divide o comprimento do Path em segmentos para gerar pontos
-      const step = 5.0; // Distância entre os pontos
-      for (var distance = 0.0; distance < length; distance += step) {
-        final tangent = metric.getTangentForOffset(distance);
-        if (tangent != null) {
-          boundaryPoints.add(tangent.position);
-        }
-      }
-    }
-
-    return boundaryPoints;
-  }
-
-  Path _getFillBoundary({
-    required Offset startPoint,
-    required Path combinedPath,
-    required double canvasWidth,
-    required double canvasHeight,
-  }) {
-    final boundaryPath = Path();
-    final visited = <Offset>{};
-    final queue = <Offset>[startPoint];
-
-    while (queue.isNotEmpty) {
-      final point = queue.removeLast();
-
-      // Ignorar pontos já visitados
-      if (visited.contains(point)) continue;
-      visited.add(point);
-
-      // Verificar se o ponto está fora do canvas
-      if (point.dx < 0 ||
-          point.dy < 0 ||
-          point.dx > canvasWidth ||
-          point.dy > canvasHeight) {
-        continue;
-      }
-
-      // Verificar se o ponto está fora do contorno combinado
-      if (!combinedPath.contains(point)) {
-        boundaryPath.addOval(
-          Rect.fromCircle(
-            center: point,
-            radius: 1,
-          ), // Representa o ponto como um pixel
-        );
-        continue;
-      }
-
-      // Adicionar os vizinhos do ponto à fila
-      queue.addAll([
-        Offset(point.dx + 1, point.dy),
-        Offset(point.dx - 1, point.dy),
-        Offset(point.dx, point.dy + 1),
-        Offset(point.dx, point.dy - 1),
-      ]);
-    }
-
-    boundaryPath.close();
-    return boundaryPath;
-  }
-
   void _applyBucketFill(Offset startPoint, double scale) {
     try {
       final allStrokes = List<Stroke>.from(rxAllStrokes.value);
@@ -397,15 +328,6 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
         }
       }
 
-      // Verificar se o ponto inicial está dentro de uma área fechada
-      if (!combinedPath.contains(startPoint)) {
-        developer.log(
-          'Ponto inicial não está em nenhuma área fechada. Considerando o canvas inteiro.',
-          name: '_applyBucketFill',
-        );
-        combinedPath.addRect(Rect.fromLTWH(0, 0, canvasWidth, canvasHeight));
-      }
-
       // Determinar o contorno da área de preenchimento
       final boundaryPath = _getFillBoundary(
         startPoint: startPoint,
@@ -414,10 +336,10 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
         canvasHeight: canvasHeight,
       );
 
-      // Converter o Path de contorno em pontos
+      // Converter o Path de contorno em pontos (sem preenchimento)
       final boundaryPoints = _convertPathToPoints(boundaryPath);
 
-      // Criar um novo objeto de Stroke para representar o contorno
+      // Criar um novo objeto de Stroke para representar apenas o contorno
       final bucketStroke = BucketStroke(
         points: boundaryPoints,
         color: strokeColor,
@@ -425,19 +347,87 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
         opacity: opacity,
       );
 
-      // Adicionar o novo objeto contornado ao rxAllStrokes
-      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-      //   ..add(bucketStroke);
+      // Adicionar apenas o contorno ao rxAllStrokes
       rxCurrentStroke.addPoints(bucketStroke.points);
       _sendBufferedDrawingPoints();
       _sendDrawingPointsEnd();
     } catch (e, stackTrace) {
       developer.log(
-        'Erro ao aplicar bucket fill: $e',
+        'Erro ao criar contorno com bucket fill: $e',
         name: '_applyBucketFill',
         stackTrace: stackTrace,
       );
     }
+  }
+
+// chatgpt: eu quero q ele nao seja do tipo fill, apenas bordas
+  Path _getFillBoundary({
+    required Offset startPoint,
+    required Path combinedPath,
+    required double canvasWidth,
+    required double canvasHeight,
+  }) {
+    final boundaryPath = Path();
+
+    // Verificar se o ponto inicial está dentro do Path combinado
+    if (!combinedPath.contains(startPoint)) {
+      // Caso não esteja, criar um Path com o canvas inteiro
+      boundaryPath.addRect(Rect.fromLTWH(0, 0, canvasWidth, canvasHeight));
+    } else {
+      // Criar o contorno baseado no Path combinado
+      final visited = <Offset>{};
+      final queue = <Offset>[startPoint];
+
+      while (queue.isNotEmpty) {
+        final point = queue.removeLast();
+
+        if (visited.contains(point)) continue;
+        visited.add(point);
+
+        if (point.dx < 0 ||
+            point.dy < 0 ||
+            point.dx > canvasWidth ||
+            point.dy > canvasHeight) {
+          continue;
+        }
+
+        if (!combinedPath.contains(point)) {
+          boundaryPath.addOval(
+            Rect.fromCircle(center: point, radius: 1),
+          );
+          continue;
+        }
+
+        queue.addAll([
+          Offset(point.dx + 1, point.dy),
+          Offset(point.dx - 1, point.dy),
+          Offset(point.dx, point.dy + 1),
+          Offset(point.dx, point.dy - 1),
+        ]);
+      }
+    }
+
+    boundaryPath.close();
+    return boundaryPath;
+  }
+
+  List<Offset> _convertPathToPoints(Path path) {
+    final boundaryPoints = <Offset>[];
+
+    for (final metric in path.computeMetrics()) {
+      final length = metric.length;
+
+      // Divide o comprimento do Path em segmentos para gerar pontos
+      const step = 5.0; // Distância entre os pontos
+      for (var distance = 0.0; distance < length; distance += step) {
+        final tangent = metric.getTangentForOffset(distance);
+        if (tangent != null) {
+          boundaryPoints.add(tangent.position);
+        }
+      }
+    }
+
+    return boundaryPoints;
   }
 }
 

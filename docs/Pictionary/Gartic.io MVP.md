@@ -123,11 +123,13 @@
 - [x] (0.50.3) separando o main.go em arquivos simples
 - [x] (0.50.5) enchance the code
 - [x] (0.50.5) removendo backgroundImage
-- [x] (0.51.0) balde de tinta bugado
-- [ ] (0.51.1) 
+- [x] (0.51.0) (1) implementando balde de tinta. bugado e nao funcionando do lado de fora de objetos
+- [x] (0.51.1) (2) implementando balde de tinta.
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
 - [ ] agora quero mudar a forma como é preenchido o objeto. quero deixar da mesma forma q é feita hj com circle, square etc. apenas desenhar as bordas e setar o objeto como filled igua a true. mas para isso preciso mudar a logica
+- [ ] eu acho q passei a instrucao um pouco imprecisa anteriormente, preciso q vc pinte as areas disponiveis do canvas e nao encima dos strokes q ja existem, exemplo, se eu tehno um circulo fechado com borda preta mas oco por dentro, e eu clicar com o balde selecionado o rosa dentro da parte oca, ele deve pintar a parte oca de rosa e manter as bordas pretas, ou seja, criar o bucketstroke contendo apenas points relacionados a parte oca, assim como ocorre no uso do bucket do photoshop. hoje se eu clico com o bucket dentro do circulo, ele sobrescreve os strokes pretos e pinta de rosa, preciso q vc arrume isso:
+- [ ] Eu pedi para q vc implementasse o bucket para q ele criasse apenas as bordas do meu objeto, e q nao preenchesse ele por inteiro. vc preenche quando esta dentro de um objeto mas cria bordas quando se trata do canvas, ou seja, do lado de fora de um objeto. preciso q crie a logica de nao preenchimento do objeto, me de apenas os stroke.points relacionados as bordas necessarias para pintar as bordas.
 - ...:
   - [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso.
   - [ ] (2) adicionar realtime feedback mesmo offline??
