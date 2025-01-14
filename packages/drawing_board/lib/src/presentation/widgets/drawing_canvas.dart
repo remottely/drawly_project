@@ -246,23 +246,38 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                   onPointerDown: (details) {
                     final localPosition = details.localPosition;
                     if (_isPointInsideCanvas(localPosition)) {
-                      rxCurrentStroke.startStroke(
-                        localPosition,
-                        color: strokeColor,
-                        size: size / scale, // TODO: NOW
-                        opacity: opacity,
-                        type: currentTool.strokeType,
-                        sides: widget.options.polygonSides,
-                        filled: widget.options.fillShape,
-                      );
-                      _sendDrawingPointsStart();
-                      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-                      //   ..last.points.add(localPosition);
-                      // widget.onDrawingStrokeChanged?
-                      // .call(rxCurrentStroke.value);
+                      // rxCurrentStroke.startStroke(
+                      //   localPosition,
+                      //   color: strokeColor,
+                      //   size: size / scale, // TODO: NOW
+                      //   opacity: opacity,
+                      //   type: currentTool.strokeType,
+                      //   sides: widget.options.polygonSides,
+                      //   filled: widget.options.fillShape,
+                      // );
+                      // _sendDrawingPointsStart();
+                      // // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+                      // //   ..last.points.add(localPosition);
+                      // // widget.onDrawingStrokeChanged?
+                      // // .call(rxCurrentStroke.value);
                       if (currentTool.isBucket) {
                         // chatgpt: quero mudar a logica, preciso q vc crie um objeto q contorne tudo q estiver no canvas, for da mesma cor e nao tiver limites entre outras cores, assim comoo é feito com o bucket de qualquer sistema
                         _applyBucketFill(localPosition, scale);
+                      } else {
+                        rxCurrentStroke.startStroke(
+                          localPosition,
+                          color: strokeColor,
+                          size: size / scale, // TODO: NOW
+                          opacity: opacity,
+                          type: currentTool.strokeType,
+                          sides: widget.options.polygonSides,
+                          filled: widget.options.fillShape,
+                        );
+                        _sendDrawingPointsStart();
+                        // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+                        //   ..last.points.add(localPosition);
+                        // widget.onDrawingStrokeChanged?
+                        // .call(rxCurrentStroke.value);
                       }
                     }
                   },
@@ -309,60 +324,96 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
 
   void _applyBucketFill(Offset startPoint, double scale) {
     try {
-      // Cria uma cópia da lista de traços atuais para processamento
+      // Lista de traços atuais no canvas
       final allStrokes = List<Stroke>.from(rxAllStrokes.value);
 
-      // Define as dimensões do canvas com base no tamanho fixado e na proporção 16:9
+      // Dimensões do canvas
       final canvasWidth = _canvasSize;
       final canvasHeight = _canvasSize / (16 / 9);
 
-      // Cria um `Path` combinado que contém todos os contornos existentes no canvas
-      final combinedPath = Path();
+      // Criação do mapa unificado de cores
+      final canvasMap = <Offset, Color?>{};
+
+      // Combina os strokes, priorizando os de índice maior
       for (final stroke in allStrokes) {
-        if (stroke.points.isNotEmpty) {
-          // Para cada traço, cria um `Path` representando seus pontos
-          final path = Path()
-            ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
-          for (var i = 1; i < stroke.points.length; i++) {
-            path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
-          }
-          // Fecha o contorno do `Path` e adiciona ao `combinedPath`
-          path.close();
-          combinedPath.addPath(path, Offset.zero);
+        for (final point in stroke.points) {
+          canvasMap[point] = stroke.color;
         }
       }
 
-      // Determina o contorno da área a ser preenchida com base no ponto inicial
-      final boundaryPath = _getFillBoundary(
-        startPoint: startPoint, // Ponto inicial do preenchimento
-        combinedPath: combinedPath, // Contornos existentes no canvas
-        canvasWidth: canvasWidth, // Largura do canvas
-        canvasHeight: canvasHeight, // Altura do canvas
-      );
+      // Função auxiliar para verificar se um ponto está dentro do canvas
+      bool isPointInBounds(Offset point) {
+        return point.dx >= 0 &&
+            point.dy >= 0 &&
+            point.dx <= canvasWidth &&
+            point.dy <= canvasHeight;
+      }
 
-      // Converte o contorno (`Path`) da área de preenchimento em uma lista de pontos
-      final boundaryPoints = _convertPathToPoints(boundaryPath);
+      // Detectar a cor inicial no ponto de partida
+      final baseColor = canvasMap[startPoint];
 
-      // Cria um novo traço (`BucketStroke`) para representar apenas o contorno
+      // Caso o ponto inicial esteja vazio ou fora do canvas
+      if (baseColor == null) {
+        developer.log('Bucket iniciado em uma área vazia ou fora do canvas.');
+        return;
+      }
+
+      // Estruturas para o algoritmo de Flood Fill
+      final visited = <Offset>{};
+      final queue = <Offset>[startPoint];
+      final boundaryPoints = <Offset>[];
+
+      // Flood Fill: Percorre os pontos conectados
+      while (queue.isNotEmpty) {
+        final currentPoint = queue.removeLast();
+
+        // Ignora pontos já visitados
+        if (visited.contains(currentPoint)) continue;
+
+        // Marca o ponto como visitado
+        visited.add(currentPoint);
+
+        // Verifica se o ponto está dentro dos limites do canvas
+        if (!isPointInBounds(currentPoint)) continue;
+
+        // Verifica se a cor é diferente da base (limite encontrado)
+        if (canvasMap[currentPoint] != baseColor) continue;
+
+        // Adiciona o ponto ao conjunto de preenchimento
+        boundaryPoints.add(currentPoint);
+
+        // Adiciona os vizinhos à fila
+        queue.addAll([
+          Offset(currentPoint.dx + 1, currentPoint.dy), // Direita
+          Offset(currentPoint.dx - 1, currentPoint.dy), // Esquerda
+          Offset(currentPoint.dx, currentPoint.dy + 1), // Abaixo
+          Offset(currentPoint.dx, currentPoint.dy - 1), // Acima
+        ]);
+      }
+
+      // Criação do novo traço de preenchimento
       final bucketStroke = BucketStroke(
-        points: boundaryPoints, // Pontos que definem o contorno
-        color: strokeColor, // Cor do traço do bucket
-        size: size / scale, // Tamanho do traço ajustado pela escala
-        opacity: opacity, // Opacidade do traço
+        points: boundaryPoints,
+        color: strokeColor, // Cor do bucket
+        size: size / scale, // Tamanho do traço ajustado
+        opacity: opacity, // Opacidade do bucket
       );
 
-      // Adiciona os pontos gerados ao traço atual
+      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+        ..add(bucketStroke);
+
+      // Adiciona os pontos preenchidos ao traço atual
       rxCurrentStroke.addPoints(bucketStroke.points);
 
-      // Envia os pontos bufferizados ao servidor
+      // Envia os pontos preenchidos para o servidor
       _sendBufferedDrawingPoints();
 
-      // Finaliza o traço limpando os pontos no traço atual
+      // Finaliza o traço atual
       _sendDrawingPointsEnd();
     } catch (e, stackTrace) {
-      // Captura e registra erros que podem ocorrer durante o processamento
+      // Registra erros durante o processo de bucket fill
       developer.log(
-        'Erro ao criar contorno com bucket fill: $e',
+        'Erro ao aplicar bucket fill: $e',
         name: '_applyBucketFill',
         stackTrace: stackTrace,
       );
@@ -531,7 +582,7 @@ class _DrawingCanvasPainter extends CustomPainter {
 
     if (rxCurrentStroke?.hasStroke ?? false) {
       // TODO(Kevin): do something here?
-      // allStrokes.add(rxCurrentStroke!.value!);
+      allStrokes.add(rxCurrentStroke!.value!);
     }
 
     for (final stroke in allStrokes) {
