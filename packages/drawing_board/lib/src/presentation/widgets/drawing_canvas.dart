@@ -7,6 +7,8 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
+const double _canvasSize = 500;
+
 class DrawingCanvas extends StatefulWidget {
   const DrawingCanvas({
     required this.rxAllStrokes,
@@ -44,7 +46,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   CurrentStrokeValueNotifier get rxCurrentStroke => widget.rxCurrentStroke;
   ValueNotifier<List<Stroke>> get rxAllStrokes => widget.rxAllStrokes;
 
-  final double _canvasSize = 500;
   final int _bufferDelay = 50;
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
@@ -177,8 +178,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   }
 
   bool _isPointInsideCanvas(Offset point) {
-    final canvasWidth = _canvasSize;
-    final canvasHeight = _canvasSize / (16 / 9);
+    const canvasWidth = _canvasSize;
+    const canvasHeight = _canvasSize / (16 / 9);
 
     return point.dx >= 0 &&
         point.dx <= canvasWidth &&
@@ -260,41 +261,45 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       // //   ..last.points.add(localPosition);
                       // // widget.onDrawingStrokeChanged?
                       // // .call(rxCurrentStroke.value);
-                      if (currentTool.isBucket) {
-                        // chatgpt: quero mudar a logica, preciso q vc crie um objeto q contorne tudo q estiver no canvas, for da mesma cor e nao tiver limites entre outras cores, assim comoo é feito com o bucket de qualquer sistema
-                        _applyBucketFill(localPosition, scale);
-                      } else {
-                        rxCurrentStroke.startStroke(
-                          localPosition,
-                          color: strokeColor,
-                          size: size / scale, // TODO: NOW
-                          opacity: opacity,
-                          type: currentTool.strokeType,
-                          sides: widget.options.polygonSides,
-                          filled: widget.options.fillShape,
-                        );
-                        _sendDrawingPointsStart();
-                        // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-                        //   ..last.points.add(localPosition);
-                        // widget.onDrawingStrokeChanged?
-                        // .call(rxCurrentStroke.value);
-                      }
+                      // if (currentTool.isBucket) {
+                      //   // chatgpt: quero mudar a logica, preciso q vc crie um objeto q contorne tudo q estiver no canvas, for da mesma cor e nao tiver limites entre outras cores, assim comoo é feito com o bucket de qualquer sistema
+                      //   _applyBucketFill(localPosition, scale);
+                      // } else {
+                      rxCurrentStroke.startStroke(
+                        localPosition,
+                        color: strokeColor,
+                        size: size / scale, // TODO: NOW
+                        opacity: opacity,
+                        type: currentTool.strokeType,
+                        sides: widget.options.polygonSides,
+                        filled: widget.options.fillShape,
+                      );
+                      _sendDrawingPointsStart();
+                      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+                      //   ..last.points.add(localPosition);
+                      // widget.onDrawingStrokeChanged?
+                      // .call(rxCurrentStroke.value);
+                      // }
                     }
                   },
                   onPointerMove: (details) {
                     final localPosition = details.localPosition;
                     if (_isPointInsideCanvas(localPosition)) {
-                      rxCurrentStroke.addPoint(localPosition);
+                      if (currentTool.isBucket) {
+                        return;
+                      } else {
+                        rxCurrentStroke.addPoint(localPosition);
+                      }
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerUp: (_) {
-                    if (currentTool.isBucket) {
-                      return;
-                    } else {
-                      _sendDrawingPointsEnd();
-                    }
+                    // if (currentTool.isBucket) {
+                    //   return;
+                    // } else {
+                    _sendDrawingPointsEnd();
+                    // }
                     // if (rxCurrentStroke.hasStroke) {
                     //   _sendBufferedDrawingPoints();
                     //   // widget.onDrawingStrokeChanged?.call(null);
@@ -320,218 +325,6 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
         );
       },
     );
-  }
-
-  void _applyBucketFill(Offset startPoint, double scale) {
-    try {
-      // Lista de traços atuais no canvas
-      final allStrokes = List<Stroke>.from(rxAllStrokes.value);
-
-      // Dimensões do canvas
-      final canvasWidth = _canvasSize;
-      final canvasHeight = _canvasSize / (16 / 9);
-
-      // Criação do mapa unificado de cores
-      final canvasMap = <Offset, Color?>{};
-
-      // Combina os strokes, priorizando os de índice maior
-      for (final stroke in allStrokes) {
-        for (final point in stroke.points) {
-          canvasMap[point] = stroke.color;
-        }
-      }
-
-      // Função auxiliar para verificar se um ponto está dentro do canvas
-      bool isPointInBounds(Offset point) {
-        return point.dx >= 0 &&
-            point.dy >= 0 &&
-            point.dx <= canvasWidth &&
-            point.dy <= canvasHeight;
-      }
-
-      // Detectar a cor inicial no ponto de partida
-      final baseColor = canvasMap[startPoint];
-
-      // Caso o ponto inicial esteja vazio ou fora do canvas
-      if (baseColor == null) {
-        developer.log('Bucket iniciado em uma área vazia ou fora do canvas.');
-        return;
-      }
-
-      // Estruturas para o algoritmo de Flood Fill
-      final visited = <Offset>{};
-      final queue = <Offset>[startPoint];
-      final boundaryPoints = <Offset>[];
-
-      // Flood Fill: Percorre os pontos conectados
-      while (queue.isNotEmpty) {
-        final currentPoint = queue.removeLast();
-
-        // Ignora pontos já visitados
-        if (visited.contains(currentPoint)) continue;
-
-        // Marca o ponto como visitado
-        visited.add(currentPoint);
-
-        // Verifica se o ponto está dentro dos limites do canvas
-        if (!isPointInBounds(currentPoint)) continue;
-
-        // Verifica se a cor é diferente da base (limite encontrado)
-        if (canvasMap[currentPoint] != baseColor) continue;
-
-        // Adiciona o ponto ao conjunto de preenchimento
-        boundaryPoints.add(currentPoint);
-
-        // Adiciona os vizinhos à fila
-        queue.addAll([
-          Offset(currentPoint.dx + 1, currentPoint.dy), // Direita
-          Offset(currentPoint.dx - 1, currentPoint.dy), // Esquerda
-          Offset(currentPoint.dx, currentPoint.dy + 1), // Abaixo
-          Offset(currentPoint.dx, currentPoint.dy - 1), // Acima
-        ]);
-      }
-
-      // Criação do novo traço de preenchimento
-      final bucketStroke = BucketStroke(
-        points: boundaryPoints,
-        color: strokeColor, // Cor do bucket
-        size: size / scale, // Tamanho do traço ajustado
-        opacity: opacity, // Opacidade do bucket
-      );
-
-      rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-        ..add(bucketStroke);
-
-      // Adiciona os pontos preenchidos ao traço atual
-      rxCurrentStroke.addPoints(bucketStroke.points);
-
-      // Envia os pontos preenchidos para o servidor
-      _sendBufferedDrawingPoints();
-
-      // Finaliza o traço atual
-      _sendDrawingPointsEnd();
-    } catch (e, stackTrace) {
-      // Registra erros durante o processo de bucket fill
-      developer.log(
-        'Erro ao aplicar bucket fill: $e',
-        name: '_applyBucketFill',
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  Path _getFillBoundary({
-    required Offset startPoint, // Ponto inicial do preenchimento
-    required Path combinedPath, // Conjunto de contornos existentes no canvas
-    required double canvasWidth, // Largura do canvas
-    required double canvasHeight, // Altura do canvas
-  }) {
-    // Cria um objeto Path para armazenar os limites da área de preenchimento
-    final boundaryPath = Path();
-
-    // Verifica se o ponto inicial está dentro de algum contorno existente
-    if (!combinedPath.contains(startPoint)) {
-      // Caso o ponto inicial esteja fora de qualquer contorno:
-      // Adiciona um retângulo que cobre toda a área do canvas como contorno
-      // TODO: KEVIN NOW
-      boundaryPath.addRect(Rect.fromLTWH(0, 0, canvasWidth, canvasHeight));
-      return boundaryPath;
-    } else {
-      // Caso o ponto inicial esteja dentro de um contorno existente:
-      // Utiliza uma abordagem de busca (similar a BFS) para determinar a área conectada
-      final visited = <Offset>{}; // Conjunto para rastrear pontos já visitados
-      final queue = <Offset>[startPoint]; // Fila de pontos a serem processados
-
-      while (queue.isNotEmpty) {
-        // Remove o último ponto da fila (LIFO para simular BFS)
-        final point = queue.removeLast();
-
-        // Ignora pontos que já foram visitados
-        if (visited.contains(point)) continue;
-
-        // Adiciona o ponto ao conjunto de visitados
-        visited.add(point);
-
-        // Verifica se o ponto está fora dos limites do canvas
-        if (point.dx < 0 ||
-            point.dy < 0 ||
-            point.dx > canvasWidth ||
-            point.dy > canvasHeight) {
-          continue;
-        }
-
-        // Verifica se o ponto está fora do contorno combinado
-        if (!combinedPath.contains(point)) {
-          // Adiciona um pequeno círculo ao boundaryPath para representar o ponto
-          boundaryPath.addOval(
-            Rect.fromCircle(center: point, radius: 1),
-          );
-          continue;
-        }
-
-        // Adiciona os vizinhos (acima, abaixo, esquerda, direita) à fila para processamento
-        queue.addAll([
-          Offset(point.dx + 1, point.dy), // Vizinho à direita
-          Offset(point.dx - 1, point.dy), // Vizinho à esquerda
-          Offset(point.dx, point.dy + 1), // Vizinho abaixo
-          Offset(point.dx, point.dy - 1), // Vizinho acima
-        ]);
-      }
-    }
-
-    // Fecha o path para garantir que ele esteja completo
-    boundaryPath.close();
-    return boundaryPath;
-  }
-
-  /// Converte um objeto `Path` em uma lista de pontos (`List<Offset>`).
-  ///
-  /// Essa função percorre o comprimento total do `Path`, segmentando-o
-  /// em intervalos regulares, e extrai os pontos que compõem o caminho.
-  ///
-  /// ### Parâmetros
-  /// - `path`: Um objeto `Path` que representa o contorno ou desenho a ser convertido.
-  ///
-  /// ### Retorno
-  /// - Uma lista de pontos (`List<Offset>`) que representa o contorno do `Path`.
-  ///
-  /// ### Notas
-  /// - O espaçamento entre os pontos é controlado pela constante `step`.
-  /// - Essa função é útil para simplificar um `Path` complexo em um conjunto
-  ///   discreto de pontos para processamento adicional ou renderização.
-  ///
-  /// ### Exemplo de Uso
-  /// ```dart
-  /// final path = Path()..addRect(Rect.fromLTWH(0, 0, 100, 100));
-  /// final points = _convertPathToPoints(path);
-  /// print(points); // Lista de pontos no contorno do retângulo.
-  /// ```
-  List<Offset> _convertPathToPoints(Path path) {
-    // Inicializa uma lista para armazenar os pontos do contorno.
-    final boundaryPoints = <Offset>[];
-
-    // Itera sobre as métricas de cada segmento do Path.
-    for (final metric in path.computeMetrics()) {
-      // Obtém o comprimento total do segmento atual.
-      final length = metric.length;
-
-      // Define o intervalo entre os pontos extraídos.
-      const step = 5.0; // Distância em pixels entre os pontos.
-
-      // Percorre o comprimento do segmento em intervalos definidos por `step`.
-      for (var distance = 0.0; distance < length; distance += step) {
-        // Obtém a tangente para a posição atual no segmento.
-        final tangent = metric.getTangentForOffset(distance);
-
-        // Se a tangente não for nula, adiciona sua posição à lista de pontos.
-        if (tangent != null) {
-          boundaryPoints.add(tangent.position);
-        }
-      }
-    }
-
-    // Retorna a lista de pontos que representam o contorno do Path.
-    return boundaryPoints;
   }
 }
 
@@ -582,7 +375,7 @@ class _DrawingCanvasPainter extends CustomPainter {
 
     if (rxCurrentStroke?.hasStroke ?? false) {
       // TODO(Kevin): do something here?
-      allStrokes.add(rxCurrentStroke!.value!);
+      // allStrokes.add(rxCurrentStroke!.value!);
     }
 
     for (final stroke in allStrokes) {
@@ -606,8 +399,6 @@ class _DrawingCanvasPainter extends CustomPainter {
           for (var i = 1; i < stroke.points.length; i++) {
             path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
           }
-          // path.close();
-          // paint.style = PaintingStyle.fill;
           canvas.drawPath(path, paint);
         }
       }
@@ -691,13 +482,20 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
 
       if (stroke is BucketStroke) {
+        // TODO: KEVIN NOW
+        final newBucketStroke = _applyBucketFill(stroke, allStrokes);
         final path = Path()
-          ..moveTo(stroke.points.first.dx, stroke.points.first.dy);
-        for (var i = 1; i < stroke.points.length; i++) {
-          path.lineTo(stroke.points[i].dx, stroke.points[i].dy);
+          ..moveTo(
+            newBucketStroke.points.first.dx,
+            newBucketStroke.points.first.dy,
+          );
+        for (var i = 1; i < newBucketStroke.points.length; i++) {
+          path.lineTo(
+            newBucketStroke.points[i].dx,
+            newBucketStroke.points[i].dy,
+          );
         }
         path.close();
-        // paint.style = PaintingStyle.fill;
         canvas.drawPath(path, paint);
       }
     }
@@ -756,4 +554,148 @@ class _DrawingCanvasPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+BucketStroke _applyBucketFill(
+  BucketStroke bucketStroke,
+  List<Stroke> allStrokes,
+) {
+  try {
+    final startPoint = Offset(
+      bucketStroke.points.first.dx.floorToDouble(),
+      bucketStroke.points.first.dy.floorToDouble(),
+    );
+    const canvasWidth = _canvasSize;
+    const canvasHeight = _canvasSize / (16 / 9);
+
+    developer.log('Iniciando bucket fill no ponto: $startPoint');
+
+    // Inicializa o mapa do canvas com áreas vazias
+    final canvasMap = <Offset, Color?>{};
+    for (var y = 0; y < canvasHeight; y++) {
+      for (var x = 0; x < canvasWidth; x++) {
+        canvasMap[Offset(x.toDouble(), y.toDouble())] = null;
+      }
+    }
+
+    // Combina todos os strokes no mapa do canvas, exceto o bucketStroke atual
+    for (final stroke in allStrokes) {
+      if (stroke == bucketStroke) {
+        developer.log('Ignorando o bucketStroke na geração do canvasMap');
+        continue;
+      }
+      for (final point in stroke.points) {
+        final roundedPoint = Offset(
+          point.dx.floorToDouble(),
+          point.dy.floorToDouble(),
+        );
+        canvasMap[roundedPoint] = stroke.color;
+      }
+    }
+    developer.log('Mapa do canvas gerado com ${canvasMap.length} pontos');
+
+    // Função para verificar se um ponto está dentro do canvas
+    bool isPointInBounds(Offset point) {
+      return point.dx >= 0 &&
+          point.dy >= 0 &&
+          point.dx < canvasWidth &&
+          point.dy < canvasHeight;
+    }
+
+    // Função para buscar a cor no ponto
+    Color? getColorAtPoint(Offset point) {
+      final roundedPoint = Offset(
+        point.dx.floorToDouble(),
+        point.dy.floorToDouble(),
+      );
+      final color = canvasMap[roundedPoint];
+      developer.log(
+        'Buscando cor no ponto $roundedPoint: ${color?.toString() ?? 'Nenhuma'}',
+      );
+      return color;
+    }
+
+    // Cor base no ponto inicial
+    final baseColor = getColorAtPoint(startPoint);
+    developer
+        .log('Cor base detectada no ponto inicial: ${baseColor ?? 'Nenhuma'}');
+
+    // Nova cor de preenchimento
+    final fillColor = bucketStroke.color;
+    developer.log('Cor de preenchimento: $fillColor');
+
+    // Flood Fill: Estruturas de controle
+    final visited = <Offset>{};
+    final queue = <Offset>[startPoint];
+    final fillPoints = <Offset>[];
+
+    const maxProcessing =
+        50000; // Limite de pontos processados para evitar travamentos
+
+    while (queue.isNotEmpty) {
+      if (visited.length > maxProcessing) {
+        developer.log(
+          'Limite de processamento alcançado, interrompendo o preenchimento.',
+        );
+        break;
+      }
+
+      final currentPoint = queue.removeLast();
+      developer.log('Processando ponto: $currentPoint');
+
+      // Ignora pontos já visitados
+      if (visited.contains(currentPoint)) {
+        developer.log('Ponto $currentPoint já visitado, ignorando');
+        continue;
+      }
+
+      // Marca o ponto como visitado
+      visited.add(currentPoint);
+
+      // Verifica se o ponto está dentro do canvas
+      if (!isPointInBounds(currentPoint)) continue;
+
+      // Verifica se o ponto tem cor compatível com a base ou está vazio
+      final currentColor = getColorAtPoint(currentPoint);
+      if (baseColor == null) {
+        if (currentColor != null) continue; // Apenas preenche áreas vazias
+      } else if (currentColor != baseColor) {
+        developer.log(
+          'Cor no ponto $currentPoint ($currentColor) não é compatível com a base ($baseColor)',
+        );
+        continue; // Apenas preenche áreas da mesma cor
+      }
+
+      // Adiciona o ponto ao preenchimento
+      fillPoints.add(currentPoint);
+      developer.log('Ponto $currentPoint adicionado ao preenchimento');
+
+      // Atualiza o mapa com a nova cor
+      canvasMap[currentPoint] = fillColor;
+
+      // Adiciona vizinhos à fila
+      queue.addAll([
+        Offset(currentPoint.dx + 1, currentPoint.dy), // Direita
+        Offset(currentPoint.dx - 1, currentPoint.dy), // Esquerda
+        Offset(currentPoint.dx, currentPoint.dy + 1), // Abaixo
+        Offset(currentPoint.dx, currentPoint.dy - 1), // Acima
+      ]);
+    }
+
+    developer.log(
+      'Preenchimento concluído. ${fillPoints.length} pontos preenchidos.',
+    );
+
+    // Retorna o novo stroke com os pontos preenchidos
+    return bucketStroke.copyWith(points: fillPoints);
+  } catch (e, stackTrace) {
+    developer.log(
+      'Erro ao aplicar bucket fill: $e',
+      name: '_applyBucketFill',
+      stackTrace: stackTrace,
+    );
+  }
+
+  // Em caso de erro, retorna o stroke original
+  return bucketStroke;
 }

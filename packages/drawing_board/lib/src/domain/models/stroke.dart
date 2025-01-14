@@ -134,7 +134,6 @@ class NormalStroke extends Stroke {
   Map<String, dynamic> toJson() {
     return {
       'points':
-          // points.map((point) => [point.dx, point.dy]).toList(),
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
@@ -170,7 +169,7 @@ class EraserStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
@@ -206,7 +205,7 @@ class LineStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
@@ -251,7 +250,7 @@ class PolygonStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'sides': sides,
       'color': color.value,
@@ -293,7 +292,7 @@ class CircleStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
@@ -334,7 +333,7 @@ class SquareStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
@@ -426,7 +425,7 @@ class BucketStroke extends Stroke {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'points': // points.map((point) => [point.dx, point.dy]).toList(),
+      'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'color': color.value,
       'size': size,
