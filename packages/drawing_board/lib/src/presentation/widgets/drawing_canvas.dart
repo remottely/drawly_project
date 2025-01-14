@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -572,11 +573,11 @@ BucketStroke _applyBucketFill(
 
     // Inicializa o mapa do canvas com áreas vazias
     final canvasMap = <Offset, Color?>{};
-    for (var y = 0; y < canvasHeight; y++) {
-      for (var x = 0; x < canvasWidth; x++) {
-        canvasMap[Offset(x.toDouble(), y.toDouble())] = null;
-      }
-    }
+    // for (var y = 0; y < canvasHeight; y++) {
+    //   for (var x = 0; x < canvasWidth; x++) {
+    //     canvasMap[Offset(x.toDouble(), y.toDouble())] = null;
+    //   }
+    // }
 
     // Combina todos os strokes no mapa do canvas, exceto o bucketStroke atual
     for (final stroke in allStrokes) {
@@ -604,15 +605,11 @@ BucketStroke _applyBucketFill(
 
     // Função para buscar a cor no ponto
     Color? getColorAtPoint(Offset point) {
-      final roundedPoint = Offset(
-        point.dx.floorToDouble(),
-        point.dy.floorToDouble(),
-      );
-      final color = canvasMap[roundedPoint];
       developer.log(
-        'Buscando cor no ponto $roundedPoint: ${color?.toString() ?? 'Nenhuma'}',
-      );
-      return color;
+        'Buscando cor no ponto $point: ',
+      ); //${color?.toString() ?? 'Nenhuma'}',);
+      return canvasMap[
+          Offset(point.dx.floorToDouble(), point.dy.floorToDouble())];
     }
 
     // Cor base no ponto inicial
@@ -626,11 +623,14 @@ BucketStroke _applyBucketFill(
 
     // Flood Fill: Estruturas de controle
     final visited = <Offset>{};
-    final queue = <Offset>[startPoint];
+    final queue = Queue<Offset>()..add(startPoint);
     final fillPoints = <Offset>[];
 
+    // TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a
+    // resolucao dos pixels offset e entao posteriormente ao processamendo
+    // voltar a resolucao original
     const maxProcessing =
-        50000; // Limite de pontos processados para evitar travamentos
+        500; // Limite de pontos processados para evitar travamentos
 
     while (queue.isNotEmpty) {
       if (visited.length > maxProcessing) {
@@ -644,13 +644,7 @@ BucketStroke _applyBucketFill(
       developer.log('Processando ponto: $currentPoint');
 
       // Ignora pontos já visitados
-      if (visited.contains(currentPoint)) {
-        developer.log('Ponto $currentPoint já visitado, ignorando');
-        continue;
-      }
-
-      // Marca o ponto como visitado
-      visited.add(currentPoint);
+      if (!visited.add(currentPoint)) continue;
 
       // Verifica se o ponto está dentro do canvas
       if (!isPointInBounds(currentPoint)) continue;
