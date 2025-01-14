@@ -127,7 +127,7 @@
 - [x] (0.51.1) (2) implementando balde de tinta.
 - [x] (0.51.2) (3) implementando balde de tinta. melhorando documentacao no codigo.
 - [x] (0.51.3) (4) mudando a logica do bucket para q ele preencha os points de acordo com a cor atual sendo igual as cores do canvas.
-- [ ] (0.51.3) (4) refazer lógica de maneira q o backend receba a lista de stroke.points com apenas 1 point. Economizando assim consultas e lentidoes no servidor, e receber do outro lado a logica de renderização baseada nesse único point.
+- [x] (0.51.4) (5) refazer lógica de maneira q o backend receba a lista de stroke.points com apenas 1 point. Economizando assim consultas e lentidoes no servidor, e receber do outro lado a logica de renderização baseada nesse único point.
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
 - [ ] agora quero mudar a forma como é preenchido o objeto. quero deixar da mesma forma q é feita hj com circle, square etc. apenas desenhar as bordas e setar o objeto como filled igua a true. mas para isso preciso mudar a logica
