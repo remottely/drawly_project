@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_1.dart",
       "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"],
-      "noDebug": true
+      "noDebug": false
     },
     {
       "name": "8082",

@@ -65,6 +65,15 @@ class CurrentStrokeValueNotifier extends ValueNotifier<Stroke?> {
         );
       }
 
+      if (type == StrokeType.bucket) {
+        return BucketStroke(
+          points: [point],
+          color: color,
+          size: size,
+          opacity: opacity,
+        );
+      }
+
       return NormalStroke(
         points: [point],
         color: color,
@@ -76,6 +85,11 @@ class CurrentStrokeValueNotifier extends ValueNotifier<Stroke?> {
 
   void addPoint(Offset point) {
     final allPoints = List<Offset>.from(value?.points ?? [])..add(point);
+    value = value?.copyWith(points: allPoints);
+  }
+
+  void addPoints(List<Offset> points) {
+    final allPoints = List<Offset>.from(value?.points ?? [])..addAll(points);
     value = value?.copyWith(points: allPoints);
   }
 

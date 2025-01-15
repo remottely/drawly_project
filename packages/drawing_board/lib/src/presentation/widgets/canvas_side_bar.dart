@@ -169,6 +169,12 @@ class _CanvasSideBarState extends CanvasSideBarViewModel {
                   tooltip: 'Polygon',
                 ),
                 _IconBox(
+                  iconData: FontAwesomeIcons.bucket,
+                  selected: widget.rxDrawingTool.value == DrawingTool.bucket,
+                  onTap: () => widget.rxDrawingTool.value = DrawingTool.bucket,
+                  tooltip: 'Bucket',
+                ),
+                _IconBox(
                   iconData: FontAwesomeIcons.eraser,
                   selected: widget.rxDrawingTool.value == DrawingTool.eraser,
                   onTap: () => widget.rxDrawingTool.value = DrawingTool.eraser,

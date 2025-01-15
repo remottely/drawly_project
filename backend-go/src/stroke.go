@@ -11,6 +11,7 @@ const (
 	polygon StrokeType = "polygon"
 	square  StrokeType = "square"
 	circle  StrokeType = "circle"
+	bucket  StrokeType = "bucket"
 )
 
 type Stroke struct {
@@ -24,7 +25,7 @@ type Stroke struct {
 
 func ParseStrokeType(value string) (StrokeType, error) {
 	switch StrokeType(value) {
-	case normal, eraser, line, polygon, square, circle:
+	case normal, eraser, line, polygon, square, circle, bucket:
 		return StrokeType(value), nil
 	default:
 		return "", fmt.Errorf("invalid stroke type: %s", value)

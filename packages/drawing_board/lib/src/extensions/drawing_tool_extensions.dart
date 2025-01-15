@@ -18,6 +18,8 @@ extension DrawingToolExtensions on DrawingTool {
         return StrokeType.square;
       case DrawingTool.circle:
         return StrokeType.circle;
+      case DrawingTool.bucket:
+        return StrokeType.bucket;
     }
   }
 
@@ -29,6 +31,7 @@ extension DrawingToolExtensions on DrawingTool {
       case DrawingTool.square:
       case DrawingTool.circle:
       case DrawingTool.eraser:
+      case DrawingTool.bucket:
         return SystemMouseCursors.precise;
       case DrawingTool.fill:
         return SystemMouseCursors.click;

@@ -113,19 +113,35 @@
 - [x] (0.47.0) feature: quando usuario cai a conexão, mas ele seria o proximo da lista a desenhar, o jogo entende q ele ainda vai desenhar por estar ignorando a verificacao de isConnected. Corrigir isso e jogar para um outro participant para q o jogo continue sem ele, mesmo q esteja na lista de participant mas desconectado.
 - [x] (0.47.1) Bug: turnos durando pouco tempo, verificar o timer no backend ou frontend
 - ...:
-	- [x] (0.48.0) feature: quando o usuario q esta desenhando cair, ele deve pular o turno esperar 5s para qualquer participant independente se ele esta desenhando?
-	- [x] (0.49.0) quando a pessoa q esta desenhando(drawer) cai por 5s, e enquanto ela esta fora todos os outros acertam, o turno troca etc tudo certinho, mas na tela do participant q caiu permanece a possibilidade dela continuar desenhando. corrigir isso.
-	- [ ]  esta correto: quando a pessoa acerta e cai por menos de 5s e volta as pontuacoes permanecem. por mais de 10s ela perde todos os pontos, pois ela foi removida e reincerida na lista de participants. manter assim ou criar uma outra logica q pula a vez dps de 5s mas manter todas as pontuacoes etc do participant?
-	- [ ] remover a verificacao isConnect da validacao de guess, pois agora existe a regra dos 5s q elimina a pessoa da sala. logo, agora devemos esperar 5s o participant voltar, entao se passar disso remove-lo e verificar se ele esta na lista de participants da sala.
+  - [x] (0.48.0) feature: quando o usuario q esta desenhando cair, ele deve pular o turno esperar 5s para qualquer participant independente se ele esta desenhando?
+  - [x] (0.49.0) quando a pessoa q esta desenhando(drawer) cai por 5s, e enquanto ela esta fora todos os outros acertam, o turno troca etc tudo certinho, mas na tela do participant q caiu permanece a possibilidade dela continuar desenhando. corrigir isso.
+  - [ ] esta correto: quando a pessoa acerta e cai por menos de 5s e volta as pontuacoes permanecem. por mais de 10s ela perde todos os pontos, pois ela foi removida e reincerida na lista de participants. manter assim ou criar uma outra logica q pula a vez dps de 5s mas manter todas as pontuacoes etc do participant?
+  - [ ] remover a verificacao isConnect da validacao de guess, pois agora existe a regra dos 5s q elimina a pessoa da sala. logo, agora devemos esperar 5s o participant voltar, entao se passar disso remove-lo e verificar se ele esta na lista de participants da sala.
 - [x] (0.50.0) start code enchance
 - [x] (0.50.1) atualizando zishang520/socket.io/v2 lib
 - [x] (0.50.2) manipulando tipos especificos para economizar memoria e tratar melhor as variaveis, float32, uint8, etc
 - [x] (0.50.3) separando o main.go em arquivos simples
-- [ ] (0.50.4) enchance the code
+- [x] (0.50.5) enchance the code
+- [x] (0.50.5) removendo backgroundImage
+- [x] (0.51.0) (1) implementando balde de tinta. bugado e nao funcionando do lado de fora de objetos
+- [x] (0.51.1) (2) implementando balde de tinta.
+- [x] (0.51.2) (3) implementando balde de tinta. melhorando documentacao no codigo.
+- [x] (0.51.3) (4) mudando a logica do bucket para q ele preencha os points de acordo com a cor atual sendo igual as cores do canvas.
+- [x] (0.51.4) (5) refazer lógica de maneira q o backend receba a lista de stroke.points com apenas 1 point. Economizando assim consultas e lentidoes no servidor, e receber do outro lado a logica de renderização baseada nesse único point.
+- [x] (0.51.5) implementando BUCKET modo teste até correção do desempenho do processamento da funcionalidade _applyBucketFill()
+- [ ] (0.51.6) TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a resolucao dos pixels offset e entao posteriormente ao processamendo voltar a resolucao original
+- [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
+- [ ] agora quero mudar a forma como é preenchido o objeto. quero deixar da mesma forma q é feita hj com circle, square etc. apenas desenhar as bordas e setar o objeto como filled igua a true. mas para isso preciso mudar a logica
+- [ ] eu acho q passei a instrucao um pouco imprecisa anteriormente, preciso q vc pinte as areas disponiveis do canvas e nao encima dos strokes q ja existem, exemplo, se eu tehno um circulo fechado com borda preta mas oco por dentro, e eu clicar com o balde selecionado o rosa dentro da parte oca, ele deve pintar a parte oca de rosa e manter as bordas pretas, ou seja, criar o bucketstroke contendo apenas points relacionados a parte oca, assim como ocorre no uso do bucket do photoshop. hoje se eu clico com o bucket dentro do circulo, ele sobrescreve os strokes pretos e pinta de rosa, preciso q vc arrume isso:
+- [ ] Eu pedi para q vc implementasse o bucket para q ele criasse apenas as bordas do meu objeto, e q nao preenchesse ele por inteiro. vc preenche quando esta dentro de um objeto mas cria bordas quando se trata do canvas, ou seja, do lado de fora de um objeto. preciso q crie a logica de nao preenchimento do objeto, me de apenas os stroke.points relacionados as bordas necessarias para pintar as bordas.
+- [ ] // chatgpt: como q eu garanto que o contorno é fechado, e caso contrario havera vazamento preenchendo todo o canvas?
+- [ ] // chatgpt: eu preciso q vc crie quantos paths forem necessários para preencher o canvas inteiro sempre detectando os conflitos entre os strokes para conseguir simular de vdd o bucket, o preenchimento do desenho com a cor pode deixar q eu faco
+- [ ] // chatgpt: existe um problema, preciso q vc crie o BucketStroke e passe a logica dele para ele mesmo
+- [ ] // chatgpt: eu preciso criar uma regra para garantir q todos os vizinhos do meu startPoint fechem uma figura(convexa ou nao convexa) sem brechas, se ele tiver brechas ele deve pintar toda a area do canvas
 - ...:
-	- [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso. 
-	- [ ] (2) adicionar realtime feedback mesmo offline??
+  - [ ] (1) Desenhar estando offline, quando ressincroniza envia um monte de linhas aleatorias, corrigir isso.
+  - [ ] (2) adicionar realtime feedback mesmo offline??
 - [ ] garantir q o jogo irá finalizar sempre q houver menos de 2 participants
 - [ ] bug de strokes, investigar
 - [ ]

@@ -5,7 +5,8 @@ enum DrawingTool {
   eraser,
   polygon,
   square,
-  circle;
+  circle,
+  bucket;
 
   bool get isEraser => this == DrawingTool.eraser;
   bool get isLine => this == DrawingTool.line;
@@ -14,4 +15,5 @@ enum DrawingTool {
   bool get isPolygon => this == DrawingTool.polygon;
   bool get isSquare => this == DrawingTool.square;
   bool get isCircle => this == DrawingTool.circle;
+  bool get isBucket => this == DrawingTool.bucket;
 }

@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:drawing_board/src/src.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
@@ -42,7 +40,7 @@ class _DrawingBoardState extends State<DrawingBoard>
   final rxDrawingTool = ValueNotifier<DrawingTool>(DrawingTool.pencil);
   final rxIsFilled = ValueNotifier<bool>(false);
   final rxPolygonSides = ValueNotifier<int>(3);
-  final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
+  // final rxBackgroundImage = ValueNotifier<ui.Image?>(null);
   final rxAllStrokes = ValueNotifier<List<Stroke>>([]);
   final rxIsShowGrid = ValueNotifier<bool>(false);
 
@@ -78,7 +76,7 @@ class _DrawingBoardState extends State<DrawingBoard>
       rxDrawingTool.value = DrawingTool.pencil;
       rxIsFilled.value = false;
       rxPolygonSides.value = 3;
-      rxBackgroundImage.value = null;
+      // rxBackgroundImage.value = null;
       rxAllStrokes.value = [];
       rxIsShowGrid.value = false;
     };
@@ -130,7 +128,7 @@ class _DrawingBoardState extends State<DrawingBoard>
                     rxIsFilled,
                     rxCurrentStroke,
                     rxAllStrokes,
-                    rxBackgroundImage,
+                    // rxBackgroundImage,
                   ]),
                   builder: (context, _) {
                     return Stack(
@@ -148,7 +146,7 @@ class _DrawingBoardState extends State<DrawingBoard>
                           ),
                           rxCurrentStroke: rxCurrentStroke,
                           rxAllStrokes: rxAllStrokes,
-                          rxBackgroundImage: rxBackgroundImage,
+                          // rxBackgroundImage: rxBackgroundImage,
                           canvasGlobalKey: canvasGlobalKey,
                           username: widget.username,
                           roomName: widget.roomName,
