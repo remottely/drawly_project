@@ -6,7 +6,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_1.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8081"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8081"
+      ],
       "noDebug": false
     },
     {
@@ -14,7 +21,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_2.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8082"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8082"
+      ],
       "noDebug": true
     },
     {
@@ -22,7 +36,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_3.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8083"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8083"
+      ],
       "noDebug": true
     },
     {
@@ -30,7 +51,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/testing/main_dev_game_page_4.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8084"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8084"
+      ],
       "noDebug": true
     },
     {
@@ -38,7 +66,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8085"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8085"
+      ],
       "noDebug": true
     },
     {
@@ -46,7 +81,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
-      "args": ["-d", "chrome", "--web-renderer", "html", "--web-port", "8086"],
+      "args": [
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8086"
+      ],
       "noDebug": false
     },
     // {

@@ -2,13 +2,13 @@
 
 ## Getting Started
 
-```bash
+<!-- ```bash
 npx tsc
 ```
 
 ```bash
 node dist/server.js
-```
+``` -->
 
 ```bash
 flutter build appbundle --release --analyze-size --target-platform android-arm64

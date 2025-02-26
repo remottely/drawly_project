@@ -6,7 +6,7 @@ import 'package:drawly/core/widgets/session_pick_avatar.dart';
 import 'package:drawly/features/draw_game/draw_game_room_selection_page.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
-import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
+// import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -478,19 +478,19 @@ class PrimaryContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius ?? 30),
-        boxShadow: [
-          BoxShadow(
-            color: color ?? const Color(0XFF1E1E1E),
-          ),
-          const BoxShadow(
-            offset: Offset(2, 2),
-            blurRadius: 4,
-            inset: true,
-          ),
-        ],
-      ),
+      // decoration: BoxDecoration(
+      //   borderRadius: BorderRadius.circular(radius ?? 30),
+      //   boxShadow: [
+      //     BoxShadow(
+      //       color: color ?? const Color(0XFF1E1E1E),
+      //     ),
+      //     const BoxShadow(
+      //       offset: Offset(2, 2),
+      //       blurRadius: 4,
+      //       inset: true,
+      //     ),
+      //   ],
+      // ),
       child: child,
     );
   }

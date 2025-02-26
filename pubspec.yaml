@@ -3,7 +3,7 @@ description: "Desenhe, adivinhe e se divirta como nunca"
 
 publish_to: "none"
 
-version: 0.51.5
+version: 0.51.6
 
 environment:
   sdk: ^3.5.4
@@ -18,7 +18,7 @@ dependencies:
   equatable: ^2.0.7
   flutter:
     sdk: flutter
-  flutter_inset_box_shadow: ^1.0.8
+  # flutter_inset_box_shadow: ^1.0.8
   image_picker: ^1.1.2
   shared_preferences: ^2.3.4
   # TODO(Kevin): Remove this dependency
@@ -27,12 +27,12 @@ dependencies:
   uuid: ^4.5.1
 
 dev_dependencies:
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  very_good_analysis: ^6.0.0
+  very_good_analysis: ^7.0.0
 
 flutter:
   uses-material-design: true
