@@ -14,9 +14,17 @@ const (
 	bucket  StrokeType = "bucket"
 )
 
+type ColorJSON struct {
+	A          float64 `json:"a"`          // valor entre 0.0 e 1.0
+	R          float64 `json:"r"`          // valor entre 0.0 e 1.0
+	G          float64 `json:"g"`          // valor entre 0.0 e 1.0
+	B          float64 `json:"b"`          // valor entre 0.0 e 1.0
+	ColorSpace string  `json:"colorSpace"` // opcional – por exemplo, "ColorSpace.sRGB"
+}
+
 type Stroke struct {
 	Points     []Offset   `json:"points"`
-	Color      uint32     `json:"color"`
+	Color      ColorJSON  `json:"color"`
 	Size       float32    `json:"size"`
 	Opacity    uint8      `json:"opacity"`
 	StrokeType StrokeType `json:"strokeType"`
@@ -33,7 +41,7 @@ func ParseStrokeType(value string) (StrokeType, error) {
 }
 
 func parseStroke(data map[string]any) (Stroke, error) {
-	// Validar e extrair os pontos
+	// Processa os pontos:
 	rawPoints, ok := data["points"].([]any)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'points'")
@@ -45,27 +53,28 @@ func parseStroke(data map[string]any) (Stroke, error) {
 		if !ok {
 			return Stroke{}, fmt.Errorf("invalid point format at index %d", i)
 		}
-
 		dx, dxOk := pointMap["dx"].(float64)
 		dy, dyOk := pointMap["dy"].(float64)
-
 		if !dxOk || !dyOk {
 			return Stroke{}, fmt.Errorf("missing or invalid 'dx' or 'dy' at index %d", i)
 		}
-
 		points[i] = Offset{Dx: dx, Dy: dy}
 	}
 
-	// Validar e extrair outras propriedades
-	colorFloat64, ok := data["color"].(float64)
+	// Processa a cor:
+	rawColor, ok := data["color"].(map[string]any)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'color'")
 	}
-	// if colorFloat < 0 || colorFloat > 4294967295 {
-	// 	return Stroke{}, fmt.Errorf("'color' value out of range for uint32")
-	// }
-	// color := uint32(colorFloat)
+	color := ColorJSON{
+		A:          rawColor["a"].(float64),
+		R:          rawColor["r"].(float64),
+		G:          rawColor["g"].(float64),
+		B:          rawColor["b"].(float64),
+		ColorSpace: rawColor["colorSpace"].(string), // ou um valor default se não estiver presente
+	}
 
+	// Processa size e opacity:
 	sizeFloat64, ok := data["size"].(float64)
 	if !ok {
 		return Stroke{}, fmt.Errorf("invalid or missing 'size'")
@@ -85,7 +94,7 @@ func parseStroke(data map[string]any) (Stroke, error) {
 		return Stroke{}, err
 	}
 
-	// Campo 'Filled' opcional
+	// Campo 'Filled' opcional:
 	var filled *bool
 	if rawFilled, exists := data["filled"]; exists {
 		if filledValue, ok := rawFilled.(bool); ok {
@@ -95,10 +104,9 @@ func parseStroke(data map[string]any) (Stroke, error) {
 		}
 	}
 
-	// Retorna o objeto Stroke
 	return Stroke{
 		Points:     points,
-		Color:      uint32(colorFloat64),
+		Color:      color,
 		Size:       float32(sizeFloat64),
 		Opacity:    uint8(opacityFloat64),
 		StrokeType: strokeType,
