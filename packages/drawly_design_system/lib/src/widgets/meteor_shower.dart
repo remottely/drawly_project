@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class MeteorShower extends StatefulWidget {
@@ -100,7 +101,10 @@ class MeteorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final trailPaint = Paint()
       ..shader = LinearGradient(
-        colors: [Colors.white, Colors.white.withOpacity(0)],
+        colors: [
+          Colors.white,
+          Colors.white.applyOpacity(0),
+        ],
         end: Alignment.topCenter,
         begin: Alignment.bottomCenter,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));

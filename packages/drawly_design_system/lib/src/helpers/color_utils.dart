@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-extension ColorJson on Color {
+extension ColorUtils on Color {
   /// Aplica a opacidade especificada à cor informada.
   /// [opacity] deve estar entre 0.0 e 1.0.
   Color applyOpacity(double opacity) {

@@ -26,7 +26,7 @@ abstract class Stroke {
           ),
         )
         .toList();
-    final color = ColorJson.fromJson(json['color'] as Map<String, dynamic>);
+    final color = ColorUtils.fromJson(json['color'] as Map<String, dynamic>);
     final size = double.parse(json['size'].toString());
     final opacity = double.parse(json['opacity'].toString());
     final strokeType = StrokeType.fromString(json['strokeType'] as String);

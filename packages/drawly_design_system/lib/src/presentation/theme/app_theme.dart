@@ -22,7 +22,7 @@ ThemeData lightTheme = ThemeData(
     iconTheme: IconThemeData(color: Colors.white),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    backgroundColor: AppColors.lightPrimary.withOpacity(0.7),
+    backgroundColor: AppColors.lightPrimary.applyOpacity(0.7),
   ),
   inputDecorationTheme: const InputDecorationTheme(
     border: InputBorder.none,
