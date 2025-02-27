@@ -214,7 +214,9 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   void _sendBufferedDrawingPoints() {
     if (rxCurrentStroke.value?.points == null ||
-        rxCurrentStroke.value!.points.isEmpty) return;
+        rxCurrentStroke.value!.points.isEmpty) {
+      return;
+    }
 
     final payload = RoomDrawingStrokePointsDTO(
       roomName: widget.roomName,
@@ -251,7 +253,7 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       // rxCurrentStroke.startStroke(
                       //   localPosition,
                       //   color: strokeColor,
-                      //   size: size / scale, // TODO: NOW
+                      //   size: size / scale, // TODO(Kevin): NOW
                       //   opacity: opacity,
                       //   type: currentTool.strokeType,
                       //   sides: widget.options.polygonSides,
@@ -269,14 +271,15 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       rxCurrentStroke.startStroke(
                         localPosition,
                         color: strokeColor,
-                        size: size / scale, // TODO: NOW
+                        size: size / scale, // TODO(Kevin): NOW
                         opacity: opacity,
                         type: currentTool.strokeType,
                         sides: widget.options.polygonSides,
                         filled: widget.options.fillShape,
                       );
                       _sendDrawingPointsStart();
-                      // rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+                      // rxAllStrokes.value =
+                      // List<Stroke>.from(rxAllStrokes.value)
                       //   ..last.points.add(localPosition);
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
@@ -383,7 +386,7 @@ class _DrawingCanvasPainter extends CustomPainter {
       if (stroke.points.isEmpty) continue;
 
       final paint = Paint()
-        ..color = stroke.color.withOpacity(stroke.opacity)
+        ..color = stroke.color.applyOpacity(stroke.opacity)
         ..strokeWidth = stroke.size
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
@@ -483,7 +486,7 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
 
       if (stroke is BucketStroke) {
-        // TODO: KEVIN NOW
+        // TODO(Kevin): KEVIN NOW
         final newBucketStroke = _applyBucketFill(stroke, allStrokes);
         final path = Path()
           ..moveTo(
@@ -513,11 +516,11 @@ class _DrawingCanvasPainter extends CustomPainter {
     const subGridStrokeWidth = 0.5;
 
     final gridPaint = Paint()
-      ..color = Colors.red.withOpacity(0.2)
+      ..color = Colors.red.applyOpacity(0.2)
       ..strokeWidth = gridStrokeWidth;
 
     final subGridPaint = Paint()
-      ..color = Colors.red.withOpacity(0.2)
+      ..color = Colors.red.applyOpacity(0.2)
       ..strokeWidth = subGridStrokeWidth;
 
     for (var y = 0.0; y <= size.height; y += gridSpacing) {
@@ -655,7 +658,7 @@ BucketStroke _applyBucketFill(
         if (currentColor != null) continue; // Apenas preenche áreas vazias
       } else if (currentColor != baseColor) {
         developer.log(
-          'Cor no ponto $currentPoint ($currentColor) não é compatível com a base ($baseColor)',
+          '''Cor no ponto $currentPoint ($currentColor) não é compatível com a base ($baseColor)''',
         );
         continue; // Apenas preenche áreas da mesma cor
       }
