@@ -51,7 +51,7 @@ func setupServer() *socket.Server {
 
 func handleGracefulShutdown(io *socket.Server) {
 	exit := make(chan struct{})
-	SignalC := make(chan os.Signal)
+	SignalC := make(chan os.Signal, 1)
 
 	signal.Notify(SignalC, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 

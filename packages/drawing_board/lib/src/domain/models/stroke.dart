@@ -1,3 +1,4 @@
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 abstract class Stroke {
@@ -13,7 +14,8 @@ abstract class Stroke {
     // final points = (json['points'] as List<dynamic>)
     //     .map(
     //       (point) =>
-    //           Offset((point as List<dynamic>)[0] as double, point[1] as double),
+    //           Offset(
+    //(point as List<dynamic>)[0] as double, point[1] as double),
     //     )
     //     .toList();
     final points = (json['points'] as List<dynamic>)
@@ -24,7 +26,7 @@ abstract class Stroke {
           ),
         )
         .toList();
-    final color = Color(json['color'] as int);
+    final color = ColorUtils.fromJson(json['color'] as Map<String, dynamic>);
     final size = double.parse(json['size'].toString());
     final opacity = double.parse(json['opacity'].toString());
     final strokeType = StrokeType.fromString(json['strokeType'] as String);
@@ -135,7 +137,7 @@ class NormalStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -171,7 +173,7 @@ class EraserStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -207,7 +209,7 @@ class LineStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -253,7 +255,7 @@ class PolygonStroke extends Stroke {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
       'sides': sides,
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -294,7 +296,7 @@ class CircleStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -335,7 +337,7 @@ class SquareStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
@@ -427,7 +429,7 @@ class BucketStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'color': color.value,
+      'color': color.toJson(),
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),

@@ -99,7 +99,7 @@ func handleCreateRoom(io *socket.Server, client *socket.Socket, args ...interfac
 }
 
 func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
-	logInfo("Args received: %+v", args)
+	logInfo("Args received: %+v", args...)
 	if len(args) > 1 {
 		// Extraindo e verificando o formato do primeiro argumento
 		data, ok := args[0].(map[string]interface{})

@@ -76,12 +76,21 @@ class _AllParticipantsState extends State<AllParticipants> {
             return ListView.builder(
               itemCount: value.length,
               itemBuilder: (context, index) {
+                bool localUserIsCurrentIndex() =>
+                    widget.userId == value[index].userId;
+
+                bool remoteUserIsCurrentDrawer() =>
+                    value[index].userId == widget.currentDrawerUserId;
+
+                bool localUserIsCurrentDrawer() =>
+                    widget.userId == widget.currentDrawerUserId &&
+                    remoteUserIsCurrentDrawer();
+
                 return Container(
                   decoration: BoxDecoration(
-                    color: widget.userId == widget.currentDrawerUserId &&
-                            value[index].userId == widget.currentDrawerUserId
+                    color: localUserIsCurrentDrawer()
                         ? AppColors.greenAccent
-                        : value[index].userId == widget.currentDrawerUserId
+                        : remoteUserIsCurrentDrawer()
                             ? AppColors.yellowAccent
                             : AppColors.white,
                     borderRadius: BorderRadius.circular(0),
@@ -97,12 +106,10 @@ class _AllParticipantsState extends State<AllParticipants> {
                           children: [
                             _UserPicture(
                               userAvatar: value[index].userAvatar,
-                              currentDrawerIsisCurrentDrawerUserId:
-                                  widget.userId == widget.currentDrawerUserId &&
-                                      value[index].userId ==
-                                          widget.currentDrawerUserId,
-                              isCurrentDrawerUserId: value[index].userId ==
-                                  widget.currentDrawerUserId,
+                              localUserIsCurrentDrawer:
+                                  localUserIsCurrentDrawer(),
+                              remoteUserIsCurrentDrawer:
+                                  remoteUserIsCurrentDrawer(),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -113,32 +120,14 @@ class _AllParticipantsState extends State<AllParticipants> {
                                     value[index].username,
                                     style: TextStyle(
                                       color: App.isDebugMode
-                                          ? widget.userId ==
-                                                      widget
-                                                          .currentDrawerUserId &&
-                                                  value[index].userId ==
-                                                      widget.currentDrawerUserId
+                                          ? localUserIsCurrentDrawer()
                                               ? AppColors.black
-                                              : value[index].userId ==
-                                                      widget.currentDrawerUserId
+                                              : remoteUserIsCurrentDrawer()
                                                   ? AppColors.black
-                                                  : widget.userId ==
-                                                          value[index].userId
+                                                  : localUserIsCurrentIndex()
                                                       ? AppColors.redAccent
                                                       : AppColors.greyAccent700
                                           : AppColors.black,
-                                      // widget.userId ==
-                                      //             widget.currentDrawerUserId &&
-                                      //         value[index].userId ==
-                                      //             widget.currentDrawerUserId
-                                      //     ? AppColors.greenAccent
-                                      //     : value[index].userId ==
-                                      //             widget.currentDrawerUserId
-                                      //         ? AppColors.black
-                                      //         : widget.userId ==
-                                      //                 value[index].userId
-                                      //             ? AppColors.black
-                                      //             : AppColors.greyAccent700,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       height: 1,
@@ -186,13 +175,13 @@ class _AllParticipantsState extends State<AllParticipants> {
 class _UserPicture extends StatelessWidget {
   const _UserPicture({
     required this.userAvatar,
-    required this.currentDrawerIsisCurrentDrawerUserId,
-    required this.isCurrentDrawerUserId,
+    required this.localUserIsCurrentDrawer,
+    required this.remoteUserIsCurrentDrawer,
   });
 
   final String? userAvatar;
-  final bool currentDrawerIsisCurrentDrawerUserId;
-  final bool isCurrentDrawerUserId;
+  final bool localUserIsCurrentDrawer;
+  final bool remoteUserIsCurrentDrawer;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +196,7 @@ class _UserPicture extends StatelessWidget {
           //         ? AppColors.yellowAccent
           //         : AppColors.darkBlueAccent,
         ),
-        if (isCurrentDrawerUserId)
+        if (remoteUserIsCurrentDrawer)
           Positioned(
             right: 0,
             bottom: 0,
@@ -216,9 +205,9 @@ class _UserPicture extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: currentDrawerIsisCurrentDrawerUserId
+                color: localUserIsCurrentDrawer
                     ? AppColors.greenAccent
-                    : isCurrentDrawerUserId
+                    : remoteUserIsCurrentDrawer
                         ? AppColors.yellowAccent
                         : AppColors.greyAccent,
                 border: Border.all(

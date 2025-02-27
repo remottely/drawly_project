@@ -50,15 +50,15 @@ const (
 	Dialog  ErrorActionType = "dialog"
 )
 
-// Validação do enum
-func isValidErrorActionType(action ErrorActionType) bool {
-	switch action {
-	case Nothing, Retry, Ignore, Log, Pop, Dialog:
-		return true
-	default:
-		return false
-	}
-}
+// // Validação do enum
+// func isValidErrorActionType(action ErrorActionType) bool {
+// 	switch action {
+// 	case Nothing, Retry, Ignore, Log, Pop, Dialog:
+// 		return true
+// 	default:
+// 		return false
+// 	}
+// }
 
 type ErrorDTO struct {
 	Message string          `json:"message"`

@@ -1,3 +1,4 @@
+import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 
 class DrawlyResponsiveFading extends StatelessWidget {
@@ -26,7 +27,7 @@ class DrawlyResponsiveFading extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0),
+                        Colors.white.applyOpacity(0),
                       ],
                     ),
                   ),
@@ -42,7 +43,7 @@ class DrawlyResponsiveFading extends StatelessWidget {
                     end: Alignment.centerLeft,
                     colors: [
                       Colors.white,
-                      Colors.white.withOpacity(0),
+                      Colors.white.applyOpacity(0),
                     ],
                   ),
                 ),

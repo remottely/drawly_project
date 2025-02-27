@@ -79,7 +79,7 @@ socket.on('drawing:stroke', (data) {
   List<Offset> receivedPoints = (data['points'] as List)
       .map((e) => Offset(e['dx'], e['dy']))
       .toList();
-  Color color = Color(int.parse(data['color']));
+  Color color = ColorJson.fromJson(json['color'] as Map<String, dynamic>);
   double width = data['width'];
 
   // Adiciona o novo traço incrementalmente

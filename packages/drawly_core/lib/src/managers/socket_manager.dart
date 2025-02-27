@@ -99,7 +99,7 @@ class SocketManager {
       _socket.emitWithAck(
         event,
         data,
-        ack: (response) {
+        ack: (dynamic response) {
           if (response is Map<String, dynamic>) {
             completer.complete(response);
           } else {

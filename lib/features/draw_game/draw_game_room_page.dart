@@ -164,6 +164,8 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 class _DrawGameRoomPageState extends GamePageViewModel {
   @override
   Widget build(BuildContext context) {
+    void testDisconnection4s() => Tests.testDisconnectionThenReconnection4s();
+
     return Stack(
       children: [
         AnimatedBuilder(
@@ -264,18 +266,17 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                               : AppColors.yellowAccent,
                                         ),
                                       if (Tests.isTesting) ...[
-                                        const IconButton(
-                                          onPressed: Tests
-                                              .testDisconnectionThenReconnection4s,
-                                          icon: Icon(
+                                        IconButton(
+                                          onPressed: testDisconnection4s,
+                                          icon: const Icon(
                                             Icons.wifi_off_sharp,
                                             color: Colors.white,
                                           ),
                                         ),
-                                        const IconButton(
-                                          onPressed: Tests
-                                              .testDisconnectionThenReconnection10s,
-                                          icon: Icon(Icons.wifi_off_sharp),
+                                        IconButton(
+                                          onPressed: testDisconnection4s,
+                                          icon:
+                                              const Icon(Icons.wifi_off_sharp),
                                         ),
                                       ] else
                                         const SizedBox.shrink(),
