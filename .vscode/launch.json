@@ -9,8 +9,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8081"
       ],
@@ -24,8 +24,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8082"
       ],
@@ -39,8 +39,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8083"
       ],
@@ -54,8 +54,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8084"
       ],
@@ -69,8 +69,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8085"
       ],
@@ -84,8 +84,8 @@
       "args": [
         "-d",
         "chrome",
-        "--web-renderer",
-        "canvaskit",
+        // "--web-renderer",
+        // "canvaskit",
         "--web-port",
         "8086"
       ],
