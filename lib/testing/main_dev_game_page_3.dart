@@ -5,11 +5,7 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(
     const DrawlyApp(
-      home: DrawGameRoomPage(
-        userId: '3',
-        username: 'Ana',
-        roomName: '2323',
-      ),
+      home: DrawGameRoomPage(userId: '3', username: 'Ana', roomName: '2323'),
     ),
   );
 }

@@ -11,14 +11,14 @@ class AnswersChatView extends StatefulWidget {
     required this.isCurrentDrawer,
     required this.isGameStarted,
     super.key,
-  })  : assert(
-          username.length >= 3,
-          'The username must be at least 3 characters long',
-        ),
-        assert(
-          roomName.length >= 3,
-          'The roomName must be at least 3 characters long',
-        );
+  }) : assert(
+         username.length >= 3,
+         'The username must be at least 3 characters long',
+       ),
+       assert(
+         roomName.length >= 3,
+         'The roomName must be at least 3 characters long',
+       );
 
   final String userId;
   final String username;
@@ -35,22 +35,19 @@ class _AnswersChatViewState extends AnswersChatViewModel {
   Widget build(BuildContext context) {
     return DrawlyContainer(
       child: AnimatedBuilder(
-        animation: Listenable.merge([
-          rxIsCurrentUserCorrectAnswer,
-        ]),
+        animation: Listenable.merge([rxIsCurrentUserCorrectAnswer]),
         builder: (context, _) {
           return Column(
             children: [
               Expanded(
                 child: AnimatedBuilder(
-                  animation: Listenable.merge([
-                    rxAllAnswers,
-                  ]),
+                  animation: Listenable.merge([rxAllAnswers]),
                   builder: (context, _) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (scrollController.hasClients) {
-                        scrollController
-                            .jumpTo(scrollController.position.maxScrollExtent);
+                        scrollController.jumpTo(
+                          scrollController.position.maxScrollExtent,
+                        );
                       }
                     });
                     return ListView.builder(
@@ -70,9 +67,10 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                 padding: const EdgeInsets.all(8),
                 child: DrawlyChatTextField(
                   controller: answerController,
-                  hintText: widget.isCurrentDrawer || !widget.isGameStarted
-                      ? ''
-                      : rxIsCurrentUserCorrectAnswer.value
+                  hintText:
+                      widget.isCurrentDrawer || !widget.isGameStarted
+                          ? ''
+                          : rxIsCurrentUserCorrectAnswer.value
                           ? 'Você acertou!'
                           : 'Responda aqui...',
                   hintColor:
@@ -80,7 +78,8 @@ class _AnswersChatViewState extends AnswersChatViewModel {
                   leftIcon: Icons.draw,
                   rightIcon: Icons.send,
                   onRightIconPressed: sendAnswer,
-                  disabled: widget.isCurrentDrawer ||
+                  disabled:
+                      widget.isCurrentDrawer ||
                       !widget.isGameStarted ||
                       rxIsCurrentUserCorrectAnswer.value,
                 ),
@@ -94,10 +93,7 @@ class _AnswersChatViewState extends AnswersChatViewModel {
 }
 
 class _AnswerChatText extends StatelessWidget {
-  const _AnswerChatText({
-    required this.userId,
-    required this.answer,
-  });
+  const _AnswerChatText({required this.userId, required this.answer});
 
   final String userId;
   final Answer answer;
@@ -112,10 +108,7 @@ class _AnswerChatText extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              color: color,
-            ),
+            Icon(icon, color: color),
             const SizedBox(width: 4),
           ],
           RichText(
@@ -131,10 +124,7 @@ class _AnswerChatText extends StatelessWidget {
                 ),
                 TextSpan(
                   text: answer.isCorrect ? ' acertou!' : ' ${answer.text}',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: color, fontSize: 16),
                 ),
               ],
             ),

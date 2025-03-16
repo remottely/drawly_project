@@ -44,12 +44,13 @@ abstract class AnswersChatViewModel extends State<AnswersChatView> {
     if (answerController.text.isNotEmpty) {
       final answer = answerController.text;
 
-      final payload = RoomUserAnswerDTO(
-        roomName: widget.roomName,
-        userId: widget.userId,
-        username: widget.username,
-        text: answer,
-      ).toJson();
+      final payload =
+          RoomUserAnswerDTO(
+            roomName: widget.roomName,
+            userId: widget.userId,
+            username: widget.username,
+            text: answer,
+          ).toJson();
 
       SocketManager.instance.emit('chat:answer:guess', payload);
 

@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DrawlyApp extends StatefulWidget {
-  const DrawlyApp({
-    required this.home,
-    super.key,
-  });
+  const DrawlyApp({required this.home, super.key});
 
   final Widget home;
 

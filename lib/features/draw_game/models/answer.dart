@@ -44,11 +44,5 @@ class Answer extends Message {
   }
 
   @override
-  List<Object?> get props => [
-        icon,
-        userId,
-        username,
-        text,
-        isCorrect,
-      ];
+  List<Object?> get props => [icon, userId, username, text, isCorrect];
 }

@@ -17,14 +17,14 @@ class DrawGameRoomPage extends StatefulWidget {
     required this.username,
     required this.roomName,
     super.key,
-  })  : assert(
-          username.length >= 3,
-          'The username must be at least 3 characters long',
-        ),
-        assert(
-          roomName.length >= 3,
-          'The roomName must be at least 3 characters long',
-        );
+  }) : assert(
+         username.length >= 3,
+         'The username must be at least 3 characters long',
+       ),
+       assert(
+         roomName.length >= 3,
+         'The roomName must be at least 3 characters long',
+       );
 
   final String userId;
   final String username;
@@ -105,8 +105,9 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
 
     var remaining = durationInMs;
 
-    _countdownTimer =
-        Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _countdownTimer = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) {
       if (remaining <= 0) {
         timer.cancel();
         _countdownTimer = null;
@@ -119,17 +120,20 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   Future<void> _joinGameRoom() async {
-    final payload = RoomUserDTO(
-      roomName: widget.roomName,
-      userId: widget.userId,
-      username: widget.username,
-      userAvatar: userAvatar,
-      isLogged: false,
-    ).toJson();
+    final payload =
+        RoomUserDTO(
+          roomName: widget.roomName,
+          userId: widget.userId,
+          username: widget.username,
+          userAvatar: userAvatar,
+          isLogged: false,
+        ).toJson();
 
     try {
-      final responseData =
-          await SocketManager.instance.emitWithAck('room:join', payload);
+      final responseData = await SocketManager.instance.emitWithAck(
+        'room:join',
+        payload,
+      );
       if (responseData['success'] == false) {
         if (mounted) {
           developer.log('join message: ${responseData['message']}');
@@ -149,13 +153,14 @@ abstract class GamePageViewModel extends State<DrawGameRoomPage> {
   }
 
   void _leaveRoom() {
-    final payload = RoomUserDTO(
-      roomName: widget.roomName,
-      userId: widget.userId,
-      username: widget.username,
-      userAvatar: userAvatar,
-      isLogged: false,
-    ).toJson();
+    final payload =
+        RoomUserDTO(
+          roomName: widget.roomName,
+          userId: widget.userId,
+          username: widget.username,
+          userAvatar: userAvatar,
+          isLogged: false,
+        ).toJson();
 
     SocketManager.instance.emit('room:leave', payload);
   }
@@ -169,22 +174,17 @@ class _DrawGameRoomPageState extends GamePageViewModel {
     return Stack(
       children: [
         AnimatedBuilder(
-          animation: Listenable.merge([
-            rxIsCurrentDrawerUserId,
-            rxTurn,
-          ]),
+          animation: Listenable.merge([rxIsCurrentDrawerUserId, rxTurn]),
           builder: (context, _) {
             return Scaffold(
-              backgroundColor: rxIsCurrentDrawerUserId.value
-                  ? AppColors.greenAccent
-                  : AppColors.lightPrimary,
+              backgroundColor:
+                  rxIsCurrentDrawerUserId.value
+                      ? AppColors.greenAccent
+                      : AppColors.lightPrimary,
               body: Column(
                 children: [
                   AnimatedBuilder(
-                    animation: Listenable.merge([
-                      rxTimeLeft,
-                      rxTotalDuration,
-                    ]),
+                    animation: Listenable.merge([rxTimeLeft, rxTotalDuration]),
                     builder: (context, _) {
                       if (rxTimeLeft.value <= 0) return const SizedBox.shrink();
                       return LinearProgressIndicator(
@@ -256,14 +256,16 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         )
                                       else
                                         DrawlyTitleContainer(
-                                          text: rxCurrentDrawerUserId.value ==
-                                                  null
-                                              ? 'Intervalo...'
-                                              : '''Vez de ${rxCurrentDrawerUsername.value}''',
+                                          text:
+                                              rxCurrentDrawerUserId.value ==
+                                                      null
+                                                  ? 'Intervalo...'
+                                                  : '''Vez de ${rxCurrentDrawerUsername.value}''',
                                           textColor: AppColors.black,
-                                          color: rxIsCurrentDrawerUserId.value
-                                              ? AppColors.greenAccent
-                                              : AppColors.yellowAccent,
+                                          color:
+                                              rxIsCurrentDrawerUserId.value
+                                                  ? AppColors.greenAccent
+                                                  : AppColors.yellowAccent,
                                         ),
                                       if (Tests.isTesting) ...[
                                         IconButton(
@@ -275,8 +277,9 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                         ),
                                         IconButton(
                                           onPressed: testDisconnection4s,
-                                          icon:
-                                              const Icon(Icons.wifi_off_sharp),
+                                          icon: const Icon(
+                                            Icons.wifi_off_sharp,
+                                          ),
                                         ),
                                       ] else
                                         const SizedBox.shrink(),
@@ -310,15 +313,16 @@ class _DrawGameRoomPageState extends GamePageViewModel {
                                                         onPressed: () {
                                                           final payload =
                                                               RoomDTO(
-                                                            roomName:
-                                                                widget.roomName,
-                                                          ).toJson();
+                                                                roomName:
+                                                                    widget
+                                                                        .roomName,
+                                                              ).toJson();
 
                                                           SocketManager.instance
                                                               .emit(
-                                                            'game:turns:start',
-                                                            payload,
-                                                          );
+                                                                'game:turns:start',
+                                                                payload,
+                                                              );
                                                         },
                                                         child: const Text(
                                                           'Start Game',
@@ -392,10 +396,7 @@ class _DrawGameRoomPageState extends GamePageViewModel {
 }
 
 class DrawlyFakeAppBar extends StatelessWidget {
-  const DrawlyFakeAppBar({
-    required this.children,
-    super.key,
-  });
+  const DrawlyFakeAppBar({required this.children, super.key});
 
   final List<Widget> children;
 

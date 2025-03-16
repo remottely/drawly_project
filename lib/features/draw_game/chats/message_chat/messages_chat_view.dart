@@ -10,14 +10,14 @@ class MessagesChatView extends StatefulWidget {
     required this.roomName,
     required this.isCurrentDrawer,
     super.key,
-  })  : assert(
-          username.length >= 3,
-          'The username must be at least 3 characters long',
-        ),
-        assert(
-          roomName.length >= 3,
-          'The roomName must be at least 3 characters long',
-        );
+  }) : assert(
+         username.length >= 3,
+         'The username must be at least 3 characters long',
+       ),
+       assert(
+         roomName.length >= 3,
+         'The roomName must be at least 3 characters long',
+       );
 
   final String userId;
   final String username;
@@ -40,8 +40,9 @@ class _MessagesChatViewState extends MessagesChatViewModel {
               builder: (_, value, __) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (scrollController.hasClients) {
-                    scrollController
-                        .jumpTo(scrollController.position.maxScrollExtent);
+                    scrollController.jumpTo(
+                      scrollController.position.maxScrollExtent,
+                    );
                   }
                 });
                 return ListView.builder(
@@ -74,10 +75,7 @@ class _MessagesChatViewState extends MessagesChatViewModel {
 }
 
 class _MessageChatText extends StatelessWidget {
-  const _MessageChatText({
-    required this.userId,
-    required this.message,
-  });
+  const _MessageChatText({required this.userId, required this.message});
 
   final String userId;
   final Message message;
@@ -92,10 +90,7 @@ class _MessageChatText extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              color: color,
-            ),
+            Icon(icon, color: color),
             const SizedBox(width: 4),
           ],
           RichText(
@@ -111,10 +106,7 @@ class _MessageChatText extends StatelessWidget {
                 ),
                 TextSpan(
                   text: ' ${message.text}',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: color, fontSize: 16),
                 ),
               ],
             ),

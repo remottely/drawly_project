@@ -36,8 +36,9 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -86,9 +87,10 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
           child: Avatar(
             color: AppColors.darkBlueAccent,
             size: 128,
-            backgroundImage: selectedUserAvatar != null
-                ? AssetImage(selectedUserAvatar!)
-                : null,
+            backgroundImage:
+                selectedUserAvatar != null
+                    ? AssetImage(selectedUserAvatar!)
+                    : null,
           ),
         ),
         const SizedBox(height: 16),
@@ -99,15 +101,9 @@ class _SessionPickAvatarState extends State<SessionPickAvatar> {
             onPressed: () => showAvatarSelectionDialog(context),
             backgroundColor: Colors.blue,
             shape: const CircleBorder(
-              side: BorderSide(
-                color: Colors.white,
-                width: 2,
-              ),
+              side: BorderSide(color: Colors.white, width: 2),
             ),
-            child: const Icon(
-              Icons.edit,
-              color: Colors.white,
-            ),
+            child: const Icon(Icons.edit, color: Colors.white),
           ),
         ),
       ],

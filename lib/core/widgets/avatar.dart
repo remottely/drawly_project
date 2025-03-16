@@ -19,10 +19,7 @@ class Avatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: color,
-          width: 4,
-        ),
+        border: Border.all(color: color, width: 4),
       ),
       child: CircleAvatar(
         backgroundImage:

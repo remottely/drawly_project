@@ -97,12 +97,13 @@ class _AuthBodyState extends State<_AuthBody> {
               Navigator.push(
                 context,
                 MaterialPageRoute<Widget>(
-                  builder: (context) => DrawGameRoomSelectionPage(
-                    // TODO(Kevin): recover userId from anonymous or logged in
-                    // authentication
-                    userId: 'userId',
-                    username: username,
-                  ),
+                  builder:
+                      (context) => DrawGameRoomSelectionPage(
+                        // TODO(Kevin): recover userId from anonymous or logged in
+                        // authentication
+                        userId: 'userId',
+                        username: username,
+                      ),
                 ),
               );
             }
@@ -338,9 +339,7 @@ class _TextRotateDemoState extends State<TextRotateDemo> {
         builder: (context, constraints) {
           return SingleChildScrollView(
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: const IntrinsicHeight(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -441,22 +440,27 @@ class NeumorphicValidationFieldState extends State<NeumorphicValidationField> {
             color: AppColors.greyAccent,
             fontWeight: FontWeight.bold,
           ),
-          suffixIcon: widget.isPasswordField
-              ? IconButton(
-                  icon: _isObscureText
-                      ? const Icon(Icons.visibility, color: Colors.grey)
-                      : const Icon(Icons.visibility_off, color: Colors.grey),
-                  onPressed: _togglePasswordVisibility,
-                )
-              : _showErrorIcon
+          suffixIcon:
+              widget.isPasswordField
+                  ? IconButton(
+                    icon:
+                        _isObscureText
+                            ? const Icon(Icons.visibility, color: Colors.grey)
+                            : const Icon(
+                              Icons.visibility_off,
+                              color: Colors.grey,
+                            ),
+                    onPressed: _togglePasswordVisibility,
+                  )
+                  : _showErrorIcon
                   ? const Padding(
-                      padding: EdgeInsets.all(15),
-                      child: Icon(Icons.error, color: Colors.red),
-                    )
+                    padding: EdgeInsets.all(15),
+                    child: Icon(Icons.error, color: Colors.red),
+                  )
                   : const Padding(
-                      padding: EdgeInsets.all(15),
-                      child: Icon(Icons.check_box_rounded, color: Colors.green),
-                    ),
+                    padding: EdgeInsets.all(15),
+                    child: Icon(Icons.check_box_rounded, color: Colors.green),
+                  ),
         ),
       ),
     );
@@ -679,9 +683,10 @@ class _CircularTextPainter extends CustomPainter {
     double radius,
   ) {
     final dotRadius = textStyle.fontSize! / 4;
-    final dotPaint = Paint()
-      ..color = textStyle.color ?? Colors.black
-      ..style = PaintingStyle.fill;
+    final dotPaint =
+        Paint()
+          ..color = textStyle.color ?? Colors.black
+          ..style = PaintingStyle.fill;
 
     final dotX = centerX + radius * math.cos(angle);
     final dotY = centerY + radius * math.sin(angle);
