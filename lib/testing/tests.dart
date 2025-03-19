@@ -25,9 +25,7 @@ class Tests {
   }
 
   static void createRoom(String roomName) {
-    final payload = RoomDTO(
-      roomName: roomName,
-    ).toJson();
+    final payload = RoomDTO(roomName: roomName).toJson();
 
     SocketManager.instance.emit('room:create', payload);
   }

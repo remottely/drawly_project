@@ -34,12 +34,13 @@ abstract class MessagesChatViewModel extends State<MessagesChatView> {
   void sendMessage() {
     if (messageController.text.isNotEmpty) {
       final message = messageController.text;
-      final payload = RoomUserMessageDTO(
-        roomName: widget.roomName,
-        userId: widget.userId,
-        username: widget.username,
-        text: message,
-      ).toJson();
+      final payload =
+          RoomUserMessageDTO(
+            roomName: widget.roomName,
+            userId: widget.userId,
+            username: widget.username,
+            text: message,
+          ).toJson();
 
       SocketManager.instance.emit('chat:message', payload);
 

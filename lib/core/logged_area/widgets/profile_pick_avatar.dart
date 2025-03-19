@@ -65,9 +65,7 @@ class _ProfilePickAvatarState extends State<ProfilePickAvatar> {
 }
 
 class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({
-    required this.imagePath,
-  });
+  const _ProfileAvatar({required this.imagePath});
 
   final String? imagePath;
 
@@ -75,13 +73,12 @@ class _ProfileAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Avatar(
       color: AppColors.darkBlueAccent,
-      backgroundImage: imagePath == null
-          ? const AssetImage('assets/avatars/default.webp')
-          : kIsWeb
+      backgroundImage:
+          imagePath == null
+              ? const AssetImage('assets/avatars/default.webp')
+              : kIsWeb
               ? NetworkImage(imagePath!)
-              : FileImage(
-                  File(imagePath!),
-                ),
+              : FileImage(File(imagePath!)),
     );
   }
 }

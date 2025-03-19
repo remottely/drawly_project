@@ -22,9 +22,12 @@
     "editor.inlayHints.enabled": "offUnlessPressed",
     "editor.formatOnSave": true
   },
-  "editor.rulers": [80],
+  "editor.rulers": [
+    80
+  ],
   "editor.wordWrapColumn": 80,
   "editor.formatOnSave": true,
   "dart.lineLength": 80,
-  "editor.wordWrap": "on"
+  "editor.wordWrap": "on",
+  "dart.flutterSdkPath": ".fvm/versions/3.29.2"
 }

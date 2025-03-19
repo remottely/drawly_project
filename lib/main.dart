@@ -7,9 +7,5 @@ class App {
 }
 
 void main() {
-  runApp(
-    const DrawlyApp(
-      home: AuthPage(),
-    ),
-  );
+  runApp(const DrawlyApp(home: AuthPage()));
 }

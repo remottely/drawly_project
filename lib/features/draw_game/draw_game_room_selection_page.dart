@@ -60,9 +60,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   void _createRoom() {
     final roomName = roomController.text.trim();
     if (roomName.isNotEmpty && roomName.length >= 3) {
-      final payload = RoomDTO(
-        roomName: roomName,
-      ).toJson();
+      final payload = RoomDTO(roomName: roomName).toJson();
 
       SocketManager.instance.emit('room:create', payload);
       roomController.clear();
@@ -73,11 +71,12 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
     Navigator.push(
       context,
       MaterialPageRoute<Widget>(
-        builder: (context) => DrawGameRoomPage(
-          userId: widget.userId,
-          username: widget.username,
-          roomName: roomName,
-        ),
+        builder:
+            (context) => DrawGameRoomPage(
+              userId: widget.userId,
+              username: widget.username,
+              roomName: roomName,
+            ),
       ),
     );
   }
@@ -85,9 +84,7 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select or Create a Room'),
-      ),
+      appBar: AppBar(title: const Text('Select or Create a Room')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -111,25 +108,24 @@ class _DrawGameRoomSelectionPageState extends State<DrawGameRoomSelectionPage> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: allRooms.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Nenhuma sala disponível no momento!',
+              child:
+                  allRooms.isEmpty
+                      ? const Center(
+                        child: Text('Nenhuma sala disponível no momento!'),
+                      ) // No rooms available
+                      : ListView.builder(
+                        itemCount: allRooms.length,
+                        itemBuilder: (context, index) {
+                          final roomName = allRooms[index];
+                          return ListTile(
+                            title: Text(roomName),
+                            trailing: ElevatedButton(
+                              onPressed: () => _joinRoom(roomName),
+                              child: const Text('Entrar na sala'),
+                            ), // Join the room
+                          );
+                        },
                       ),
-                    ) // No rooms available
-                  : ListView.builder(
-                      itemCount: allRooms.length,
-                      itemBuilder: (context, index) {
-                        final roomName = allRooms[index];
-                        return ListTile(
-                          title: Text(roomName),
-                          trailing: ElevatedButton(
-                            onPressed: () => _joinRoom(roomName),
-                            child: const Text('Entrar na sala'),
-                          ), // Join the room
-                        );
-                      },
-                    ),
             ),
           ],
         ),

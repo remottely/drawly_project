@@ -32,8 +32,10 @@ class _AllParticipantsState extends State<AllParticipants> {
 
   @override
   void dispose() {
-    SocketManager.instance
-        .offEvent('room:participants:update', _onUpdateRoomParticipantsEvent);
+    SocketManager.instance.offEvent(
+      'room:participants:update',
+      _onUpdateRoomParticipantsEvent,
+    );
     rxAllParticipants.dispose();
     super.dispose();
   }
@@ -43,12 +45,14 @@ class _AllParticipantsState extends State<AllParticipants> {
       final participants = (data as Map<String, dynamic>)['participants'];
       if (participants is List<dynamic>) {
         try {
-          final allParticipants = participants
-              .map(
-                (participant) =>
-                    Participant.fromJson(participant as Map<String, dynamic>),
-              )
-              .toList();
+          final allParticipants =
+              participants
+                  .map(
+                    (participant) => Participant.fromJson(
+                      participant as Map<String, dynamic>,
+                    ),
+                  )
+                  .toList();
 
           rxAllParticipants.value = allParticipants;
         } catch (e) {
@@ -62,8 +66,10 @@ class _AllParticipantsState extends State<AllParticipants> {
       }
     };
 
-    SocketManager.instance
-        .onEvent('room:participants:update', _onUpdateRoomParticipantsEvent);
+    SocketManager.instance.onEvent(
+      'room:participants:update',
+      _onUpdateRoomParticipantsEvent,
+    );
   }
 
   @override
@@ -88,9 +94,10 @@ class _AllParticipantsState extends State<AllParticipants> {
 
                 return Container(
                   decoration: BoxDecoration(
-                    color: localUserIsCurrentDrawer()
-                        ? AppColors.greenAccent
-                        : remoteUserIsCurrentDrawer()
+                    color:
+                        localUserIsCurrentDrawer()
+                            ? AppColors.greenAccent
+                            : remoteUserIsCurrentDrawer()
                             ? AppColors.yellowAccent
                             : AppColors.white,
                     borderRadius: BorderRadius.circular(0),
@@ -99,9 +106,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
                             _UserPicture(
@@ -119,15 +124,16 @@ class _AllParticipantsState extends State<AllParticipants> {
                                   Text(
                                     value[index].username,
                                     style: TextStyle(
-                                      color: App.isDebugMode
-                                          ? localUserIsCurrentDrawer()
-                                              ? AppColors.black
-                                              : remoteUserIsCurrentDrawer()
+                                      color:
+                                          App.isDebugMode
+                                              ? localUserIsCurrentDrawer()
+                                                  ? AppColors.black
+                                                  : remoteUserIsCurrentDrawer()
                                                   ? AppColors.black
                                                   : localUserIsCurrentIndex()
-                                                      ? AppColors.redAccent
-                                                      : AppColors.greyAccent700
-                                          : AppColors.black,
+                                                  ? AppColors.redAccent
+                                                  : AppColors.greyAccent700
+                                              : AppColors.black,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       height: 1,
@@ -156,10 +162,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                           ],
                         ),
                       ),
-                      Divider(
-                        color: AppColors.lightGrey300,
-                        height: 0,
-                      ),
+                      Divider(color: AppColors.lightGrey300, height: 0),
                     ],
                   ),
                 );
@@ -205,15 +208,13 @@ class _UserPicture extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: localUserIsCurrentDrawer
-                    ? AppColors.greenAccent
-                    : remoteUserIsCurrentDrawer
+                color:
+                    localUserIsCurrentDrawer
+                        ? AppColors.greenAccent
+                        : remoteUserIsCurrentDrawer
                         ? AppColors.yellowAccent
                         : AppColors.greyAccent,
-                border: Border.all(
-                  color: AppColors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: AppColors.white, width: 2),
               ),
             ),
           )
@@ -252,10 +253,7 @@ class _Host extends StatelessWidget {
           ),
           const Text(
             'Host',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 12),
           ),
           const SizedBox(width: 8),
         ],
