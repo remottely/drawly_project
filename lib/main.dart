@@ -1,11 +1,10 @@
 import 'package:drawly/drawly_app.dart';
 import 'package:drawly/features/auth/auth_page.dart';
+import 'package:drawly/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-class App {
-  static bool isDebugMode = true;
-}
-
-void main() {
+void main() async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const DrawlyApp(home: AuthPage()));
 }
