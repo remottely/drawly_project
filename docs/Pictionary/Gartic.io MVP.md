@@ -135,6 +135,7 @@
 - [x] 0.53.2+1; fix: all problems tab alerts
 - [x] 0.53.2+2; chore: upgrade Flutter to 3.29.2 and Dart from 3.5.4 to 3.7.2
 - [x] 0.53.3+1; chore: "dart format ." to apply the new official Dart 3.7.0 formatting rule to all project
+- [x] 0.53.3+2; feature: add fluo sdk initial configuration
 - [ ] (0.51.?) TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a resolucao dos pixels offset e entao posteriormente ao processamendo voltar a resolucao original
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
