@@ -2,6 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Android",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/testing/main_dev_game_page_1.dart",
+      "noDebug": false
+    },
+    {
       "name": "8081",
       "type": "dart",
       "request": "launch",

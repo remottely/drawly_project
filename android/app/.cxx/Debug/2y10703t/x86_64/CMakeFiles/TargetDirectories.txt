@@ -1,0 +1,2 @@
+/Users/kevinkobori/development/remottely/project/external/apps/drawly/android/app/.cxx/Debug/2y10703t/x86_64/CMakeFiles/edit_cache.dir
+/Users/kevinkobori/development/remottely/project/external/apps/drawly/android/app/.cxx/Debug/2y10703t/x86_64/CMakeFiles/rebuild_cache.dir

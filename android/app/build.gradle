@@ -10,8 +10,8 @@ plugins {
 
 android {
     namespace = "com.remottely.drawly"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 34 // flutter.compileSdkVersion
+    ndkVersion = "25.1.8937393" // flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -27,8 +27,8 @@ android {
         applicationId = "com.remottely.drawly"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23 //flutter.minSdkVersion
+        targetSdk = 34 // flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
