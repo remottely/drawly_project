@@ -2,10 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Android",
+      "name": "Fluo Android",
       "type": "dart",
       "request": "launch",
-      "program": "lib/testing/main_dev_game_page_1.dart",
+      "program": "lib/main.dart",
+      "noDebug": false
+    },
+    {
+      "name": "Fluo Web",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-port", "8081"],
       "noDebug": false
     },
     {
