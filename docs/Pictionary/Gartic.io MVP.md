@@ -138,6 +138,7 @@
 - [x] 0.53.3+2; feature: add fluo sdk initial configuration
 - [x] 0.53.4+1; update: start android app configurations
 - [x] 0.53.4+2; update: change fluo to a local dependency
+- [x] 0.53.4+3; update: firebase options, backup fluo integration
 - [ ] (0.51.?) TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a resolucao dos pixels offset e entao posteriormente ao processamendo voltar a resolucao original
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.
