@@ -42,7 +42,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBgQc76nm1LuGagpxQO6Ydm6d70j-qxmXQ',
-    appId: '1:1017794696113:web:bbe5aa1383bbfd26756390',
+    appId: '1:1017794696113:web:0b3e0e308b15aae0756390',
     messagingSenderId: '1017794696113',
     projectId: 'remottely-com',
     authDomain: 'remottely-com.firebaseapp.com',
