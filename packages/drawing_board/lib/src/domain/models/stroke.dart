@@ -403,21 +403,25 @@ class BucketStroke extends Stroke {
     super.color,
     super.size,
     super.opacity,
-  })  : filled = false,
-        super(strokeType: StrokeType.bucket);
+    this.fillPixels = const [],
+  }) : super(strokeType: StrokeType.bucket);
 
-  final bool filled;
+  /// Pixels that were filled when the bucket stroke was created.
+  /// These coordinates are stored to keep the fill static even when
+  /// additional strokes are added to the canvas.
+  List<Offset> fillPixels;
 
   @override
   BucketStroke copyWith({
     List<Offset>? points,
-    int? sides,
     Color? color,
     double? size,
     double? opacity,
+    List<Offset>? fillPixels,
   }) {
     return BucketStroke(
       points: points ?? this.points,
+      fillPixels: fillPixels ?? this.fillPixels,
       color: color ?? this.color,
       size: size ?? this.size,
       opacity: opacity ?? this.opacity,

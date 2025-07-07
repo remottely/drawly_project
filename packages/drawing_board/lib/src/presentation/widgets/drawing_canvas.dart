@@ -7,6 +7,7 @@ import 'package:drawing_board/src/src.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
+import '../../util/bucket_fill.dart';
 
 const double _canvasSize = 500;
 
@@ -48,6 +49,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   ValueNotifier<List<Stroke>> get rxAllStrokes => widget.rxAllStrokes;
 
   final int _bufferDelay = 50;
+  List<Offset> _pendingPoints = [];
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
@@ -86,20 +88,25 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
     _onAllStrokesDrawingEvent = (data) {
       try {
-        final allStrokes = (data as Map<String, dynamic>)['strokes'];
-        final receivedAllStrokes = (allStrokes as List<dynamic>)
-            .map(
-              (e) => Stroke.fromJson(
-                Map<String, dynamic>.from(e as Map<String, dynamic>),
-              ),
-            )
-            .toList();
-
-        rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-          ..addAll(
-            receivedAllStrokes
-                .where((stroke) => !rxAllStrokes.value.contains(stroke)),
+        final allStrokes =
+            (data as Map<String, dynamic>)['strokes'] as List<dynamic>? ?? [];
+        final parsedStrokes = <Stroke>[];
+        for (final raw in allStrokes) {
+          final stroke = Stroke.fromJson(
+            Map<String, dynamic>.from(raw as Map<String, dynamic>),
           );
+          if (stroke is BucketStroke) {
+            const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+            stroke.fillPixels = bucketFill(
+              start: stroke.points.first,
+              strokes: List<Stroke>.from(parsedStrokes),
+              canvasSize: canvasSize,
+            );
+          }
+          parsedStrokes.add(stroke);
+        }
+
+        rxAllStrokes.value = parsedStrokes;
       } catch (e, stackTrace) {
         developer.log(
           'Error processing drawing:stroke:all event: $e',
@@ -111,10 +118,21 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
     _onStrokeStartDrawingEvent = (data) {
       try {
-        final newStroke = (data as Map<String, dynamic>)['stroke'];
-        final receivedStroke = Stroke.fromJson(
-          Map<String, dynamic>.from(newStroke as Map<String, dynamic>),
-        );
+        final newStroke =
+            (data as Map<String, dynamic>)['stroke'] as Map<String, dynamic>?;
+        if (newStroke == null) return;
+
+        final receivedStroke =
+            Stroke.fromJson(Map<String, dynamic>.from(newStroke));
+
+        if (receivedStroke is BucketStroke) {
+          const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+          receivedStroke.fillPixels = bucketFill(
+            start: receivedStroke.points.first,
+            strokes: rxAllStrokes.value,
+            canvasSize: canvasSize,
+          );
+        }
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..add(receivedStroke);
@@ -130,8 +148,10 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     _onStrokeLastPointsDrawingEvent = (data) {
       try {
         final strokeLastPoints =
-            (data as Map<String, dynamic>)['strokeLastPoints'];
-        final receivedStrokeLastPoints = (strokeLastPoints as List<dynamic>)
+            (data as Map<String, dynamic>)['strokeLastPoints'] as List<dynamic>?;
+        if (strokeLastPoints == null) return;
+
+        final receivedStrokeLastPoints = strokeLastPoints
             .map(
               (point) => Offset(
                 (point as Map<String, dynamic>)['dx'] as double,
@@ -139,6 +159,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
               ),
             )
             .toList();
+
+        if (rxAllStrokes.value.isEmpty) return;
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..last.points.addAll(
@@ -195,6 +217,22 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     });
   }
 
+  void _applyBucketFill(Offset position, double scale) {
+    const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+    final fillPixels = bucketFill(start: position, strokes: rxAllStrokes.value, canvasSize: canvasSize);
+    final stroke = BucketStroke(
+      points: [position],
+      color: strokeColor,
+      size: size / scale,
+      opacity: opacity,
+      fillPixels: fillPixels,
+    );
+    rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)..add(stroke);
+    final payload = RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
+    SocketManager.instance.emit('drawing:stroke:start', payload);
+  }
+
+
   void _sendDrawingPointsStart() {
     if (rxCurrentStroke.value == null) return;
 
@@ -204,27 +242,28 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     ).toJson();
 
     SocketManager.instance.emit('drawing:stroke:start', payload);
+    _pendingPoints.clear();
   }
 
   void _sendDrawingPointsEnd() {
     if (rxCurrentStroke.value?.points == null) return;
 
     rxCurrentStroke.clear();
+    _pendingPoints.clear();
   }
 
   void _sendBufferedDrawingPoints() {
-    if (rxCurrentStroke.value?.points == null ||
-        rxCurrentStroke.value!.points.isEmpty) {
+    if (_pendingPoints.isEmpty) {
       return;
     }
 
     final payload = RoomDrawingStrokePointsDTO(
       roomName: widget.roomName,
-      strokeLastPoints: rxCurrentStroke.value!.points,
+      strokeLastPoints: _pendingPoints,
     ).toJson();
 
     SocketManager.instance.emit('drawing:stroke:lastPoints', payload);
-    rxCurrentStroke.value!.points.clear();
+    _pendingPoints.clear();
   }
 }
 
@@ -264,26 +303,21 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       // //   ..last.points.add(localPosition);
                       // // widget.onDrawingStrokeChanged?
                       // // .call(rxCurrentStroke.value);
-                      // if (currentTool.isBucket) {
-                      //   // chatgpt: quero mudar a logica, preciso q vc crie um objeto q contorne tudo q estiver no canvas, for da mesma cor e nao tiver limites entre outras cores, assim comoo é feito com o bucket de qualquer sistema
-                      //   _applyBucketFill(localPosition, scale);
-                      // } else {
-                      rxCurrentStroke.startStroke(
-                        localPosition,
-                        color: strokeColor,
-                        size: size / scale, // TODO(Kevin): NOW
-                        opacity: opacity,
-                        type: currentTool.strokeType,
-                        sides: widget.options.polygonSides,
-                        filled: widget.options.fillShape,
-                      );
-                      _sendDrawingPointsStart();
-                      // rxAllStrokes.value =
-                      // List<Stroke>.from(rxAllStrokes.value)
-                      //   ..last.points.add(localPosition);
-                      // widget.onDrawingStrokeChanged?
-                      // .call(rxCurrentStroke.value);
-                      // }
+                      if (currentTool.isBucket) {
+                        _applyBucketFill(localPosition, scale);
+                      } else {
+                        rxCurrentStroke.startStroke(
+                          localPosition,
+                          color: strokeColor,
+                          size: size / scale,
+                          opacity: opacity,
+                          type: currentTool.strokeType,
+                          sides: widget.options.polygonSides,
+                          filled: widget.options.fillShape,
+                        );
+                        _pendingPoints = [localPosition];
+                        _sendDrawingPointsStart();
+                      }
                     }
                   },
                   onPointerMove: (details) {
@@ -293,17 +327,17 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                         return;
                       } else {
                         rxCurrentStroke.addPoint(localPosition);
+                        _pendingPoints.add(localPosition);
                       }
                       // widget.onDrawingStrokeChanged?
                       // .call(rxCurrentStroke.value);
                     }
                   },
                   onPointerUp: (_) {
-                    // if (currentTool.isBucket) {
-                    //   return;
-                    // } else {
-                    _sendDrawingPointsEnd();
-                    // }
+                    if (!currentTool.isBucket) {
+                      _sendBufferedDrawingPoints();
+                      _sendDrawingPointsEnd();
+                    }
                     // if (rxCurrentStroke.hasStroke) {
                     //   _sendBufferedDrawingPoints();
                     //   // widget.onDrawingStrokeChanged?.call(null);
@@ -486,21 +520,14 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
 
       if (stroke is BucketStroke) {
-        // TODO(Kevin): KEVIN NOW
-        final newBucketStroke = _applyBucketFill(stroke, allStrokes);
-        final path = Path()
-          ..moveTo(
-            newBucketStroke.points.first.dx,
-            newBucketStroke.points.first.dy,
-          );
-        for (var i = 1; i < newBucketStroke.points.length; i++) {
-          path.lineTo(
-            newBucketStroke.points[i].dx,
-            newBucketStroke.points[i].dy,
-          );
+        paint
+          ..style = PaintingStyle.fill
+          ..strokeWidth = 1
+          ..isAntiAlias = false
+          ..strokeCap = StrokeCap.square;
+        for (final p in stroke.fillPixels) {
+          canvas.drawRect(Rect.fromLTWH(p.dx, p.dy, 1, 1), paint);
         }
-        path.close();
-        canvas.drawPath(path, paint);
       }
     }
 
@@ -560,139 +587,3 @@ class _DrawingCanvasPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
 
-BucketStroke _applyBucketFill(
-  BucketStroke bucketStroke,
-  List<Stroke> allStrokes,
-) {
-  try {
-    final startPoint = Offset(
-      bucketStroke.points.first.dx.floorToDouble(),
-      bucketStroke.points.first.dy.floorToDouble(),
-    );
-    const canvasWidth = _canvasSize;
-    const canvasHeight = _canvasSize / (16 / 9);
-
-    developer.log('Iniciando bucket fill no ponto: $startPoint');
-
-    // Inicializa o mapa do canvas com áreas vazias
-    final canvasMap = <Offset, Color?>{};
-    // for (var y = 0; y < canvasHeight; y++) {
-    //   for (var x = 0; x < canvasWidth; x++) {
-    //     canvasMap[Offset(x.toDouble(), y.toDouble())] = null;
-    //   }
-    // }
-
-    // Combina todos os strokes no mapa do canvas, exceto o bucketStroke atual
-    for (final stroke in allStrokes) {
-      if (stroke == bucketStroke) {
-        developer.log('Ignorando o bucketStroke na geração do canvasMap');
-        continue;
-      }
-      for (final point in stroke.points) {
-        final roundedPoint = Offset(
-          point.dx.floorToDouble(),
-          point.dy.floorToDouble(),
-        );
-        canvasMap[roundedPoint] = stroke.color;
-      }
-    }
-    developer.log('Mapa do canvas gerado com ${canvasMap.length} pontos');
-
-    // Função para verificar se um ponto está dentro do canvas
-    bool isPointInBounds(Offset point) {
-      return point.dx >= 0 &&
-          point.dy >= 0 &&
-          point.dx < canvasWidth &&
-          point.dy < canvasHeight;
-    }
-
-    // Função para buscar a cor no ponto
-    Color? getColorAtPoint(Offset point) {
-      developer.log(
-        'Buscando cor no ponto $point: ',
-      ); //${color?.toString() ?? 'Nenhuma'}',);
-      return canvasMap[
-          Offset(point.dx.floorToDouble(), point.dy.floorToDouble())];
-    }
-
-    // Cor base no ponto inicial
-    final baseColor = getColorAtPoint(startPoint);
-    developer
-        .log('Cor base detectada no ponto inicial: ${baseColor ?? 'Nenhuma'}');
-
-    // Nova cor de preenchimento
-    final fillColor = bucketStroke.color;
-    developer.log('Cor de preenchimento: $fillColor');
-
-    // Flood Fill: Estruturas de controle
-    final visited = <Offset>{};
-    final queue = Queue<Offset>()..add(startPoint);
-    final fillPoints = <Offset>[];
-
-    // TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a
-    // resolucao dos pixels offset e entao posteriormente ao processamendo
-    // voltar a resolucao original
-    const maxProcessing =
-        500; // Limite de pontos processados para evitar travamentos
-
-    while (queue.isNotEmpty) {
-      if (visited.length > maxProcessing) {
-        developer.log(
-          'Limite de processamento alcançado, interrompendo o preenchimento.',
-        );
-        break;
-      }
-
-      final currentPoint = queue.removeLast();
-      developer.log('Processando ponto: $currentPoint');
-
-      // Ignora pontos já visitados
-      if (!visited.add(currentPoint)) continue;
-
-      // Verifica se o ponto está dentro do canvas
-      if (!isPointInBounds(currentPoint)) continue;
-
-      // Verifica se o ponto tem cor compatível com a base ou está vazio
-      final currentColor = getColorAtPoint(currentPoint);
-      if (baseColor == null) {
-        if (currentColor != null) continue; // Apenas preenche áreas vazias
-      } else if (currentColor != baseColor) {
-        developer.log(
-          '''Cor no ponto $currentPoint ($currentColor) não é compatível com a base ($baseColor)''',
-        );
-        continue; // Apenas preenche áreas da mesma cor
-      }
-
-      // Adiciona o ponto ao preenchimento
-      fillPoints.add(currentPoint);
-      developer.log('Ponto $currentPoint adicionado ao preenchimento');
-
-      // Atualiza o mapa com a nova cor
-      canvasMap[currentPoint] = fillColor;
-
-      // Adiciona vizinhos à fila
-      queue.addAll([
-        Offset(currentPoint.dx + 1, currentPoint.dy), // Direita
-        Offset(currentPoint.dx - 1, currentPoint.dy), // Esquerda
-        Offset(currentPoint.dx, currentPoint.dy + 1), // Abaixo
-        Offset(currentPoint.dx, currentPoint.dy - 1), // Acima
-      ]);
-    }
-
-    developer.log(
-      'Preenchimento concluído. ${fillPoints.length} pontos preenchidos.',
-    );
-
-    // Retorna o novo stroke com os pontos preenchidos
-    return bucketStroke.copyWith(points: fillPoints);
-  } catch (e, stackTrace) {
-    developer.log(
-      'Erro ao aplicar bucket fill: $e',
-      name: '_applyBucketFill',
-      stackTrace: stackTrace,
-    );
-  }
-
-  // Em caso de erro, retorna o stroke original
-  return bucketStroke;
-}
