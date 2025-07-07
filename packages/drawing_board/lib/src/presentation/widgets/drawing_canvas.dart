@@ -90,19 +90,23 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       try {
         final allStrokes =
             (data as Map<String, dynamic>)['strokes'] as List<dynamic>? ?? [];
-        final receivedAllStrokes = allStrokes
-            .map(
-              (e) => Stroke.fromJson(
-                Map<String, dynamic>.from(e as Map<String, dynamic>),
-              ),
-            )
-            .toList();
-
-        rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-          ..addAll(
-            receivedAllStrokes
-                .where((stroke) => !rxAllStrokes.value.contains(stroke)),
+        final parsedStrokes = <Stroke>[];
+        for (final raw in allStrokes) {
+          final stroke = Stroke.fromJson(
+            Map<String, dynamic>.from(raw as Map<String, dynamic>),
           );
+          if (stroke is BucketStroke) {
+            const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+            stroke.fillPixels = bucketFill(
+              start: stroke.points.first,
+              strokes: List<Stroke>.from(parsedStrokes),
+              canvasSize: canvasSize,
+            );
+          }
+          parsedStrokes.add(stroke);
+        }
+
+        rxAllStrokes.value = parsedStrokes;
       } catch (e, stackTrace) {
         developer.log(
           'Error processing drawing:stroke:all event: $e',
@@ -120,6 +124,15 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
         final receivedStroke =
             Stroke.fromJson(Map<String, dynamic>.from(newStroke));
+
+        if (receivedStroke is BucketStroke) {
+          const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+          receivedStroke.fillPixels = bucketFill(
+            start: receivedStroke.points.first,
+            strokes: rxAllStrokes.value,
+            canvasSize: canvasSize,
+          );
+        }
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..add(receivedStroke);
@@ -507,18 +520,12 @@ class _DrawingCanvasPainter extends CustomPainter {
       }
 
       if (stroke is BucketStroke) {
-        final fillPoints = bucketFill(
-          start: stroke.points.first,
-          strokes: allStrokes.where((s) => s != stroke).toList(),
-          canvasSize: size,
-        );
-
         paint
           ..style = PaintingStyle.fill
           ..strokeWidth = 1
           ..isAntiAlias = false
           ..strokeCap = StrokeCap.square;
-        for (final p in fillPoints) {
+        for (final p in stroke.fillPixels) {
           canvas.drawRect(Rect.fromLTWH(p.dx, p.dy, 1, 1), paint);
         }
       }

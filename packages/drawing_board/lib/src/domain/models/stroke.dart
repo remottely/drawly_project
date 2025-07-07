@@ -79,20 +79,11 @@ abstract class Stroke {
           filled: (json['filled'] as bool?) ?? false,
         );
       case StrokeType.bucket:
-        final fillPixels = (json['fillPixels'] as List<dynamic>?)?.map(
-              (e) => Offset(
-                (e as Map<String, dynamic>)['dx'] as double,
-                e['dy'] as double,
-              ),
-            ).toList() ??
-            [];
-
         return BucketStroke(
           points: points,
           color: color,
           size: size,
           opacity: opacity,
-          fillPixels: fillPixels,
         );
     }
   }
@@ -442,8 +433,6 @@ class BucketStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
-      'fillPixels':
-          fillPixels.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
       'color': color.toJson(),
       'size': size,
       'opacity': opacity,
