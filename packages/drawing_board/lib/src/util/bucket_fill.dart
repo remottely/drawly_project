@@ -49,7 +49,15 @@ List<Offset> bucketFill({
   }
 
   for (final stroke in strokes) {
+    if (stroke is BucketStroke) {
+      for (final p in stroke.fillPixels) {
+        plotPixel(p, stroke);
+      }
+      continue;
+    }
+
     if (stroke.points.isEmpty) continue;
+
     for (var i = 0; i < stroke.points.length - 1; i++) {
       final p1 = stroke.points[i];
       final p2 = stroke.points[i + 1];

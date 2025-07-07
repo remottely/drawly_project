@@ -49,5 +49,27 @@ void main() {
       expect(result.contains(const Offset(1, 0)), isFalse);
       expect(result.contains(const Offset(0, 1)), isFalse);
     });
+
+    test('uses previous bucket fills when computing new fill', () {
+      final firstFill = bucketFill(
+        start: const Offset(0, 0),
+        strokes: const [],
+        canvasSize: const Size(3, 3),
+      );
+
+      final bucket = BucketStroke(
+        points: const [Offset(0, 0)],
+        color: Colors.red,
+        fillPixels: firstFill,
+      );
+
+      final result = bucketFill(
+        start: const Offset(2, 2),
+        strokes: [bucket],
+        canvasSize: const Size(3, 3),
+      );
+
+      expect(result.length, 9);
+    });
   });
 }
