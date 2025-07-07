@@ -126,6 +126,12 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         final receivedStroke =
             Stroke.fromJson(Map<String, dynamic>.from(newStroke));
 
+        if (_awaitingBucketAck && receivedStroke is BucketStroke) {
+          rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+            ..removeLast();
+          _awaitingBucketAck = false;
+        }
+
         if (receivedStroke is BucketStroke && receivedStroke.fillPixels.isEmpty) {
           const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
           receivedStroke.fillPixels = bucketFill(
@@ -133,12 +139,6 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
             strokes: rxAllStrokes.value,
             canvasSize: canvasSize,
           );
-        }
-
-        if (_awaitingBucketAck && receivedStroke is BucketStroke) {
-          rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
-            ..removeLast();
-          _awaitingBucketAck = false;
         }
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
@@ -234,10 +234,20 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       opacity: opacity,
       fillPixels: fillPixels,
     );
+
     rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)..add(stroke);
+
+    // Send a lightweight version of the stroke to the server. The
+    // fill pixels are recomputed remotely to avoid very large payloads
+    // which could drop the connection.
+    final serverStroke = stroke.copyWith(fillPixels: []);
+
     _awaitingBucketAck = true;
-    final payload =
-        RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
+
+    final payload = RoomDrawingStartStrokeDTO(
+      roomName: widget.roomName,
+      stroke: serverStroke,
+    ).toJson();
     SocketManager.instance.emit('drawing:stroke:start', payload);
   }
 
