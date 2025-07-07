@@ -50,6 +50,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   final int _bufferDelay = 50;
   List<Offset> _pendingPoints = [];
+  bool _awaitingBucketAck = false;
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
@@ -95,7 +96,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
           final stroke = Stroke.fromJson(
             Map<String, dynamic>.from(raw as Map<String, dynamic>),
           );
-          if (stroke is BucketStroke) {
+          if (stroke is BucketStroke && stroke.fillPixels.isEmpty) {
             const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
             stroke.fillPixels = bucketFill(
               start: stroke.points.first,
@@ -125,7 +126,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         final receivedStroke =
             Stroke.fromJson(Map<String, dynamic>.from(newStroke));
 
-        if (receivedStroke is BucketStroke) {
+        if (_awaitingBucketAck && receivedStroke is BucketStroke) {
+          rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+            ..removeLast();
+          _awaitingBucketAck = false;
+        }
+
+        if (receivedStroke is BucketStroke && receivedStroke.fillPixels.isEmpty) {
           const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
           receivedStroke.fillPixels = bucketFill(
             start: receivedStroke.points.first,
@@ -227,8 +234,20 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       opacity: opacity,
       fillPixels: fillPixels,
     );
+
     rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)..add(stroke);
-    final payload = RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
+
+    // Send a lightweight version of the stroke to the server. The
+    // fill pixels are recomputed remotely to avoid very large payloads
+    // which could drop the connection.
+    final serverStroke = stroke.copyWith(fillPixels: []);
+
+    _awaitingBucketAck = true;
+
+    final payload = RoomDrawingStartStrokeDTO(
+      roomName: widget.roomName,
+      stroke: serverStroke,
+    ).toJson();
     SocketManager.instance.emit('drawing:stroke:start', payload);
   }
 

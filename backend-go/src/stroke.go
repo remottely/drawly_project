@@ -29,6 +29,7 @@ type Stroke struct {
 	Opacity    uint8      `json:"opacity"`
 	StrokeType StrokeType `json:"strokeType"`
 	Filled     *bool      `json:"filled"`
+	FillPixels []Offset   `json:"fillPixels,omitempty"`
 }
 
 func ParseStrokeType(value string) (StrokeType, error) {
@@ -104,6 +105,27 @@ func parseStroke(data map[string]any) (Stroke, error) {
 		}
 	}
 
+	// Campo 'FillPixels' opcional
+	var fillPixels []Offset
+	if rawFillPixels, exists := data["fillPixels"]; exists {
+		if fpSlice, ok := rawFillPixels.([]any); ok {
+			for _, rawPoint := range fpSlice {
+				pointMap, ok := rawPoint.(map[string]any)
+				if !ok {
+					return Stroke{}, fmt.Errorf("invalid fillPixels format")
+				}
+				dx, dxOk := pointMap["dx"].(float64)
+				dy, dyOk := pointMap["dy"].(float64)
+				if !dxOk || !dyOk {
+					return Stroke{}, fmt.Errorf("invalid fillPixels coordinates")
+				}
+				fillPixels = append(fillPixels, Offset{Dx: dx, Dy: dy})
+			}
+		} else {
+			return Stroke{}, fmt.Errorf("invalid 'fillPixels' format")
+		}
+	}
+
 	return Stroke{
 		Points:     points,
 		Color:      color,
@@ -111,5 +133,6 @@ func parseStroke(data map[string]any) (Stroke, error) {
 		Opacity:    uint8(opacityFloat64),
 		StrokeType: strokeType,
 		Filled:     filled,
+		FillPixels: fillPixels,
 	}, nil
 }
