@@ -1,6 +1,6 @@
 import 'package:drawly/core/widgets/avatar.dart';
+import 'package:drawly/drawly_app.dart';
 import 'package:drawly/features/draw_game/models/participants.dart';
-import 'package:drawly/main.dart';
 import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
@@ -125,7 +125,7 @@ class _AllParticipantsState extends State<AllParticipants> {
                                     value[index].username,
                                     style: TextStyle(
                                       color:
-                                          App.isDebugMode
+                                          DrawlyApp.isDebugMode
                                               ? localUserIsCurrentDrawer()
                                                   ? AppColors.black
                                                   : remoteUserIsCurrentDrawer()

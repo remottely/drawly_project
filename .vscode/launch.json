@@ -2,6 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Fluo Android",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "noDebug": false
+    },
+    {
+      "name": "Fluo Web",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome", "--web-port", "8081"],
+      "noDebug": false
+    },
+    {
       "name": "8081",
       "type": "dart",
       "request": "launch",

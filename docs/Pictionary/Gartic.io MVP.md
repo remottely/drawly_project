@@ -128,13 +128,18 @@
 - [x] (0.51.2) (3) implementando balde de tinta. melhorando documentacao no codigo.
 - [x] (0.51.3) (4) mudando a logica do bucket para q ele preencha os points de acordo com a cor atual sendo igual as cores do canvas.
 - [x] (0.51.4) (5) refazer lógica de maneira q o backend receba a lista de stroke.points com apenas 1 point. Economizando assim consultas e lentidoes no servidor, e receber do outro lado a logica de renderização baseada nesse único point.
-- [x] (0.51.5) implementando BUCKET modo teste até correção do desempenho do processamento da funcionalidade _applyBucketFill()
+- [x] (0.51.5) implementando BUCKET modo teste até correção do desempenho do processamento da funcionalidade \_applyBucketFill()
 - [x] 0.51.6+1; fix: app not running, remove flutter_inset_box_shadow package to work
 - [x] 0.52.1+1; feat: remove color deprecation, add utility functions fromJson and toJson
 - [x] 0.53.1+1; feat: remove color deprecation, add utility applyOpacity function
 - [x] 0.53.2+1; fix: all problems tab alerts
 - [x] 0.53.2+2; chore: upgrade Flutter to 3.29.2 and Dart from 3.5.4 to 3.7.2
 - [x] 0.53.3+1; chore: "dart format ." to apply the new official Dart 3.7.0 formatting rule to all project
+- [x] 0.53.3+2; feature: add fluo sdk initial configuration
+- [x] 0.53.4+1; update: start android app configurations
+- [x] 0.53.4+2; update: change fluo to a local dependency
+- [x] 0.53.4+3; update: firebase options, backup fluo integration
+- [x] 0.53.4+4; update: rollback old auth, remove fluo auth
 - [ ] (0.51.?) TODO(Kevin): NOW - esse limite esta muito baixo, preciso diminuir a resolucao dos pixels offset e entao posteriormente ao processamendo voltar a resolucao original
 - [ ] feature: change currentDrawerUserId from backend logic when room:join
 - [ ] quando a pessoa cair, cancelar qualquer tentativa de envio de strokes?? ou seja, nao ressincronizar nunca quando estiver offline os strokes. pq quando ressincroniza, mesmo ele nao sendo o drawer, ele emite o desenho encima do desenho de outro drawer.

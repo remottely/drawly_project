@@ -8,6 +8,8 @@ class DrawlyApp extends StatefulWidget {
 
   final Widget home;
 
+  static bool isDebugMode = true;
+
   @override
   State<DrawlyApp> createState() => _DrawlyAppState();
 }
@@ -45,6 +47,55 @@ class _DrawlyAppState extends State<DrawlyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // return MaterialApp(
+    //   localizationsDelegates: FluoLocalizations.localizationsDelegates,
+    //   supportedLocales: FluoLocalizations.supportedLocales,
+    //   // theme: FluoTheme(),//  defaultTheme(context, FluoTheme.lightColorScheme),
+    //   home: FluoOnboarding(
+    //     apiKey: '2lPgOFAxf3UQv8Zjcv9e6QZRF9MeXPgK0f0d1otxWYw=',
+    //     // theme: FluoTheme(
+    //     //   // Optional - Customize the look & feel
+    //     //   primaryColor: Colors.black,
+    //     //   inversePrimaryColor: Colors.white,
+    //     //   // ...lots more to customize...
+    //     // ),
+    //     // onInitError: (error) {
+    //     //   const x = 0;
+    //     //   return Container();
+    //     //   // Optional - Handle network or server error
+    //     //   //   for example, you could decide to show a toast or dialog
+    //     // },
+    //     // introBuilder: (context, initializing, bottomContainerHeight) {
+    //     //   const x = 0;
+    //     //   if (initializing) {
+    //     //     return Container();
+    //     //   } else {
+    //     //     return Container();
+    //     //   }
+    //     //   // Optional - Present your app on the connection screen
+    //     //   //   use 'initializing' if you want to show a loading indicator
+    //     //   //   use 'bottomContainerHeight' if you need to position content above the buttons
+    //     // },
+    //     onUserReady: (fluo) async {
+    //       // Initialize the Firebase client, then use 'signInWithCustomToken' here
+    //       await FirebaseAuth.instance.signInWithCustomToken(
+    //         fluo.firebaseToken!,
+    //       );
+    //       // await Navigator.push(
+    //       //   context,
+    //       //   MaterialPageRoute<Widget>(
+    //       //     builder:
+    //       //         (context) => const DrawGameRoomSelectionPage(
+    //       //           // TODO(Kevin): recover userId from anonymous or logged in
+    //       //           // authentication
+    //       //           userId: 'userId',
+    //       //           username: 'username',
+    //       //         ),
+    //       //   ),
+    //       // );
+    //     },
+    //   ),
+    // );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Drawly',

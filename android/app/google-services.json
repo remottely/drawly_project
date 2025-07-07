@@ -1,0 +1,213 @@
+{
+  "project_info": {
+    "project_number": "1017794696113",
+    "project_id": "remottely-com",
+    "storage_bucket": "remottely-com.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:829059a9492639af756390",
+        "android_client_info": {
+          "package_name": "com.remottely.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:d25ca638b02eff88756390",
+        "android_client_info": {
+          "package_name": "com.remottely.collage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:022a716580185522756390",
+        "android_client_info": {
+          "package_name": "com.remottely.drawly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:a5916ad01ea1eac7756390",
+        "android_client_info": {
+          "package_name": "com.remottely.gomer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:35206a71fe08c4f9756390",
+        "android_client_info": {
+          "package_name": "com.remottely.mewnu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:13eaa93b589393b3756390",
+        "android_client_info": {
+          "package_name": "com.remottely.paino"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017794696113:android:2ff71d6c8f326512756390",
+        "android_client_info": {
+          "package_name": "com.remottely.ukeep"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV-wkEIzaiwlu2DEwH6eNPOacO_o89mgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1017794696113-7hr5h1paalrtrh3briv1hs10doddi282.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
