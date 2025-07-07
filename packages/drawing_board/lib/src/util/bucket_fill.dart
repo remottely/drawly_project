@@ -22,7 +22,7 @@ List<Offset> bucketFill({
   required Size canvasSize,
   int? maxPixels,
 }) {
-  final startPoint = Offset(start.dx.floorToDouble(), start.dy.floorToDouble());
+  final startPoint = Offset(start.dx.roundToDouble(), start.dy.roundToDouble());
   final width = canvasSize.width.ceil();
   final height = canvasSize.height.ceil();
   final pixelLimit = maxPixels ?? width * height;
@@ -34,14 +34,15 @@ List<Offset> bucketFill({
   void plotPixel(Offset center, Stroke stroke) {
     final radius = stroke.size / 2;
     final bound = radius.ceil();
+    final color = stroke.color.applyOpacity(stroke.opacity);
     for (var dx = -bound; dx <= bound; dx++) {
       for (var dy = -bound; dy <= bound; dy++) {
         if (Offset(dx.toDouble(), dy.toDouble()).distance <= radius) {
           final p = Offset(
-            (center.dx + dx).floorToDouble(),
-            (center.dy + dy).floorToDouble(),
+            (center.dx + dx).roundToDouble(),
+            (center.dy + dy).roundToDouble(),
           );
-          canvasMap[p] = stroke.color;
+          canvasMap[p] = color;
         }
       }
     }
@@ -67,7 +68,7 @@ List<Offset> bucketFill({
   }
 
   Color? getColor(Offset p) {
-    final normalized = Offset(p.dx.floorToDouble(), p.dy.floorToDouble());
+    final normalized = Offset(p.dx.roundToDouble(), p.dy.roundToDouble());
     return canvasMap[normalized];
   }
 
@@ -82,8 +83,8 @@ List<Offset> bucketFill({
   while (queue.isNotEmpty && visited.length < pixelLimit) {
     final current = queue.removeFirst();
     final normalized = Offset(
-      current.dx.floorToDouble(),
-      current.dy.floorToDouble(),
+      current.dx.roundToDouble(),
+      current.dy.roundToDouble(),
     );
     if (!visited.add(normalized)) continue;
     if (!inBounds(normalized)) continue;

@@ -498,13 +498,14 @@ class _DrawingCanvasPainter extends CustomPainter {
           canvasSize: size,
         );
 
-        canvas.drawPoints(
-          PointMode.points,
-          fillPoints,
-          paint
-            ..style = PaintingStyle.fill
-            ..strokeWidth = 1,
-        );
+        paint
+          ..style = PaintingStyle.fill
+          ..strokeWidth = 1
+          ..isAntiAlias = false
+          ..strokeCap = StrokeCap.square;
+        for (final p in fillPoints) {
+          canvas.drawRect(Rect.fromLTWH(p.dx, p.dy, 1, 1), paint);
+        }
       }
     }
 
