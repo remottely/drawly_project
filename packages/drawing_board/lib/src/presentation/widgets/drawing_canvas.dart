@@ -50,6 +50,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   final int _bufferDelay = 50;
   List<Offset> _pendingPoints = [];
+  bool _awaitingBucketAck = false;
 
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
@@ -95,7 +96,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
           final stroke = Stroke.fromJson(
             Map<String, dynamic>.from(raw as Map<String, dynamic>),
           );
-          if (stroke is BucketStroke) {
+          if (stroke is BucketStroke && stroke.fillPixels.isEmpty) {
             const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
             stroke.fillPixels = bucketFill(
               start: stroke.points.first,
@@ -125,13 +126,19 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
         final receivedStroke =
             Stroke.fromJson(Map<String, dynamic>.from(newStroke));
 
-        if (receivedStroke is BucketStroke) {
+        if (receivedStroke is BucketStroke && receivedStroke.fillPixels.isEmpty) {
           const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
           receivedStroke.fillPixels = bucketFill(
             start: receivedStroke.points.first,
             strokes: rxAllStrokes.value,
             canvasSize: canvasSize,
           );
+        }
+
+        if (_awaitingBucketAck && receivedStroke is BucketStroke) {
+          rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
+            ..removeLast();
+          _awaitingBucketAck = false;
         }
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
@@ -228,7 +235,9 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       fillPixels: fillPixels,
     );
     rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)..add(stroke);
-    final payload = RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
+    _awaitingBucketAck = true;
+    final payload =
+        RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
     SocketManager.instance.emit('drawing:stroke:start', payload);
   }
 
