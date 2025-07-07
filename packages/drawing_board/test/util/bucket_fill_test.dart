@@ -71,5 +71,22 @@ void main() {
 
       expect(result.length, 9);
     });
+
+    test('respects circle border', () {
+      final circle = CircleStroke(
+        points: const [Offset(1, 1), Offset(3, 3)],
+        color: Colors.black,
+      );
+
+      final result = bucketFill(
+        start: const Offset(2, 2),
+        strokes: [circle],
+        canvasSize: const Size(5, 5),
+      );
+
+      final center = const Offset(2, 2);
+      final radius = (circle.points.first - circle.points.last).distance / 2;
+      expect(result.every((p) => (p - center).distance < radius), isTrue);
+    });
   });
 }

@@ -50,6 +50,92 @@ List<Offset> bucketFill({
     }
   }
 
+  Iterable<Offset> _expandedPoints(Stroke stroke) {
+    if (stroke is CircleStroke && stroke.points.length >= 2) {
+      final first = stroke.points.first;
+      final last = stroke.points.last;
+      final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
+      final radius = (first - last).distance / 2;
+      final circumference = 2 * pi * radius;
+      final segments = max(circumference.ceil(), 12);
+      final pts = <Offset>[];
+      for (var i = 0; i <= segments; i++) {
+        final angle = 2 * pi * i / segments;
+        pts.add(Offset(center.dx + radius * cos(angle), center.dy + radius * sin(angle)));
+      }
+      if (stroke.filled) {
+        for (var x = (center.dx - radius).floor(); x <= (center.dx + radius).ceil(); x++) {
+          for (var y = (center.dy - radius).floor(); y <= (center.dy + radius).ceil(); y++) {
+            final p = Offset(x.toDouble(), y.toDouble());
+            if ((p - center).distance <= radius) {
+              pts.add(p);
+            }
+          }
+        }
+      }
+      return pts;
+    }
+
+    if (stroke is SquareStroke && stroke.points.length >= 2) {
+      final rect = Rect.fromPoints(stroke.points.first, stroke.points.last);
+      final pts = <Offset>[rect.topLeft, rect.topRight, rect.bottomRight, rect.bottomLeft, rect.topLeft];
+      if (stroke.filled) {
+        for (var x = rect.left.floor(); x <= rect.right.ceil(); x++) {
+          for (var y = rect.top.floor(); y <= rect.bottom.ceil(); y++) {
+            pts.add(Offset(x.toDouble(), y.toDouble()));
+          }
+        }
+      }
+      return pts;
+    }
+
+    if (stroke is PolygonStroke && stroke.points.length >= 2) {
+      final first = stroke.points.first;
+      final last = stroke.points.last;
+      final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
+      final radius = (first - last).distance / 2;
+      final pts = <Offset>[];
+      final angleStep = 2 * pi / stroke.sides;
+      const startAngle = -pi / 2;
+      for (var i = 0; i <= stroke.sides; i++) {
+        final angle = startAngle + i * angleStep;
+        final x = center.dx + radius * cos(angle);
+        final y = center.dy + radius * sin(angle);
+        pts.add(Offset(x, y));
+      }
+      if (stroke.filled) {
+        Rect bounds = Rect.fromPoints(first, last).inflate(radius);
+        for (var x = bounds.left.floor(); x <= bounds.right.ceil(); x++) {
+          for (var y = bounds.top.floor(); y <= bounds.bottom.ceil(); y++) {
+            final p = Offset(x.toDouble(), y.toDouble());
+            if (_pointInPolygon(p, pts)) {
+              pts.add(p);
+            }
+          }
+        }
+      }
+      return pts;
+    }
+
+    if (stroke is LineStroke) {
+      return stroke.points;
+    }
+
+    return stroke.points;
+  }
+
+  bool _pointInPolygon(Offset point, List<Offset> polygon) {
+    var inside = false;
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      final xi = polygon[i].dx, yi = polygon[i].dy;
+      final xj = polygon[j].dx, yj = polygon[j].dy;
+      final intersect = ((yi > point.dy) != (yj > point.dy)) &&
+          (point.dx < (xj - xi) * (point.dy - yi) / (yj - yi + 0.0) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
   for (final stroke in strokes) {
     if (stroke is BucketStroke) {
       for (final p in stroke.fillPixels) {
@@ -58,11 +144,12 @@ List<Offset> bucketFill({
       continue;
     }
 
-    if (stroke.points.isEmpty) continue;
+    final points = List<Offset>.from(_expandedPoints(stroke));
+    if (points.isEmpty) continue;
 
-    for (var i = 0; i < stroke.points.length - 1; i++) {
-      final p1 = stroke.points[i];
-      final p2 = stroke.points[i + 1];
+    for (var i = 0; i < points.length - 1; i++) {
+      final p1 = points[i];
+      final p2 = points[i + 1];
       final steps = max((p1 - p2).distance.ceil(), 1);
       for (var s = 0; s <= steps; s++) {
         final t = s / steps;
@@ -72,8 +159,8 @@ List<Offset> bucketFill({
       }
     }
 
-    if (stroke.points.length == 1) {
-      plotPixel(stroke.points.first, stroke);
+    if (points.length == 1) {
+      plotPixel(points.first, stroke);
     }
   }
 
