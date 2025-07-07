@@ -88,8 +88,9 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
     _onAllStrokesDrawingEvent = (data) {
       try {
-        final allStrokes = (data as Map<String, dynamic>)['strokes'];
-        final receivedAllStrokes = (allStrokes as List<dynamic>)
+        final allStrokes =
+            (data as Map<String, dynamic>)['strokes'] as List<dynamic>? ?? [];
+        final receivedAllStrokes = allStrokes
             .map(
               (e) => Stroke.fromJson(
                 Map<String, dynamic>.from(e as Map<String, dynamic>),
@@ -113,10 +114,12 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
     _onStrokeStartDrawingEvent = (data) {
       try {
-        final newStroke = (data as Map<String, dynamic>)['stroke'];
-        final receivedStroke = Stroke.fromJson(
-          Map<String, dynamic>.from(newStroke as Map<String, dynamic>),
-        );
+        final newStroke =
+            (data as Map<String, dynamic>)['stroke'] as Map<String, dynamic>?;
+        if (newStroke == null) return;
+
+        final receivedStroke =
+            Stroke.fromJson(Map<String, dynamic>.from(newStroke));
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..add(receivedStroke);
@@ -132,8 +135,10 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     _onStrokeLastPointsDrawingEvent = (data) {
       try {
         final strokeLastPoints =
-            (data as Map<String, dynamic>)['strokeLastPoints'];
-        final receivedStrokeLastPoints = (strokeLastPoints as List<dynamic>)
+            (data as Map<String, dynamic>)['strokeLastPoints'] as List<dynamic>?;
+        if (strokeLastPoints == null) return;
+
+        final receivedStrokeLastPoints = strokeLastPoints
             .map(
               (point) => Offset(
                 (point as Map<String, dynamic>)['dx'] as double,
@@ -141,6 +146,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
               ),
             )
             .toList();
+
+        if (rxAllStrokes.value.isEmpty) return;
 
         rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)
           ..last.points.addAll(
