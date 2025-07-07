@@ -153,8 +153,6 @@ class NormalStroke extends Stroke {
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
-      'fillPixels':
-          fillPixels.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
     };
   }
 }
@@ -451,6 +449,8 @@ class BucketStroke extends Stroke {
       'size': size,
       'opacity': opacity,
       'strokeType': strokeType.toString(),
+      'fillPixels':
+          fillPixels.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
     };
   }
 }
