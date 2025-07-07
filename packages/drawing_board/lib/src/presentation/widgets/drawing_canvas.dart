@@ -197,6 +197,22 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
     });
   }
 
+  void _applyBucketFill(Offset position, double scale) {
+    const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
+    final fillPixels = bucketFill(start: position, strokes: rxAllStrokes.value, canvasSize: canvasSize);
+    final stroke = BucketStroke(
+      points: [position],
+      color: strokeColor,
+      size: size / scale,
+      opacity: opacity,
+      fillPixels: fillPixels,
+    );
+    rxAllStrokes.value = List<Stroke>.from(rxAllStrokes.value)..add(stroke);
+    final payload = RoomDrawingStartStrokeDTO(roomName: widget.roomName, stroke: stroke).toJson();
+    SocketManager.instance.emit('drawing:stroke:start', payload);
+  }
+
+
   void _sendDrawingPointsStart() {
     if (rxCurrentStroke.value == null) return;
 
@@ -267,27 +283,21 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                       // //   ..last.points.add(localPosition);
                       // // widget.onDrawingStrokeChanged?
                       // // .call(rxCurrentStroke.value);
-                      // if (currentTool.isBucket) {
-                      //   // chatgpt: quero mudar a logica, preciso q vc crie um objeto q contorne tudo q estiver no canvas, for da mesma cor e nao tiver limites entre outras cores, assim comoo é feito com o bucket de qualquer sistema
-                      //   _applyBucketFill(localPosition, scale);
-                      // } else {
-                      rxCurrentStroke.startStroke(
-                        localPosition,
-                        color: strokeColor,
-                        size: size / scale, // TODO(Kevin): NOW
-                        opacity: opacity,
-                        type: currentTool.strokeType,
-                        sides: widget.options.polygonSides,
-                        filled: widget.options.fillShape,
-                      );
-                      _pendingPoints = [localPosition];
-                      _sendDrawingPointsStart();
-                      // rxAllStrokes.value =
-                      // List<Stroke>.from(rxAllStrokes.value)
-                      //   ..last.points.add(localPosition);
-                      // widget.onDrawingStrokeChanged?
-                      // .call(rxCurrentStroke.value);
-                      // }
+                      if (currentTool.isBucket) {
+                        _applyBucketFill(localPosition, scale);
+                      } else {
+                        rxCurrentStroke.startStroke(
+                          localPosition,
+                          color: strokeColor,
+                          size: size / scale,
+                          opacity: opacity,
+                          type: currentTool.strokeType,
+                          sides: widget.options.polygonSides,
+                          filled: widget.options.fillShape,
+                        );
+                        _pendingPoints = [localPosition];
+                        _sendDrawingPointsStart();
+                      }
                     }
                   },
                   onPointerMove: (details) {
@@ -304,12 +314,10 @@ class _DrawingCanvasState extends DrawingCanvasViewModel {
                     }
                   },
                   onPointerUp: (_) {
-                    // if (currentTool.isBucket) {
-                    //   return;
-                    // } else {
-                    _sendBufferedDrawingPoints();
-                    _sendDrawingPointsEnd();
-                    // }
+                    if (!currentTool.isBucket) {
+                      _sendBufferedDrawingPoints();
+                      _sendDrawingPointsEnd();
+                    }
                     // if (rxCurrentStroke.hasStroke) {
                     //   _sendBufferedDrawingPoints();
                     //   // widget.onDrawingStrokeChanged?.call(null);

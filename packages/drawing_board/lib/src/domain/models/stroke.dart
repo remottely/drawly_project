@@ -79,11 +79,20 @@ abstract class Stroke {
           filled: (json['filled'] as bool?) ?? false,
         );
       case StrokeType.bucket:
+        final fillPixels = (json['fillPixels'] as List<dynamic>?)?.map(
+              (e) => Offset(
+                (e as Map<String, dynamic>)['dx'] as double,
+                e['dy'] as double,
+              ),
+            ).toList() ??
+            [];
+
         return BucketStroke(
           points: points,
           color: color,
           size: size,
           opacity: opacity,
+          fillPixels: fillPixels,
         );
     }
   }
@@ -403,21 +412,25 @@ class BucketStroke extends Stroke {
     super.color,
     super.size,
     super.opacity,
-  })  : filled = false,
-        super(strokeType: StrokeType.bucket);
+    this.fillPixels = const [],
+  }) : super(strokeType: StrokeType.bucket);
 
-  final bool filled;
+  /// Pixels that were filled when the bucket stroke was created.
+  /// These coordinates are stored to keep the fill static even when
+  /// additional strokes are added to the canvas.
+  List<Offset> fillPixels;
 
   @override
   BucketStroke copyWith({
     List<Offset>? points,
-    int? sides,
     Color? color,
     double? size,
     double? opacity,
+    List<Offset>? fillPixels,
   }) {
     return BucketStroke(
       points: points ?? this.points,
+      fillPixels: fillPixels ?? this.fillPixels,
       color: color ?? this.color,
       size: size ?? this.size,
       opacity: opacity ?? this.opacity,
@@ -429,6 +442,8 @@ class BucketStroke extends Stroke {
     return {
       'points':
           points.map((point) => {'dx': point.dx, 'dy': point.dy}).toList(),
+      'fillPixels':
+          fillPixels.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
       'color': color.toJson(),
       'size': size,
       'opacity': opacity,
