@@ -2,7 +2,9 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
-import '../domain/models/stroke.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
+
+import 'package:drawing_board/src/domain/models/stroke.dart';
 
 /// Flood fill algorithm used for [BucketStroke] rendering.
 ///
@@ -102,7 +104,7 @@ List<Offset> bucketFill({
     if (baseColor != null && color != baseColor) continue;
 
     fill.add(normalized);
-    canvasMap[normalized] = Color(0); // mark as filled
+    canvasMap[normalized] = const Color(0x00000000); // mark as filled
 
     queue.addAll([
       Offset(normalized.dx + 1, normalized.dy),
