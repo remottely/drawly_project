@@ -9,7 +9,6 @@ void main() {
         start: const Offset(0, 0),
         strokes: const [],
         canvasSize: const Size(5, 5),
-        maxPixels: 100,
       );
       expect(result.length, 25);
     });
@@ -30,7 +29,6 @@ void main() {
         start: const Offset(2, 2),
         strokes: [border],
         canvasSize: const Size(5, 5),
-        maxPixels: 100,
       );
 
       expect(result.every((p) => p.dx > 0 && p.dx < 4 && p.dy > 0 && p.dy < 4),
@@ -45,7 +43,6 @@ void main() {
         start: const Offset(0, 0),
         strokes: [block1, block2],
         canvasSize: const Size(3, 3),
-        maxPixels: 20,
       );
 
       expect(result.length, 7);

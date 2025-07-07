@@ -20,25 +20,29 @@ List<Offset> bucketFill({
   required Offset start,
   required List<Stroke> strokes,
   required Size canvasSize,
-  int maxPixels = 20000,
+  int? maxPixels,
 }) {
   final startPoint = Offset(start.dx.floorToDouble(), start.dy.floorToDouble());
-  final width = canvasSize.width.floor();
-  final height = canvasSize.height.floor();
+  final width = canvasSize.width.ceil();
+  final height = canvasSize.height.ceil();
+  final pixelLimit = maxPixels ?? width * height;
 
   // Build an in-memory pixel map for all strokes. Each line segment is
   // interpolated so the fill algorithm can rely on continuous borders.
   final canvasMap = <Offset, Color>{};
 
   void plotPixel(Offset center, Stroke stroke) {
-    final radius = stroke.size.ceil();
-    for (var dx = -radius; dx <= radius; dx++) {
-      for (var dy = -radius; dy <= radius; dy++) {
-        final p = Offset(
-          (center.dx + dx).floorToDouble(),
-          (center.dy + dy).floorToDouble(),
-        );
-        canvasMap[p] = stroke.color;
+    final radius = stroke.size / 2;
+    final bound = radius.ceil();
+    for (var dx = -bound; dx <= bound; dx++) {
+      for (var dy = -bound; dy <= bound; dy++) {
+        if (Offset(dx.toDouble(), dy.toDouble()).distance <= radius) {
+          final p = Offset(
+            (center.dx + dx).floorToDouble(),
+            (center.dy + dy).floorToDouble(),
+          );
+          canvasMap[p] = stroke.color;
+        }
       }
     }
   }
@@ -75,7 +79,7 @@ List<Offset> bucketFill({
   final queue = Queue<Offset>()..add(startPoint);
   final fill = <Offset>[];
 
-  while (queue.isNotEmpty && visited.length < maxPixels) {
+  while (queue.isNotEmpty && visited.length < pixelLimit) {
     final current = queue.removeFirst();
     final normalized = Offset(
       current.dx.floorToDouble(),
