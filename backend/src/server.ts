@@ -589,6 +589,8 @@ io.on('connection', (socket: Socket): void => {
 });
 
 // Server startup
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
