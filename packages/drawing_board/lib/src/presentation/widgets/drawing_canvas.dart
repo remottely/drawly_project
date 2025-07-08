@@ -8,6 +8,7 @@ import 'package:drawly_core/drawly_core.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
 import 'package:flutter/material.dart';
 import '../../util/bucket_fill.dart';
+import '../../util/polygon_utils.dart';
 
 const double _canvasSize = 500;
 
@@ -514,7 +515,11 @@ class _DrawingCanvasPainter extends CustomPainter {
             (firstPoint.dx + lastPoint.dx) / 2,
             (firstPoint.dy + lastPoint.dy) / 2,
           );
-          final radius = (firstPoint - lastPoint).distance / 2;
+          final radius = calculateClampedPolygonRadius(
+            firstPoint: firstPoint,
+            lastPoint: lastPoint,
+            canvasSize: size,
+          );
           final path = Path();
           final angleStep = (2 * pi) / stroke.sides;
           const startAngle = -pi / 2;

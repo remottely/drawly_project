@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:drawing_board/src/domain/models/stroke.dart';
 import 'package:drawly_design_system/drawly_design_system.dart';
+import 'polygon_utils.dart';
 
 /// Flood fill algorithm used for [BucketStroke] rendering.
 ///
@@ -128,7 +129,11 @@ List<Offset> bucketFill({
       final first = stroke.points.first;
       final last = stroke.points.last;
       final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
-      final radius = (first - last).distance / 2;
+      final radius = calculateClampedPolygonRadius(
+        firstPoint: first,
+        lastPoint: last,
+        canvasSize: canvasSize,
+      );
       final pts = <Offset>[];
       final angleStep = 2 * pi / stroke.sides;
       const startAngle = -pi / 2;
