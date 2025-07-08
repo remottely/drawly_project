@@ -231,19 +231,16 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
-  // Expand the fill area to compensate for anti-aliasing gaps that become
-  // visible with thick strokes. The expansion radius scales with the widest
-  // stroke on the canvas so that thicker borders receive more dilation.
-  // Copy the flooded pixels before expanding the area to mask anti-aliasing
-  // artifacts. Gaps become more visible with thicker strokes, so the number of
-  // dilation steps scales with the widest stroke on the canvas. Using the full
-  // stroke size rather than half ensures that every edge pixel will be
-  // overwritten regardless of how the outline was rasterized.
+  // Expand the fill area slightly so that pixels rendered with anti aliasing
+  // are also covered. Only pixels immediately adjacent to a stroke are
+  // considered for expansion, preventing the fill from leaking outside the
+  // bordered region even when strokes have fractional coordinates.
   final expanded = <Offset>{...fill};
+  final visitedExpansion = <Offset>{...fill};
   final maxStrokeSize = strokes.isEmpty
       ? 0.0
       : strokes.map((s) => s.size).reduce(max);
-  final expansionIterations = maxStrokeSize.ceil();
+  final expansionIterations = (maxStrokeSize / 2).ceil();
   for (var i = 0; i < expansionIterations; i++) {
     final additions = <Offset>{};
     for (final p in expanded) {
@@ -251,11 +248,27 @@ List<Offset> bucketFill({
         for (var dy = -1; dy <= 1; dy++) {
           final candidate = Offset(p.dx + dx, p.dy + dy);
           if (!inBounds(candidate)) continue;
+          if (visitedExpansion.contains(candidate)) continue;
           if (canvasMap[candidate] != null) continue;
-          additions.add(candidate);
+
+          var nearStroke = false;
+          for (var sx = -1; sx <= 1 && !nearStroke; sx++) {
+            for (var sy = -1; sy <= 1; sy++) {
+              if (canvasMap[Offset(candidate.dx + sx, candidate.dy + sy)] !=
+                  null) {
+                nearStroke = true;
+                break;
+              }
+            }
+          }
+          if (nearStroke) {
+            additions.add(candidate);
+            visitedExpansion.add(candidate);
+          }
         }
       }
     }
+    if (additions.isEmpty) break;
     expanded.addAll(additions);
   }
 

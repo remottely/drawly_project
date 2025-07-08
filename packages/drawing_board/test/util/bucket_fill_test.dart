@@ -173,5 +173,31 @@ void main() {
         }
       }
     });
+
+    test('no gaps remain next to extremely thick border', () {
+      final border = NormalStroke(
+        points: const [
+          Offset(0, 0),
+          Offset(29, 0),
+          Offset(29, 29),
+          Offset(0, 29),
+          Offset(0, 0),
+        ],
+        color: Colors.black,
+        size: 12,
+      );
+
+      final result = bucketFill(
+        start: const Offset(15, 15),
+        strokes: [border],
+        canvasSize: const Size(30, 30),
+      );
+
+      for (var x = 6; x <= 23; x++) {
+        for (var y = 6; y <= 23; y++) {
+          expect(result.contains(Offset(x.toDouble(), y.toDouble())), isTrue);
+        }
+      }
+    });
   });
 }
