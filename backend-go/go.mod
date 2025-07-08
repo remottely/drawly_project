@@ -47,3 +47,4 @@ require (
 
 // Indica que o módulo `github.com/zishang520/socket.io/v2` é local
 replace github.com/zishang520/socket.io/v2 => ./external/socket.io
+replace github.com/zishang520/engine.io/v2 => ./external/engine.io
