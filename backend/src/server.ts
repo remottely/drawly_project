@@ -9,6 +9,8 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
+// Export the Socket.IO instance for testing purposes
+export { io };
 const PORT = process.env.PORT || 5555;
 
 // Middleware
@@ -268,6 +270,8 @@ export class RoomUserAnswerDTO extends RoomDTO {
 const rooms: { [roomName: string]: Room } = {};
 const roomDrawings: { [roomName: string]: Drawing } = {};
 const roomUsers: { [socketId: string]: RoomUser } = {};
+// Export internal maps so tests can inspect the server state
+export { rooms, roomDrawings, roomUsers };
 const minNumberOfPlayers = 2;
 // TODO(Kevin): Change back to 12
 const maxmNumberOfPlayers = 3;
