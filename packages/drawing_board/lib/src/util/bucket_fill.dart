@@ -234,11 +234,16 @@ List<Offset> bucketFill({
   // Expand the fill area to compensate for anti-aliasing gaps that become
   // visible with thick strokes. The expansion radius scales with the widest
   // stroke on the canvas so that thicker borders receive more dilation.
+  // Copy the flooded pixels before expanding the area to mask anti-aliasing
+  // artifacts. Gaps become more visible with thicker strokes, so the number of
+  // dilation steps scales with the widest stroke on the canvas. Using the full
+  // stroke size rather than half ensures that every edge pixel will be
+  // overwritten regardless of how the outline was rasterized.
   final expanded = <Offset>{...fill};
   final maxStrokeSize = strokes.isEmpty
       ? 0.0
       : strokes.map((s) => s.size).reduce(max);
-  final expansionIterations = (maxStrokeSize / 2).ceil();
+  final expansionIterations = maxStrokeSize.ceil();
   for (var i = 0; i < expansionIterations; i++) {
     final additions = <Offset>{};
     for (final p in expanded) {

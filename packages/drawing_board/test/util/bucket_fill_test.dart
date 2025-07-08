@@ -123,6 +123,32 @@ void main() {
       }
     });
 
+    test('handles very thick borders', () {
+      final border = NormalStroke(
+        points: const [
+          Offset(0, 0),
+          Offset(19, 0),
+          Offset(19, 19),
+          Offset(0, 19),
+          Offset(0, 0),
+        ],
+        color: Colors.black,
+        size: 10,
+      );
+
+      final result = bucketFill(
+        start: const Offset(10, 10),
+        strokes: [border],
+        canvasSize: const Size(20, 20),
+      );
+
+      for (var x = 5; x <= 14; x++) {
+        for (var y = 5; y <= 14; y++) {
+          expect(result.contains(Offset(x.toDouble(), y.toDouble())), isTrue);
+        }
+      }
+    });
+
     test('fractional start does not shift filled area', () {
       final border = NormalStroke(
         points: const [
