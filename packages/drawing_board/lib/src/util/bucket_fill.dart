@@ -231,19 +231,20 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
-  // Expand the fill area slightly so that pixels rendered with anti aliasing
-  // are also covered. Only pixels immediately adjacent to a stroke are
-  // considered for expansion, preventing the fill from leaking outside the
-  // bordered region even when strokes have fractional coordinates.
+  // Expand the fill outward to compensate for aliasing around thick strokes.
+  // Each iteration grows the filled region by one pixel while respecting
+  // existing stroke pixels so that the fill never leaks outside the border.
   final expanded = <Offset>{...fill};
   final visitedExpansion = <Offset>{...fill};
   final maxStrokeSize = strokes.isEmpty
       ? 0.0
       : strokes.map((s) => s.size).reduce(max);
   final expansionIterations = (maxStrokeSize / 2).ceil();
+
+  var frontier = Set<Offset>.from(fill);
   for (var i = 0; i < expansionIterations; i++) {
-    final additions = <Offset>{};
-    for (final p in expanded) {
+    final nextFrontier = <Offset>{};
+    for (final p in frontier) {
       for (var dx = -1; dx <= 1; dx++) {
         for (var dy = -1; dy <= 1; dy++) {
           final candidate = Offset(p.dx + dx, p.dy + dy);
@@ -251,25 +252,14 @@ List<Offset> bucketFill({
           if (visitedExpansion.contains(candidate)) continue;
           if (canvasMap[candidate] != null) continue;
 
-          var nearStroke = false;
-          for (var sx = -1; sx <= 1 && !nearStroke; sx++) {
-            for (var sy = -1; sy <= 1; sy++) {
-              if (canvasMap[Offset(candidate.dx + sx, candidate.dy + sy)] !=
-                  null) {
-                nearStroke = true;
-                break;
-              }
-            }
-          }
-          if (nearStroke) {
-            additions.add(candidate);
-            visitedExpansion.add(candidate);
-          }
+          nextFrontier.add(candidate);
+          visitedExpansion.add(candidate);
         }
       }
     }
-    if (additions.isEmpty) break;
-    expanded.addAll(additions);
+    if (nextFrontier.isEmpty) break;
+    expanded.addAll(nextFrontier);
+    frontier = nextFrontier;
   }
 
   return expanded.toList();
