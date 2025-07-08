@@ -56,3 +56,11 @@ func TestChooseRandomWordSingleEntry(t *testing.T) {
 		t.Fatalf("expected 'apple', got %s", word)
 	}
 }
+
+func TestChooseRandomWordEmpty(t *testing.T) {
+	wordsList = []string{}
+	word := chooseRandomWord()
+	if word != "Nenhuma palavra disponível." {
+		t.Fatalf("expected fallback message, got %s", word)
+	}
+}
