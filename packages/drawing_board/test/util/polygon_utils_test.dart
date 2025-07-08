@@ -17,4 +17,18 @@ void main() {
 
     expect(radius, equals(canvasSize.height / 2));
   });
+
+  test('returns computed radius when inside bounds', () {
+    const first = Offset(10, 10);
+    const last = Offset(30, 10);
+    const size = Size(100, 100);
+
+    final radius = calculateClampedPolygonRadius(
+      firstPoint: first,
+      lastPoint: last,
+      canvasSize: size,
+    );
+
+    expect(radius, equals((first - last).distance / 2));
+  });
 }
