@@ -2,9 +2,8 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:drawly_design_system/drawly_design_system.dart';
-
 import 'package:drawing_board/src/domain/models/stroke.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
 
 /// Flood fill algorithm used for [BucketStroke] rendering.
 ///
@@ -50,7 +49,21 @@ List<Offset> bucketFill({
     }
   }
 
-  Iterable<Offset> _expandedPoints(Stroke stroke) {
+  bool pointInPolygon(Offset point, List<Offset> polygon) {
+    var inside = false;
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      final xi = polygon[i].dx;
+      final yi = polygon[i].dy;
+      final xj = polygon[j].dx;
+      final yj = polygon[j].dy;
+      final intersect = ((yi > point.dy) != (yj > point.dy)) &&
+          (point.dx < (xj - xi) * (point.dy - yi) / (yj - yi + 0.0) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  Iterable<Offset> expandedPoints(Stroke stroke) {
     if (stroke is CircleStroke && stroke.points.length >= 2) {
       final first = stroke.points.first;
       final last = stroke.points.last;
@@ -61,8 +74,8 @@ List<Offset> bucketFill({
 
       // Approximate the circumference of the ellipse to decide how many
       // segments are needed for a smooth outline.
-      final circumference = 2 * pi *
-          sqrt((pow(radiusX, 2) + pow(radiusY, 2)) / 2);
+      final circumference =
+          2 * pi * sqrt((pow(radiusX, 2) + pow(radiusY, 2)) / 2);
       final segments = max(circumference.ceil(), 12);
 
       final pts = <Offset>[];
@@ -94,7 +107,13 @@ List<Offset> bucketFill({
 
     if (stroke is SquareStroke && stroke.points.length >= 2) {
       final rect = Rect.fromPoints(stroke.points.first, stroke.points.last);
-      final pts = <Offset>[rect.topLeft, rect.topRight, rect.bottomRight, rect.bottomLeft, rect.topLeft];
+      final pts = <Offset>[
+        rect.topLeft,
+        rect.topRight,
+        rect.bottomRight,
+        rect.bottomLeft,
+        rect.topLeft,
+      ];
       if (stroke.filled) {
         for (var x = rect.left.floor(); x <= rect.right.ceil(); x++) {
           for (var y = rect.top.floor(); y <= rect.bottom.ceil(); y++) {
@@ -120,11 +139,11 @@ List<Offset> bucketFill({
         pts.add(Offset(x, y));
       }
       if (stroke.filled) {
-        Rect bounds = Rect.fromPoints(first, last).inflate(radius);
+        final bounds = Rect.fromPoints(first, last).inflate(radius);
         for (var x = bounds.left.floor(); x <= bounds.right.ceil(); x++) {
           for (var y = bounds.top.floor(); y <= bounds.bottom.ceil(); y++) {
             final p = Offset(x.toDouble(), y.toDouble());
-            if (_pointInPolygon(p, pts)) {
+            if (pointInPolygon(p, pts)) {
               pts.add(p);
             }
           }
@@ -140,18 +159,6 @@ List<Offset> bucketFill({
     return stroke.points;
   }
 
-  bool _pointInPolygon(Offset point, List<Offset> polygon) {
-    var inside = false;
-    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      final xi = polygon[i].dx, yi = polygon[i].dy;
-      final xj = polygon[j].dx, yj = polygon[j].dy;
-      final intersect = ((yi > point.dy) != (yj > point.dy)) &&
-          (point.dx < (xj - xi) * (point.dy - yi) / (yj - yi + 0.0) + xi);
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  }
-
   for (final stroke in strokes) {
     if (stroke is BucketStroke) {
       for (final p in stroke.fillPixels) {
@@ -160,7 +167,7 @@ List<Offset> bucketFill({
       continue;
     }
 
-    final points = List<Offset>.from(_expandedPoints(stroke));
+    final points = List<Offset>.from(expandedPoints(stroke));
     if (points.isEmpty) continue;
 
     for (var i = 0; i < points.length - 1; i++) {
