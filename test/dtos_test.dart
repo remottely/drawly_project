@@ -39,6 +39,31 @@ void main() {
     });
   });
 
+  test('RoomUserAnswerDTO serialization', () {
+    final dto = RoomUserAnswerDTO(
+      roomName: 'room',
+      userId: 'u3',
+      username: 'user3',
+      text: 'answer',
+    );
+    expect(dto.toJson(), {
+      'roomName': 'room',
+      'userId': 'u3',
+      'username': 'user3',
+      'text': 'answer',
+    });
+  });
+
+  test('ErrorDTO copyWith updates fields', () {
+    final dto = ErrorDTO(message: 'm', action: ErrorActionType.retry);
+    final copy = dto.copyWith(
+      message: 'n',
+      action: ErrorActionType.ignore,
+    );
+    expect(copy.message, 'n');
+    expect(copy.action, ErrorActionType.ignore);
+  });
+
   test('ErrorDTO invalid action throws', () {
     expect(
       () => ErrorDTO.fromJson({'message': 'err', 'action': 'nope'}),
