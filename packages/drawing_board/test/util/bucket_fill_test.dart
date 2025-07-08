@@ -122,5 +122,30 @@ void main() {
         }
       }
     });
+
+    test('fractional start does not shift filled area', () {
+      final border = NormalStroke(
+        points: const [
+          Offset(0, 0),
+          Offset(4, 0),
+          Offset(4, 4),
+          Offset(0, 4),
+          Offset(0, 0),
+        ],
+        color: Colors.black,
+      );
+
+      final result = bucketFill(
+        start: const Offset(1.7, 1.8),
+        strokes: [border],
+        canvasSize: const Size(5, 5),
+      );
+
+      for (var x = 1; x <= 3; x++) {
+        for (var y = 1; y <= 3; y++) {
+          expect(result.contains(Offset(x.toDouble(), y.toDouble())), isTrue);
+        }
+      }
+    });
   });
 }

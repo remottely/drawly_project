@@ -24,7 +24,11 @@ List<Offset> bucketFill({
   required Size canvasSize,
   int? maxPixels,
 }) {
-  final startPoint = Offset(start.dx.roundToDouble(), start.dy.roundToDouble());
+  // Normalize the starting point to the pixel grid using floor instead of
+  // rounding to avoid shifting the fill by a whole pixel. Rounding caused the
+  // fill to drift down-right when the user tapped near the top or left edge of
+  // a pixel.
+  final startPoint = Offset(start.dx.floorToDouble(), start.dy.floorToDouble());
   final width = canvasSize.width.ceil();
   final height = canvasSize.height.ceil();
   final pixelLimit = maxPixels ?? width * height;
@@ -181,7 +185,9 @@ List<Offset> bucketFill({
   }
 
   Color? getColor(Offset p) {
-    final normalized = Offset(p.dx.roundToDouble(), p.dy.roundToDouble());
+    // Use floor to map arbitrary coordinates onto the pixel grid. This keeps
+    // lookups consistent with the starting point normalization.
+    final normalized = Offset(p.dx.floorToDouble(), p.dy.floorToDouble());
     return canvasMap[normalized];
   }
 
@@ -196,8 +202,8 @@ List<Offset> bucketFill({
   while (queue.isNotEmpty && visited.length < pixelLimit) {
     final current = queue.removeFirst();
     final normalized = Offset(
-      current.dx.roundToDouble(),
-      current.dy.roundToDouble(),
+      current.dx.floorToDouble(),
+      current.dy.floorToDouble(),
     );
     if (!visited.add(normalized)) continue;
     if (!inBounds(normalized)) continue;
