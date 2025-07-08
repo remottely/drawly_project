@@ -77,6 +77,21 @@ void main() {
     expect(answer.icon, MessageIconType.check);
   });
 
+  test('Answer.copyWith updates fields', () {
+    const answer = Answer(
+      icon: MessageIconType.info,
+      userId: 'u1',
+      username: 'user',
+      text: 'ok',
+      isCorrect: false,
+    );
+    final updated = answer.copyWith(text: 'new', isCorrect: true);
+    expect(updated.text, 'new');
+    expect(updated.isCorrect, isTrue);
+    expect(updated.userId, 'u1');
+    expect(updated.icon, MessageIconType.info);
+  });
+
   test('Participant.fromJson parses fields', () {
     final json = {
       'userId': 'u1',
