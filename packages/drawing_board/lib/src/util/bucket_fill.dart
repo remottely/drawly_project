@@ -41,12 +41,17 @@ List<Offset> bucketFill({
     final radius = stroke.size / 2;
     final bound = radius.ceil();
     final color = stroke.color.applyOpacity(stroke.opacity);
+
     for (var dx = -bound; dx <= bound; dx++) {
       for (var dy = -bound; dy <= bound; dy++) {
         if (Offset(dx.toDouble(), dy.toDouble()).distance <= radius) {
+          // Floor coordinates so that the generated pixel map aligns with the
+          // bucket fill, which also uses floor when normalizing points. Using
+          // rounding here caused slight offsets between the drawn border and
+          // the computed fill, leaving visible gaps.
           final p = Offset(
-            (center.dx + dx).roundToDouble(),
-            (center.dy + dy).roundToDouble(),
+            (center.dx + dx).floorToDouble(),
+            (center.dy + dy).floorToDouble(),
           );
           canvasMap[p] = color;
         }
@@ -226,11 +231,14 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
-  // Expand the fill area slightly to avoid visible unpainted borders when
-  // using thick strokes. This compensates for anti-aliasing differences
-  // between the canvas and the pixel map used by the fill algorithm.
+  // Expand the fill area to compensate for anti-aliasing gaps that become
+  // visible with thick strokes. The expansion radius scales with the widest
+  // stroke on the canvas so that thicker borders receive more dilation.
   final expanded = <Offset>{...fill};
-  const expansionIterations = 2;
+  final maxStrokeSize = strokes.isEmpty
+      ? 0.0
+      : strokes.map((s) => s.size).reduce(max);
+  final expansionIterations = (maxStrokeSize / 2).ceil();
   for (var i = 0; i < expansionIterations; i++) {
     final additions = <Offset>{};
     for (final p in expanded) {

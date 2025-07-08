@@ -107,7 +107,7 @@ void main() {
           Offset(0, 0),
         ],
         color: Colors.black,
-        size: 4,
+        size: 6,
       );
 
       final result = bucketFill(
