@@ -220,6 +220,25 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
+  // Expand the fill area slightly to avoid visible unpainted borders when
+  // using thick strokes. This compensates for anti-aliasing differences
+  // between the canvas and the pixel map used by the fill algorithm.
+  final expanded = <Offset>{...fill};
+  const expansionIterations = 2;
+  for (var i = 0; i < expansionIterations; i++) {
+    final additions = <Offset>{};
+    for (final p in expanded) {
+      for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+          final candidate = Offset(p.dx + dx, p.dy + dy);
+          if (!inBounds(candidate)) continue;
+          if (canvasMap[candidate] != null) continue;
+          additions.add(candidate);
+        }
+      }
+    }
+    expanded.addAll(additions);
+  }
 
-  return fill;
+  return expanded.toList();
 }

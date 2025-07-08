@@ -96,5 +96,31 @@ void main() {
 
       expect(result.every(insideEllipse), isTrue);
     });
+
+    test('fills area up to thick border without gaps', () {
+      final border = NormalStroke(
+        points: const [
+          Offset(0, 0),
+          Offset(9, 0),
+          Offset(9, 9),
+          Offset(0, 9),
+          Offset(0, 0),
+        ],
+        color: Colors.black,
+        size: 4,
+      );
+
+      final result = bucketFill(
+        start: const Offset(5, 5),
+        strokes: [border],
+        canvasSize: const Size(10, 10),
+      );
+
+      for (var x = 3; x <= 6; x++) {
+        for (var y = 3; y <= 6; y++) {
+          expect(result.contains(Offset(x.toDouble(), y.toDouble())), isTrue);
+        }
+      }
+    });
   });
 }
