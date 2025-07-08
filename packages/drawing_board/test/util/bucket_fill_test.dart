@@ -71,5 +71,30 @@ void main() {
 
       expect(result.length, 9);
     });
+
+    test('respects circle border', () {
+      final circle = CircleStroke(
+        points: const [Offset(1, 1), Offset(3, 3)],
+        color: Colors.black,
+      );
+
+      final result = bucketFill(
+        start: const Offset(2, 2),
+        strokes: [circle],
+        canvasSize: const Size(5, 5),
+      );
+
+      final center = const Offset(2, 2);
+      final radiusX = (circle.points.last.dx - circle.points.first.dx).abs() / 2;
+      final radiusY = (circle.points.last.dy - circle.points.first.dy).abs() / 2;
+
+      bool insideEllipse(Offset p) {
+        final nx = (p.dx - center.dx) / (radiusX == 0 ? 1 : radiusX);
+        final ny = (p.dy - center.dy) / (radiusY == 0 ? 1 : radiusY);
+        return nx * nx + ny * ny < 1;
+      }
+
+      expect(result.every(insideEllipse), isTrue);
+    });
   });
 }
