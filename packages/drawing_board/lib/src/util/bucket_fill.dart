@@ -55,24 +55,40 @@ List<Offset> bucketFill({
       final first = stroke.points.first;
       final last = stroke.points.last;
       final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
-      final radius = (first - last).distance / 2;
-      final circumference = 2 * pi * radius;
+
+      final radiusX = (last.dx - first.dx).abs() / 2;
+      final radiusY = (last.dy - first.dy).abs() / 2;
+
+      // Approximate the circumference of the ellipse to decide how many
+      // segments are needed for a smooth outline.
+      final circumference = 2 * pi *
+          sqrt((pow(radiusX, 2) + pow(radiusY, 2)) / 2);
       final segments = max(circumference.ceil(), 12);
+
       final pts = <Offset>[];
       for (var i = 0; i <= segments; i++) {
         final angle = 2 * pi * i / segments;
-        pts.add(Offset(center.dx + radius * cos(angle), center.dy + radius * sin(angle)));
+        final x = center.dx + radiusX * cos(angle);
+        final y = center.dy + radiusY * sin(angle);
+        pts.add(Offset(x, y));
       }
+
       if (stroke.filled) {
-        for (var x = (center.dx - radius).floor(); x <= (center.dx + radius).ceil(); x++) {
-          for (var y = (center.dy - radius).floor(); y <= (center.dy + radius).ceil(); y++) {
-            final p = Offset(x.toDouble(), y.toDouble());
-            if ((p - center).distance <= radius) {
-              pts.add(p);
+        for (var x = (center.dx - radiusX).floor();
+            x <= (center.dx + radiusX).ceil();
+            x++) {
+          for (var y = (center.dy - radiusY).floor();
+              y <= (center.dy + radiusY).ceil();
+              y++) {
+            final nx = (x - center.dx) / (radiusX == 0 ? 1 : radiusX);
+            final ny = (y - center.dy) / (radiusY == 0 ? 1 : radiusY);
+            if (nx * nx + ny * ny <= 1) {
+              pts.add(Offset(x.toDouble(), y.toDouble()));
             }
           }
         }
       }
+
       return pts;
     }
 

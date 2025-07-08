@@ -85,8 +85,16 @@ void main() {
       );
 
       final center = const Offset(2, 2);
-      final radius = (circle.points.first - circle.points.last).distance / 2;
-      expect(result.every((p) => (p - center).distance < radius), isTrue);
+      final radiusX = (circle.points.last.dx - circle.points.first.dx).abs() / 2;
+      final radiusY = (circle.points.last.dy - circle.points.first.dy).abs() / 2;
+
+      bool insideEllipse(Offset p) {
+        final nx = (p.dx - center.dx) / (radiusX == 0 ? 1 : radiusX);
+        final ny = (p.dy - center.dy) / (radiusY == 0 ? 1 : radiusY);
+        return nx * nx + ny * ny < 1;
+      }
+
+      expect(result.every(insideEllipse), isTrue);
     });
   });
 }
