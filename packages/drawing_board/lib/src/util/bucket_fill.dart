@@ -24,7 +24,11 @@ List<Offset> bucketFill({
   required Size canvasSize,
   int? maxPixels,
 }) {
-  final startPoint = Offset(start.dx.roundToDouble(), start.dy.roundToDouble());
+  // Normalize the starting point to the pixel grid using floor instead of
+  // rounding to avoid shifting the fill by a whole pixel. Rounding caused the
+  // fill to drift down-right when the user tapped near the top or left edge of
+  // a pixel.
+  final startPoint = Offset(start.dx.floorToDouble(), start.dy.floorToDouble());
   final width = canvasSize.width.ceil();
   final height = canvasSize.height.ceil();
   final pixelLimit = maxPixels ?? width * height;
@@ -37,12 +41,17 @@ List<Offset> bucketFill({
     final radius = stroke.size / 2;
     final bound = radius.ceil();
     final color = stroke.color.applyOpacity(stroke.opacity);
+
     for (var dx = -bound; dx <= bound; dx++) {
       for (var dy = -bound; dy <= bound; dy++) {
         if (Offset(dx.toDouble(), dy.toDouble()).distance <= radius) {
+          // Floor coordinates so that the generated pixel map aligns with the
+          // bucket fill, which also uses floor when normalizing points. Using
+          // rounding here caused slight offsets between the drawn border and
+          // the computed fill, leaving visible gaps.
           final p = Offset(
-            (center.dx + dx).roundToDouble(),
-            (center.dy + dy).roundToDouble(),
+            (center.dx + dx).floorToDouble(),
+            (center.dy + dy).floorToDouble(),
           );
           canvasMap[p] = color;
         }
@@ -193,7 +202,9 @@ List<Offset> bucketFill({
   }
 
   Color? getColor(Offset p) {
-    final normalized = Offset(p.dx.roundToDouble(), p.dy.roundToDouble());
+    // Use floor to map arbitrary coordinates onto the pixel grid. This keeps
+    // lookups consistent with the starting point normalization.
+    final normalized = Offset(p.dx.floorToDouble(), p.dy.floorToDouble());
     return canvasMap[normalized];
   }
 
@@ -208,8 +219,8 @@ List<Offset> bucketFill({
   while (queue.isNotEmpty && visited.length < pixelLimit) {
     final current = queue.removeFirst();
     final normalized = Offset(
-      current.dx.roundToDouble(),
-      current.dy.roundToDouble(),
+      current.dx.floorToDouble(),
+      current.dy.floorToDouble(),
     );
     if (!visited.add(normalized)) continue;
     if (!inBounds(normalized)) continue;
@@ -232,6 +243,36 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
+  // Expand the fill outward to compensate for aliasing around thick strokes.
+  // Each iteration grows the filled region by one pixel while respecting
+  // existing stroke pixels so that the fill never leaks outside the border.
+  final expanded = <Offset>{...fill};
+  final visitedExpansion = <Offset>{...fill};
+  final maxStrokeSize = strokes.isEmpty
+      ? 0.0
+      : strokes.map((s) => s.size).reduce(max);
+  final expansionIterations = (maxStrokeSize / 2).ceil();
 
-  return fill;
+  var frontier = Set<Offset>.from(fill);
+  for (var i = 0; i < expansionIterations; i++) {
+    final nextFrontier = <Offset>{};
+    for (final p in frontier) {
+      for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+          final candidate = Offset(p.dx + dx, p.dy + dy);
+          if (!inBounds(candidate)) continue;
+          if (visitedExpansion.contains(candidate)) continue;
+          if (canvasMap[candidate] != null) continue;
+
+          nextFrontier.add(candidate);
+          visitedExpansion.add(candidate);
+        }
+      }
+    }
+    if (nextFrontier.isEmpty) break;
+    expanded.addAll(nextFrontier);
+    frontier = nextFrontier;
+  }
+
+  return expanded.toList();
 }
