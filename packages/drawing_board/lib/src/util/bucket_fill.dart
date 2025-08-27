@@ -2,9 +2,9 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:drawly_design_system/drawly_design_system.dart';
-
 import 'package:drawing_board/src/domain/models/stroke.dart';
+import 'package:drawly_design_system/drawly_design_system.dart';
+import 'polygon_utils.dart';
 
 /// Flood fill algorithm used for [BucketStroke] rendering.
 ///
@@ -24,7 +24,11 @@ List<Offset> bucketFill({
   required Size canvasSize,
   int? maxPixels,
 }) {
-  final startPoint = Offset(start.dx.roundToDouble(), start.dy.roundToDouble());
+  // Normalize the starting point to the pixel grid using floor instead of
+  // rounding to avoid shifting the fill by a whole pixel. Rounding caused the
+  // fill to drift down-right when the user tapped near the top or left edge of
+  // a pixel.
+  final startPoint = Offset(start.dx.floorToDouble(), start.dy.floorToDouble());
   final width = canvasSize.width.ceil();
   final height = canvasSize.height.ceil();
   final pixelLimit = maxPixels ?? width * height;
@@ -37,17 +41,136 @@ List<Offset> bucketFill({
     final radius = stroke.size / 2;
     final bound = radius.ceil();
     final color = stroke.color.applyOpacity(stroke.opacity);
+
     for (var dx = -bound; dx <= bound; dx++) {
       for (var dy = -bound; dy <= bound; dy++) {
         if (Offset(dx.toDouble(), dy.toDouble()).distance <= radius) {
+          // Floor coordinates so that the generated pixel map aligns with the
+          // bucket fill, which also uses floor when normalizing points. Using
+          // rounding here caused slight offsets between the drawn border and
+          // the computed fill, leaving visible gaps.
           final p = Offset(
-            (center.dx + dx).roundToDouble(),
-            (center.dy + dy).roundToDouble(),
+            (center.dx + dx).floorToDouble(),
+            (center.dy + dy).floorToDouble(),
           );
           canvasMap[p] = color;
         }
       }
     }
+  }
+
+  bool pointInPolygon(Offset point, List<Offset> polygon) {
+    var inside = false;
+    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      final xi = polygon[i].dx;
+      final yi = polygon[i].dy;
+      final xj = polygon[j].dx;
+      final yj = polygon[j].dy;
+      final intersect = ((yi > point.dy) != (yj > point.dy)) &&
+          (point.dx < (xj - xi) * (point.dy - yi) / (yj - yi + 0.0) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  Iterable<Offset> expandedPoints(Stroke stroke) {
+    if (stroke is CircleStroke && stroke.points.length >= 2) {
+      final first = stroke.points.first;
+      final last = stroke.points.last;
+      final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
+
+      final radiusX = (last.dx - first.dx).abs() / 2;
+      final radiusY = (last.dy - first.dy).abs() / 2;
+
+      // Approximate the circumference of the ellipse to decide how many
+      // segments are needed for a smooth outline.
+      final circumference =
+          2 * pi * sqrt((pow(radiusX, 2) + pow(radiusY, 2)) / 2);
+      final segments = max(circumference.ceil(), 12);
+
+      final pts = <Offset>[];
+      for (var i = 0; i <= segments; i++) {
+        final angle = 2 * pi * i / segments;
+        final x = center.dx + radiusX * cos(angle);
+        final y = center.dy + radiusY * sin(angle);
+        pts.add(Offset(x, y));
+      }
+
+      if (stroke.filled) {
+        for (var x = (center.dx - radiusX).floor();
+            x <= (center.dx + radiusX).ceil();
+            x++) {
+          for (var y = (center.dy - radiusY).floor();
+              y <= (center.dy + radiusY).ceil();
+              y++) {
+            final nx = (x - center.dx) / (radiusX == 0 ? 1 : radiusX);
+            final ny = (y - center.dy) / (radiusY == 0 ? 1 : radiusY);
+            if (nx * nx + ny * ny <= 1) {
+              pts.add(Offset(x.toDouble(), y.toDouble()));
+            }
+          }
+        }
+      }
+
+      return pts;
+    }
+
+    if (stroke is SquareStroke && stroke.points.length >= 2) {
+      final rect = Rect.fromPoints(stroke.points.first, stroke.points.last);
+      final pts = <Offset>[
+        rect.topLeft,
+        rect.topRight,
+        rect.bottomRight,
+        rect.bottomLeft,
+        rect.topLeft,
+      ];
+      if (stroke.filled) {
+        for (var x = rect.left.floor(); x <= rect.right.ceil(); x++) {
+          for (var y = rect.top.floor(); y <= rect.bottom.ceil(); y++) {
+            pts.add(Offset(x.toDouble(), y.toDouble()));
+          }
+        }
+      }
+      return pts;
+    }
+
+    if (stroke is PolygonStroke && stroke.points.length >= 2) {
+      final first = stroke.points.first;
+      final last = stroke.points.last;
+      final center = Offset((first.dx + last.dx) / 2, (first.dy + last.dy) / 2);
+      final radius = calculateClampedPolygonRadius(
+        firstPoint: first,
+        lastPoint: last,
+        canvasSize: canvasSize,
+      );
+      final pts = <Offset>[];
+      final angleStep = 2 * pi / stroke.sides;
+      const startAngle = -pi / 2;
+      for (var i = 0; i <= stroke.sides; i++) {
+        final angle = startAngle + i * angleStep;
+        final x = center.dx + radius * cos(angle);
+        final y = center.dy + radius * sin(angle);
+        pts.add(Offset(x, y));
+      }
+      if (stroke.filled) {
+        final bounds = Rect.fromPoints(first, last).inflate(radius);
+        for (var x = bounds.left.floor(); x <= bounds.right.ceil(); x++) {
+          for (var y = bounds.top.floor(); y <= bounds.bottom.ceil(); y++) {
+            final p = Offset(x.toDouble(), y.toDouble());
+            if (pointInPolygon(p, pts)) {
+              pts.add(p);
+            }
+          }
+        }
+      }
+      return pts;
+    }
+
+    if (stroke is LineStroke) {
+      return stroke.points;
+    }
+
+    return stroke.points;
   }
 
   for (final stroke in strokes) {
@@ -58,11 +181,12 @@ List<Offset> bucketFill({
       continue;
     }
 
-    if (stroke.points.isEmpty) continue;
+    final points = List<Offset>.from(expandedPoints(stroke));
+    if (points.isEmpty) continue;
 
-    for (var i = 0; i < stroke.points.length - 1; i++) {
-      final p1 = stroke.points[i];
-      final p2 = stroke.points[i + 1];
+    for (var i = 0; i < points.length - 1; i++) {
+      final p1 = points[i];
+      final p2 = points[i + 1];
       final steps = max((p1 - p2).distance.ceil(), 1);
       for (var s = 0; s <= steps; s++) {
         final t = s / steps;
@@ -72,13 +196,15 @@ List<Offset> bucketFill({
       }
     }
 
-    if (stroke.points.length == 1) {
-      plotPixel(stroke.points.first, stroke);
+    if (points.length == 1) {
+      plotPixel(points.first, stroke);
     }
   }
 
   Color? getColor(Offset p) {
-    final normalized = Offset(p.dx.roundToDouble(), p.dy.roundToDouble());
+    // Use floor to map arbitrary coordinates onto the pixel grid. This keeps
+    // lookups consistent with the starting point normalization.
+    final normalized = Offset(p.dx.floorToDouble(), p.dy.floorToDouble());
     return canvasMap[normalized];
   }
 
@@ -93,8 +219,8 @@ List<Offset> bucketFill({
   while (queue.isNotEmpty && visited.length < pixelLimit) {
     final current = queue.removeFirst();
     final normalized = Offset(
-      current.dx.roundToDouble(),
-      current.dy.roundToDouble(),
+      current.dx.floorToDouble(),
+      current.dy.floorToDouble(),
     );
     if (!visited.add(normalized)) continue;
     if (!inBounds(normalized)) continue;
@@ -117,6 +243,36 @@ List<Offset> bucketFill({
       Offset(normalized.dx - 1, normalized.dy - 1),
     ]);
   }
+  // Expand the fill outward to compensate for aliasing around thick strokes.
+  // Each iteration grows the filled region by one pixel while respecting
+  // existing stroke pixels so that the fill never leaks outside the border.
+  final expanded = <Offset>{...fill};
+  final visitedExpansion = <Offset>{...fill};
+  final maxStrokeSize = strokes.isEmpty
+      ? 0.0
+      : strokes.map((s) => s.size).reduce(max);
+  final expansionIterations = (maxStrokeSize / 2).ceil();
 
-  return fill;
+  var frontier = Set<Offset>.from(fill);
+  for (var i = 0; i < expansionIterations; i++) {
+    final nextFrontier = <Offset>{};
+    for (final p in frontier) {
+      for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+          final candidate = Offset(p.dx + dx, p.dy + dy);
+          if (!inBounds(candidate)) continue;
+          if (visitedExpansion.contains(candidate)) continue;
+          if (canvasMap[candidate] != null) continue;
+
+          nextFrontier.add(candidate);
+          visitedExpansion.add(candidate);
+        }
+      }
+    }
+    if (nextFrontier.isEmpty) break;
+    expanded.addAll(nextFrontier);
+    frontier = nextFrontier;
+  }
+
+  return expanded.toList();
 }

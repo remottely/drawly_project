@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUserDTO = exports.RoomDrawingStrokeLastPointsDTO = exports.RoomDrawingStartStrokeDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
+exports.GameManager = exports.TurnManager = exports.DrawingActions = exports.MessageChatActions = exports.AnswerChatActions = exports.RoomManager = exports.RoomUserAnswerDTO = exports.RoomUserMessageDTO = exports.RoomUser = exports.RoomDrawingStrokeLastPointsDTO = exports.RoomDrawingStartStrokeDTO = exports.RoomDTO = exports.ErrorDTO = exports.Participant = exports.Turn = exports.Answer = exports.Message = exports.Room = exports.Drawing = exports.Stroke = exports.Offset = void 0;
 exports.handleUserDisconnect = handleUserDisconnect;
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -14,6 +14,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, { cors: { origin: "*" } });
+exports.io = io;
 const PORT = process.env.PORT || 5555;
 // Middleware
 app.use((0, cors_1.default)());
@@ -205,7 +206,7 @@ class RoomDrawingStrokeLastPointsDTO extends RoomDTO {
     }
 }
 exports.RoomDrawingStrokeLastPointsDTO = RoomDrawingStrokeLastPointsDTO;
-class RoomUserDTO extends RoomDTO {
+class RoomUser extends RoomDTO {
     constructor(roomName, userId, username, userAvatar, isLogged) {
         super(roomName);
         this.userId = userId;
@@ -214,7 +215,7 @@ class RoomUserDTO extends RoomDTO {
         this.isLogged = isLogged;
     }
 }
-exports.RoomUserDTO = RoomUserDTO;
+exports.RoomUser = RoomUser;
 class RoomUserMessageDTO extends RoomDTO {
     constructor(roomName, userId, username, text) {
         super(roomName);
@@ -237,6 +238,9 @@ exports.RoomUserAnswerDTO = RoomUserAnswerDTO;
 const rooms = {};
 const roomDrawings = {};
 const roomUsers = {};
+exports.rooms = rooms;
+exports.roomDrawings = roomDrawings;
+exports.roomUsers = roomUsers;
 const minNumberOfPlayers = 2;
 // TODO(Kevin): Change back to 12
 const maxmNumberOfPlayers = 3;
@@ -511,6 +515,8 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => handleUserDisconnect(socket));
 });
 // Server startup
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
