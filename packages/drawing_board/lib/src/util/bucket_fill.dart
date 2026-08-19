@@ -222,8 +222,13 @@ List<Offset> bucketFill({
       current.dx.floorToDouble(),
       current.dy.floorToDouble(),
     );
-    if (!visited.add(normalized)) continue;
+    // A checagem de limites vem ANTES de contabilizar em `visited`: caso
+    // contrário as coordenadas fora do canvas — que a vizinhança de 8 gera em
+    // toda a borda — consomem o orçamento de `pixelLimit` e o preenchimento
+    // para antes de cobrir a região inteira, deixando uma faixa vazia junto às
+    // bordas.
     if (!inBounds(normalized)) continue;
+    if (!visited.add(normalized)) continue;
 
     final color = getColor(normalized);
     if (baseColor == null && color != null) continue;
@@ -248,9 +253,8 @@ List<Offset> bucketFill({
   // existing stroke pixels so that the fill never leaks outside the border.
   final expanded = <Offset>{...fill};
   final visitedExpansion = <Offset>{...fill};
-  final maxStrokeSize = strokes.isEmpty
-      ? 0.0
-      : strokes.map((s) => s.size).reduce(max);
+  final maxStrokeSize =
+      strokes.isEmpty ? 0.0 : strokes.map((s) => s.size).reduce(max);
   final expansionIterations = (maxStrokeSize / 2).ceil();
 
   var frontier = Set<Offset>.from(fill);
