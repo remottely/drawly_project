@@ -272,8 +272,10 @@ fica verificável em vez de declarado.
 ## 8. Versionamento
 
 Uma versão para o produto inteiro. App, os três packages e a constante `Version` do Go
-sobem **juntos**, no mesmo commit. Hoje estão divergentes (`0.53.5+4` vs `0.51.5`) — isso
-é bug de release, não flexibilidade.
+sobem **juntos**, no mesmo commit. Versão divergente é bug de release, não flexibilidade.
+
+`./scripts/set_version.sh <versão>` escreve nos cinco lugares de uma vez; o `--check`
+falha se algum divergir, e roda no CI.
 
 `MAJOR.MINOR.PATCH+BUILD`, semântico. `BUILD` incrementa a cada artefato publicado.
 
@@ -322,19 +324,19 @@ Exemplos válidos:
 
 ```
 0.54.0+5; feat: add reconnect grace period indicator to the room header
-0.53.6+4; fix: prevent stroke buffer timer from leaking on canvas dispose
-0.53.5+4; refactor: extract RealtimeGateway interface from SocketManager
-0.53.5+4; test: cover room turn rotation with disconnected participants
-0.53.5+4; build: drop font_awesome_flutter in favour of material icons
+0.54.0+5; fix: prevent stroke buffer timer from leaking on canvas dispose
+0.54.0+5; refactor: extract RealtimeGateway interface from SocketManager
+0.54.0+5; test: cover room turn rotation with disconnected participants
+0.54.0+5; build: drop font_awesome_flutter in favour of material icons
 ```
 
 Exemplos inválidos:
 
 ```
 fix: bug                                   → falta versão
-0.53.5+4 fix: bug                          → falta ';'
-0.53.5+4; Fix: Corrige o bug.              → tipo capitalizado, PT-BR, ponto final
-0.53.5+4; feat: add scoring and refactor room registry and fix timer
+0.54.0+5 fix: bug                          → falta ';'
+0.54.0+5; Fix: Corrige o bug.              → tipo capitalizado, PT-BR, ponto final
+0.54.0+5; feat: add scoring and refactor room registry and fix timer
                                            → múltiplas intenções
 ```
 

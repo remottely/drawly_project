@@ -180,12 +180,12 @@ Conventional Commits, prefixed with the product version:
 ```
 
 ```
-0.53.5+4; feat: add spray tool opacity control
-0.53.5+4; fix: keep turn timer running when the drawer reconnects
-0.53.5+4; test: cover guess validation for accented words
-0.53.5+4; docs: document the chat:answer:result payload
-0.53.5+4; refactor: extract stroke serialization from events.go
-0.54.0+5; chore: bump version
+0.54.0+5; feat: add spray tool opacity control
+0.54.0+5; fix: keep turn timer running when the drawer reconnects
+0.54.0+5; test: cover guess validation for accented words
+0.54.0+5; docs: document the chat:answer:result payload
+0.54.0+5; refactor: extract stroke serialization from events.go
+0.55.0+6; chore: bump version
 ```
 
 - The version is the product version **after** the commit, and must match `version:` in the
@@ -205,7 +205,7 @@ opening a pull request.
 The app, the three packages and the Go `Version` constant all move together:
 
 ```bash
-./scripts/set_version.sh 0.54.0+5   # writes all five places
+./scripts/set_version.sh 0.55.0+6   # writes all five places
 ./scripts/set_version.sh --check    # CI runs this
 ```
 

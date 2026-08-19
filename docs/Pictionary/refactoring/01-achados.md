@@ -240,7 +240,7 @@ payload emitido, não por pixel.
 
 | # | Item |
 |---|---|
-| H1 | Versões divergentes: raiz `0.53.5+4`, packages `0.51.5`, Go `Version = "0.51.5"` |
+| H1 | ✅ **corrigido** — versões divergiam (raiz `0.53.5+4`, packages e Go `0.51.5`); hoje os cinco pontos sobem juntos em `0.54.0`, validado por `scripts/set_version.sh --check` |
 | H2 | Sem CI, sem gate de lint, format ou cobertura |
 | H3 | CORS com 8 origens `localhost` hardcoded; `log.DEBUG = true` fixo; porta fixa |
 | H4 | Erro de `http.ListenAndServe` ignorado (`go http.ListenAndServe(...)`) |

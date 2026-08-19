@@ -35,12 +35,12 @@ bug de teste e entra na fila como qualquer outro.
 
 ---
 
-## 5.3 · Sincronizar versões (achado H1)
+## 5.3 · Sincronizar versões (achado H1) — ✅ concluído
 
-Hoje: raiz `0.53.5+4`, os 3 packages `0.51.5`, Go `Version = "0.51.5"`.
+Divergiam: raiz `0.53.5+4`, os 3 packages e o Go em `0.51.5`.
 
-`scripts/set_version.sh <versão>` escreve nos 5 lugares de uma vez, e o CI valida que
-estão idênticas. Versão divergente deixa de ser possível por descuido.
+`scripts/set_version.sh <versão>` escreve nos 5 lugares de uma vez, e `--check` falha se
+algum divergir. Versão divergente deixou de ser possível por descuido.
 
 ---
 
