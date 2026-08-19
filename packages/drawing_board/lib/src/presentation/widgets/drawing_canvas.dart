@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -73,13 +72,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
-    SocketManager.instance.offEvent('connect', _onConnectEvent);
+    SocketManager.instance.off(SocketEvents.connect, _onConnectEvent);
     SocketManager.instance
-        .offEvent('drawing:stroke:all', _onAllStrokesDrawingEvent);
+        .off(SocketEvents.drawingStrokeAll, _onAllStrokesDrawingEvent);
     SocketManager.instance
-        .offEvent('drawing:stroke:start', _onStrokeStartDrawingEvent);
-    SocketManager.instance
-        .offEvent('drawing:stroke:lastPoints', _onStrokeLastPointsDrawingEvent);
+        .off(SocketEvents.drawingStrokeStart, _onStrokeStartDrawingEvent);
+    SocketManager.instance.off(
+        SocketEvents.drawingStrokeLastPoints, _onStrokeLastPointsDrawingEvent);
     super.dispose();
   }
 
@@ -133,7 +132,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
           _awaitingBucketAck = false;
         }
 
-        if (receivedStroke is BucketStroke && receivedStroke.fillPixels.isEmpty) {
+        if (receivedStroke is BucketStroke &&
+            receivedStroke.fillPixels.isEmpty) {
           const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
           receivedStroke.fillPixels = bucketFill(
             start: receivedStroke.points.first,
@@ -155,8 +155,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
     _onStrokeLastPointsDrawingEvent = (data) {
       try {
-        final strokeLastPoints =
-            (data as Map<String, dynamic>)['strokeLastPoints'] as List<dynamic>?;
+        final strokeLastPoints = (data
+            as Map<String, dynamic>)['strokeLastPoints'] as List<dynamic>?;
         if (strokeLastPoints == null) return;
 
         final receivedStrokeLastPoints = strokeLastPoints
@@ -185,13 +185,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       }
     };
 
-    SocketManager.instance.onEvent('connect', _onConnectEvent);
+    SocketManager.instance.on(SocketEvents.connect, _onConnectEvent);
     SocketManager.instance
-        .onEvent('drawing:stroke:all', _onAllStrokesDrawingEvent);
+        .on(SocketEvents.drawingStrokeAll, _onAllStrokesDrawingEvent);
     SocketManager.instance
-        .onEvent('drawing:stroke:start', _onStrokeStartDrawingEvent);
-    SocketManager.instance
-        .onEvent('drawing:stroke:lastPoints', _onStrokeLastPointsDrawingEvent);
+        .on(SocketEvents.drawingStrokeStart, _onStrokeStartDrawingEvent);
+    SocketManager.instance.on(
+        SocketEvents.drawingStrokeLastPoints, _onStrokeLastPointsDrawingEvent);
   }
 
   double _calculateScale(BoxConstraints constraints) {
@@ -227,7 +227,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   void _applyBucketFill(Offset position, double scale) {
     const canvasSize = Size(_canvasSize, _canvasSize / (16 / 9));
-    final fillPixels = bucketFill(start: position, strokes: rxAllStrokes.value, canvasSize: canvasSize);
+    final fillPixels = bucketFill(
+        start: position, strokes: rxAllStrokes.value, canvasSize: canvasSize);
     final stroke = BucketStroke(
       points: [position],
       color: strokeColor,
@@ -249,9 +250,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       roomName: widget.roomName,
       stroke: serverStroke,
     ).toJson();
-    SocketManager.instance.emit('drawing:stroke:start', payload);
+    SocketManager.instance.emit(SocketEvents.drawingStrokeStart, payload);
   }
-
 
   void _sendDrawingPointsStart() {
     if (rxCurrentStroke.value == null) return;
@@ -261,7 +261,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       stroke: rxCurrentStroke.value!,
     ).toJson();
 
-    SocketManager.instance.emit('drawing:stroke:start', payload);
+    SocketManager.instance.emit(SocketEvents.drawingStrokeStart, payload);
     _pendingPoints.clear();
   }
 
@@ -282,7 +282,7 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
       strokeLastPoints: _pendingPoints,
     ).toJson();
 
-    SocketManager.instance.emit('drawing:stroke:lastPoints', payload);
+    SocketManager.instance.emit(SocketEvents.drawingStrokeLastPoints, payload);
     _pendingPoints.clear();
   }
 }
@@ -610,4 +610,3 @@ class _DrawingCanvasPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
-
