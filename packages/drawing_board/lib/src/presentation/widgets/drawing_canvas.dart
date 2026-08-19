@@ -52,6 +52,13 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
   List<Offset> _pendingPoints = [];
   bool _awaitingBucketAck = false;
 
+  /// Timer que esvazia o buffer de pontos periodicamente.
+  ///
+  /// Guardado em campo para poder ser cancelado no [dispose]: sem isso cada
+  /// instância do canvas deixava um timer vivo para sempre, emitindo no socket
+  /// mesmo depois de a tela sair.
+  Timer? _pointsBufferTimer;
+
   final rxIsShowGrid = ValueNotifier<bool>(false);
   Color get strokeColor => widget.options.strokeColor;
   double get size => widget.options.size;
@@ -72,6 +79,8 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   @override
   void dispose() {
+    _pointsBufferTimer?.cancel();
+    _pointsBufferTimer = null;
     SocketManager.instance.off(SocketEvents.connect, _onConnectEvent);
     SocketManager.instance
         .off(SocketEvents.drawingStrokeAll, _onAllStrokesDrawingEvent);
@@ -220,9 +229,10 @@ abstract class DrawingCanvasViewModel extends State<DrawingCanvas> {
 
   /// Starts a periodic timer to send points to the server
   void _startDrawingPointsBuffer() {
-    Timer.periodic(Duration(milliseconds: _bufferDelay), (_) {
-      _sendBufferedDrawingPoints();
-    });
+    _pointsBufferTimer = Timer.periodic(
+      Duration(milliseconds: _bufferDelay),
+      (_) => _sendBufferedDrawingPoints(),
+    );
   }
 
   void _applyBucketFill(Offset position, double scale) {
