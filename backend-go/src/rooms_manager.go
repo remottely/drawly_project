@@ -16,6 +16,9 @@ func newRoom(name string) *Room {
 	}
 }
 
+// createRoom registra uma sala nova, se ainda não existir.
+//
+// Requer stateMu.
 func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
 	if _, exists := rooms[roomName]; !exists {
 		rooms[roomName] = newRoom(roomName)
@@ -25,6 +28,9 @@ func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
 	}
 }
 
+// deleteRoom remove a sala e libera seus recursos.
+//
+// Requer stateMu.
 func deleteRoom(roomName string) {
 	room, exists := rooms[roomName]
 	if exists {
@@ -35,6 +41,9 @@ func deleteRoom(roomName string) {
 	}
 }
 
+// getRoomNames lista os nomes das salas ativas.
+//
+// Requer stateMu.
 func getRoomNames() []string {
 	names := make([]string, 0, len(rooms))
 	for name := range rooms {

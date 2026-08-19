@@ -66,14 +66,22 @@ func TestDisconnectRemovesParticipantAfterGracePeriod(t *testing.T) {
 
 	disconnectParticipant(socket.NewServer(nil, nil), "c1")
 
+	// A leitura passa pelo mesmo lock que o callback do timer usa: o estado é
+	// compartilhado entre a goroutine do teste e a do time.AfterFunc.
 	waitFor(t, func() bool {
-		_, stillInRoom := room.Participants["u1"]
-		return !stillInRoom
+		removed := false
+		withState(func() {
+			_, stillInRoom := room.Participants["u1"]
+			removed = !stillInRoom
+		})
+		return removed
 	}, "participante removido da sala após a tolerância")
 
-	if _, exists := rooms["room"]; exists {
-		t.Error("a sala deveria ser destruída ao ficar sem participantes")
-	}
+	withState(func() {
+		if _, exists := rooms["room"]; exists {
+			t.Error("a sala deveria ser destruída ao ficar sem participantes")
+		}
+	})
 }
 
 // TestDisconnectKeepsParticipantWhenReconnected verifica que reconectar dentro

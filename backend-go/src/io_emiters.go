@@ -6,6 +6,7 @@ import (
 	"github.com/zishang520/socket.io/v2/socket"
 )
 
+// Requer stateMu.
 func emitRoomList(io *socket.Server) {
 	io.Emit(EventRoomAll, map[string]any{
 		"allRooms": getRoomNames(),
@@ -36,6 +37,7 @@ func emitRoomError(io *socket.Server, roomName string, message string, action Er
 	})
 }
 
+// Requer stateMu.
 func emitRanking(io *socket.Server, roomName string) {
 	room, exists := rooms[roomName]
 	if !exists {

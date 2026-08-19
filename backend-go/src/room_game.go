@@ -26,6 +26,11 @@ func chooseRandomWord() string {
 	return wordsList[randomIndex]
 }
 
+// startTurnTimer encerra o turno atual e inicia o próximo.
+//
+// Requer stateMu: é chamada pelos handlers (que já travam) e pelos callbacks de
+// timer (que travam via withState). Não adquire o lock por conta própria — o
+// mutex não é reentrante e ela chama a si mesma pelo timer.
 func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 	room, exists := rooms[roomName]
 	if !exists {
@@ -64,8 +69,11 @@ func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 
 	// Configura o novo timer
 	room.ActiveTimer = afterFunc(time.Duration(totalDuration)*time.Second, func() {
-		logInfo("Timer executado para a sala %s.\n", roomName)
-		startTurnTimer(io, roomName, totalDuration)
+		// Roda em goroutine própria: precisa adquirir o lock do estado.
+		withState(func() {
+			logInfo("Timer executado para a sala %s.\n", roomName)
+			startTurnTimer(io, roomName, totalDuration)
+		})
 	})
 	logInfo("Novo timer configurado para a sala %s.\n", roomName)
 }

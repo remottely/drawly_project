@@ -89,6 +89,9 @@ func handleConnection(io *socket.Server, client *socket.Socket) {
 }
 
 func handleCreateRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	// Verifica se o argumento é um mapa
 	if len(args) > 0 {
 		if data, ok := args[0].(map[string]interface{}); ok {
@@ -99,6 +102,9 @@ func handleCreateRoom(io *socket.Server, client *socket.Socket, args ...interfac
 }
 
 func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	logInfo("Args received: %+v", args...)
 	if len(args) > 1 {
 		// Extraindo e verificando o formato do primeiro argumento
@@ -227,6 +233,9 @@ func handleJoinRoom(io *socket.Server, client *socket.Socket, args ...interface{
 }
 
 func handleLeaveRoom(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -259,6 +268,9 @@ func handleLeaveRoom(io *socket.Server, client *socket.Socket, args ...interface
 }
 
 func handleStartStrokeDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) == 0 {
 		emitClientError(client, "No arguments provided", Nothing)
 		return
@@ -286,6 +298,9 @@ func handleStartStrokeDrawing(io *socket.Server, client *socket.Socket, args ...
 }
 
 func handleLastPointsStrokeDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		// Verifica se o argumento recebido é do tipo esperado
 		data, ok := args[0].(map[string]interface{})
@@ -318,6 +333,9 @@ func handleLastPointsStrokeDrawing(io *socket.Server, client *socket.Socket, arg
 }
 
 func handleClearDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -335,6 +353,9 @@ func handleClearDrawing(io *socket.Server, client *socket.Socket, args ...interf
 }
 
 func handleUndoDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -354,6 +375,9 @@ func handleUndoDrawing(io *socket.Server, client *socket.Socket, args ...interfa
 }
 
 func handleRedoDrawing(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -373,6 +397,9 @@ func handleRedoDrawing(io *socket.Server, client *socket.Socket, args ...interfa
 }
 
 func handleMessageChat(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -395,6 +422,9 @@ func handleMessageChat(io *socket.Server, client *socket.Socket, args ...interfa
 }
 
 func handleGuessAnswerChat(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -477,6 +507,9 @@ func handleGuessAnswerChat(io *socket.Server, client *socket.Socket, args ...int
 }
 
 func handleGameTurnsStart(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
@@ -512,6 +545,9 @@ func handleParticipantDisconnect(io *socket.Server, client *socket.Socket) {
 // disconnectParticipant holds the disconnect logic keyed by client id, so it
 // can be exercised without constructing a real *socket.Socket.
 func disconnectParticipant(io *socket.Server, clientID string) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	userInfo, exists := roomUsers[clientID]
 	if !exists {
 		return
@@ -537,30 +573,32 @@ func disconnectParticipant(io *socket.Server, clientID string) {
 
 		// Adiciona o temporizador de tolerância para reconexão
 		afterFunc(disconnectGraceDelay, func() {
-			// Verifica se o participante ainda está desconectado
-			if !participant.IsConnected {
-				logInfo("Removendo participante %s da sala %s após 5 segundos de desconexão.", participant.Username, room.Name)
+			withState(func() {
+				// Verifica se o participante ainda está desconectado
+				if !participant.IsConnected {
+					logInfo("Removendo participante %s da sala %s após 5 segundos de desconexão.", participant.Username, room.Name)
 
-				// Remove o participante do jogo
-				room.removeParticipant(participant.UserId)
+					// Remove o participante do jogo
+					room.removeParticipant(participant.UserId)
 
-				// Ajusta os turnos se necessário
-				if room.CurrentDrawerTurnIndex >= int8(len(room.TurnQueue)) {
-					room.advanceTurn()
+					// Ajusta os turnos se necessário
+					if room.CurrentDrawerTurnIndex >= int8(len(room.TurnQueue)) {
+						room.advanceTurn()
+					}
+
+					// Atualiza o estado do jogo
+					io.To(socket.Room(room.Name)).Emit(EventRoomParticipantsUpdate, map[string]interface{}{
+						"participants": room.getParticipants(),
+					})
+
+					if len(room.TurnQueue) == 0 {
+						deleteRoom(room.Name) // Remove a sala se não houver mais participantes
+						emitRoomList(io)
+					} else if room.hasEveryoneAnsweredCorrectly() {
+						startTurnTimer(io, room.Name, 60) // Avança o turno
+					}
 				}
-
-				// Atualiza o estado do jogo
-				io.To(socket.Room(room.Name)).Emit(EventRoomParticipantsUpdate, map[string]interface{}{
-					"participants": room.getParticipants(),
-				})
-
-				if len(room.TurnQueue) == 0 {
-					deleteRoom(room.Name) // Remove a sala se não houver mais participantes
-					emitRoomList(io)
-				} else if room.hasEveryoneAnsweredCorrectly() {
-					startTurnTimer(io, room.Name, 60) // Avança o turno
-				}
-			}
+			})
 		})
 	}
 
@@ -568,6 +606,9 @@ func disconnectParticipant(io *socket.Server, clientID string) {
 }
 
 func handleGameRanking(io *socket.Server, client *socket.Socket, args ...interface{}) {
+	stateMu.Lock()
+	defer stateMu.Unlock()
+
 	if len(args) > 0 {
 		data, ok := args[0].(map[string]interface{})
 		if !ok {
