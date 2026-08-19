@@ -7,13 +7,13 @@ import (
 )
 
 func emitRoomList(io *socket.Server) {
-	io.Emit("room:all", map[string]any{
+	io.Emit(EventRoomAll, map[string]any{
 		"allRooms": getRoomNames(),
 	})
 }
 
 func emitDrawingState(io *socket.Server, roomName string, drawing *Drawing) {
-	io.To(socket.Room(roomName)).Emit("drawing:stroke:all", map[string]interface{}{
+	io.To(socket.Room(roomName)).Emit(EventDrawingStrokeAll, map[string]interface{}{
 		"strokes": drawing.Strokes,
 	})
 }
@@ -26,11 +26,11 @@ func emitJoinMessage(io *socket.Server, roomName, userId, username string) {
 		Username: username,
 		Text:     "entrou",
 	}
-	io.To(socket.Room(roomName)).Emit("chat:message", message)
+	io.To(socket.Room(roomName)).Emit(EventChatMessage, message)
 }
 
 func emitRoomError(io *socket.Server, roomName string, message string, action ErrorActionType) {
-	io.To(socket.Room(roomName)).Emit("error", ErrorDTO{
+	io.To(socket.Room(roomName)).Emit(EventError, ErrorDTO{
 		Message: message,
 		Action:  action,
 	})
@@ -58,7 +58,7 @@ func emitRanking(io *socket.Server, roomName string) {
 		return ranking[i]["score"].(uint16) > ranking[j]["score"].(uint16)
 	})
 
-	io.To(socket.Room(roomName)).Emit("game:ranking", map[string]any{
+	io.To(socket.Room(roomName)).Emit(EventGameRanking, map[string]any{
 		"ranking": ranking,
 	})
 }

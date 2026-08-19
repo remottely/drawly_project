@@ -14,6 +14,10 @@ var wordsList = []string{
 	// "futebol", "bola", "cama", "travesseiro", "cobertor", "chave", "porta",
 }
 
+// afterFunc é o agendador usado pelo jogo. É uma variável de pacote para que o
+// teste possa substituir o relógio real por um controlado, em vez de dormir.
+var afterFunc = time.AfterFunc
+
 func chooseRandomWord() string {
 	if len(wordsList) == 0 {
 		return "Nenhuma palavra disponível."
@@ -45,7 +49,7 @@ func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 	wordToDraw := chooseRandomWord()
 	room.CurrentWord = wordToDraw
 
-	io.To(socket.Room(roomName)).Emit("game:turn:new", Turn{
+	io.To(socket.Room(roomName)).Emit(EventGameTurnNew, Turn{
 		Word:                  wordToDraw,
 		Turn:                  room.TurnCount,
 		TotalDuration:         totalDuration * 1000,
@@ -54,12 +58,12 @@ func startTurnTimer(io *socket.Server, roomName string, totalDuration uint32) {
 		IsGameStarted:         room.IsGameStarted,
 	})
 
-	io.To(socket.Room(roomName)).Emit("room:participants:update", map[string]any{
+	io.To(socket.Room(roomName)).Emit(EventRoomParticipantsUpdate, map[string]any{
 		"participants": room.getParticipants(),
 	})
 
 	// Configura o novo timer
-	room.ActiveTimer = time.AfterFunc(time.Duration(totalDuration)*time.Second, func() {
+	room.ActiveTimer = afterFunc(time.Duration(totalDuration)*time.Second, func() {
 		logInfo("Timer executado para a sala %s.\n", roomName)
 		startTurnTimer(io, roomName, totalDuration)
 	})

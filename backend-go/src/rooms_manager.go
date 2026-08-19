@@ -21,7 +21,7 @@ func createRoom(io *socket.Server, client *socket.Socket, roomName string) {
 		rooms[roomName] = newRoom(roomName)
 		roomDrawings[roomName] = &Drawing{}
 		emitRoomList(io) // Atualiza a lista de salas
-		client.Emit("room:created", map[string]interface{}{"roomName": roomName})
+		client.Emit(EventRoomCreated, map[string]interface{}{"roomName": roomName})
 	}
 }
 
